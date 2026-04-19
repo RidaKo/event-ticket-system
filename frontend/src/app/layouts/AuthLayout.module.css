@@ -1,0 +1,16 @@
+.shell {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: var(--space-6);
+  background: var(--color-surface);
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
