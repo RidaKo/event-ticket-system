@@ -1,3 +1,11 @@
+import { RouterProvider } from 'react-router-dom';
+import { QueryProvider } from '@/app/providers/QueryProvider';
+import { router } from './router';
+
 export default function App() {
-  return <h1>Event Ticket System</h1>;
+  return (
+    <QueryProvider>
+      <RouterProvider router={router} />
+    </QueryProvider>
+  );
 }
