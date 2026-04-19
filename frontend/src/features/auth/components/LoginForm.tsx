@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { ApiError } from '@/shared/lib/api-error';
@@ -24,12 +25,18 @@ export function LoginForm() {
     defaultValues: { username: '', password: '' },
   });
   const login = useLogin();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/';
 
   const onSubmit = handleSubmit(async (values) => {
     login.reset();
-    await login.mutateAsync(values).catch(() => {
+    try {
+      await login.mutateAsync(values);
+      navigate(redirectTo, { replace: true });
+    } catch {
       /* error surfaces via login.error */
-    });
+    }
   });
 
   const serverError = login.error instanceof ApiError ? login.error.message : null;
