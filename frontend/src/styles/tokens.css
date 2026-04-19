@@ -1,0 +1,35 @@
+:root {
+  /* Color tokens — placeholder palette. Swap with Figma tokens as designs land. */
+  --color-bg: #ffffff;
+  --color-surface: #f6f7fb;
+  --color-text: #1b1d24;
+  --color-text-muted: #5a6072;
+  --color-primary: #2f5bea;
+  --color-primary-hover: #2548c0;
+  --color-border: #d8dbe3;
+  --color-danger: #c23b3b;
+  --color-success: #1f8b4a;
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Typography */
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 4px 8px rgba(16, 24, 40, 0.08);
+}
