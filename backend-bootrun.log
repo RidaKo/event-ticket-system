@@ -1,0 +1,998 @@
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>if "Windows_NT" == "Windows_NT" setlocal
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>set DIRNAME=C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend\ 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>if "C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend\" == "" set DIRNAME=. 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>set APP_BASE_NAME=gradlew 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>set APP_HOME=C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend\ 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>for %i in ("C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend\") do set APP_HOME=%~fi 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>set APP_HOME=C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend\ 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>set JAVA_HOME=C:\Program Files\Java\jdk-21 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>set JAVA_EXE=C:\Program Files\Java\jdk-21/bin/java.exe 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>if exist "C:\Program Files\Java\jdk-21/bin/java.exe" goto execute 
+
+C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend>"C:\Program Files\Java\jdk-21/bin/java.exe" "-Xmx64m" "-Xms64m"   "-Dorg.gradle.appname=gradlew" -jar "C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend\\gradle\wrapper\gradle-wrapper.jar" bootRun 
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :resolveMainClassName
+
+> Task :bootRun
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.5)
+
+2026-04-24T01:04:17.154+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] c.p.e.EventTicketSystemApplication       : Starting EventTicketSystemApplication using Java 21.0.2 with PID 26600 (C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend\build\classes\java\main started by lewow in C:\Users\lewow\Documents\Workspace\EventTicketSystem\event-ticket-system\backend)
+2026-04-24T01:04:17.158+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] c.p.e.EventTicketSystemApplication       : No active profile set, falling back to 1 default profile: "default"
+2026-04-24T01:04:17.159+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.boot.SpringApplication               : Loading source class com.paradise.event_ticket_system.EventTicketSystemApplication
+2026-04-24T01:04:17.212+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.devtools.restart.ChangeableUrls    : Matching URLs for reloading : [file:/C:/Users/lewow/Documents/Workspace/EventTicketSystem/event-ticket-system/backend/build/classes/java/main/, file:/C:/Users/lewow/Documents/Workspace/EventTicketSystem/event-ticket-system/backend/build/resources/main/]
+2026-04-24T01:04:17.212+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.d.settings.DevToolsSettings        : Included patterns for restart : []
+2026-04-24T01:04:17.212+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.d.settings.DevToolsSettings        : Excluded patterns for restart : [/spring-boot-starter-[\w-]+/, /spring-boot/(bin|build|out)/, /spring-boot-starter/(bin|build|out)/, /spring-boot-devtools/(bin|build|out)/, /spring-boot-actuator/(bin|build|out)/, /spring-boot-autoconfigure/(bin|build|out)/]
+2026-04-24T01:04:17.212+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-04-24T01:04:17.212+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-04-24T01:04:17.212+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] ConfigServletWebServerApplicationContext : Refreshing org.springframework.boot.web.server.servlet.context.AnnotationConfigServletWebServerApplicationContext@22c39d3c
+2026-04-24T01:04:17.934+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-24T01:04:17.952+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.a.AutoConfigurationPackages        : @EnableAutoConfiguration was declared on a class in the package 'com.paradise.event_ticket_system'. Automatic @Repository and @Entity scanning is enabled.
+2026-04-24T01:04:18.087+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 144 ms. Found 5 JPA repository interfaces.
+2026-04-24T01:04:18.581+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.t.s.TomcatServletWebServerFactory  : Code archive: C:\Users\lewow\.gradle\caches\modules-2\files-2.1\org.springframework.boot\spring-boot-web-server\4.0.5\e70e3422c68f2fae6fcb2782be5fa31c0a788a6d\spring-boot-web-server-4.0.5.jar
+2026-04-24T01:04:18.581+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.t.s.TomcatServletWebServerFactory  : Code archive: C:\Users\lewow\.gradle\caches\modules-2\files-2.1\org.springframework.boot\spring-boot-web-server\4.0.5\e70e3422c68f2fae6fcb2782be5fa31c0a788a6d\spring-boot-web-server-4.0.5.jar
+2026-04-24T01:04:18.582+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.t.s.TomcatServletWebServerFactory  : None of the document roots [src/main/webapp, public, static] point to a directory and will be ignored.
+2026-04-24T01:04:18.634+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-04-24T01:04:18.651+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-24T01:04:18.651+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.20]
+2026-04-24T01:04:18.699+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Published root WebApplicationContext as ServletContext attribute with name [org.springframework.web.context.WebApplicationContext.ROOT]
+2026-04-24T01:04:18.699+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1487 ms
+2026-04-24T01:04:18.719+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.w.s.ServletContextInitializerBeans : Mapping filters: springSessionRepositoryFilter urls=[/*] order=-2147483598, characterEncodingFilter urls=[/*] order=-2147483648, formContentFilter urls=[/*] order=-9900, requestContextFilter urls=[/*] order=-105
+2026-04-24T01:04:18.720+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.w.s.ServletContextInitializerBeans : Mapping servlets: dispatcherServlet urls=[/]
+2026-04-24T01:04:18.739+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.s.f.OrderedRequestContextFilter    : Filter 'requestContextFilter' configured for use
+2026-04-24T01:04:18.740+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] .DelegatingFilterProxyRegistrationBean$1 : Filter 'springSessionRepositoryFilter' configured for use
+2026-04-24T01:04:18.740+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.s.f.OrderedCharacterEncodingFilter : Filter 'characterEncodingFilter' configured for use
+2026-04-24T01:04:18.740+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.s.filter.OrderedFormContentFilter  : Filter 'formContentFilter' configured for use
+2026-04-24T01:04:18.793+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-24T01:04:18.948+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:mydb user=SA
+2026-04-24T01:04:18.950+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-24T01:04:19.057+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-04-24T01:04:19.110+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.7.Final
+2026-04-24T01:04:19.641+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-24T01:04:19.695+03:00  WARN 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-24T01:04:19.712+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:h2:mem:mydb]
+	Database driver: H2 JDBC Driver
+	Database dialect: H2Dialect
+	Database version: 2.4.240
+	Default catalog/schema: MYDB/PUBLIC
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: 100
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-24T01:04:20.834+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-24T01:04:20.884+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : create table discount_code (id bigint generated by default as identity, active boolean not null, code varchar(255), expires_at timestamp(6), max_redemptions integer, type enum ('FIXED','PERCENT'), used_count integer not null, discount_value numeric(38,2), event_id bigint not null, primary key (id))
+2026-04-24T01:04:20.890+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : create table event (id bigint generated by default as identity, address varchar(255), city varchar(255), country varchar(255), description varchar(255), ends_at timestamp(6), sales_enabled boolean not null, starts_at timestamp(6), title varchar(255), venue_name varchar(255), primary key (id))
+2026-04-24T01:04:20.891+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : create table order_items (id bigint generated by default as identity, line_total numeric(38,2), quantity integer not null, ticket_name varchar(255), unit_price numeric(38,2), order_id bigint not null, ticket_type_id bigint not null, primary key (id))
+2026-04-24T01:04:20.893+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : create table payment (id bigint generated by default as identity, amount numeric(38,2), card_last4 varchar(255), created_at timestamp(6), method_type enum ('CARD','WALLET'), provider_reference varchar(255), status enum ('FAILED','PENDING','SUCCEEDED'), order_id bigint not null, primary key (id))
+2026-04-24T01:04:20.894+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : create table purchase_orders (id bigint generated by default as identity, confirmed_at timestamp(6), created_at timestamp(6), discount_amount numeric(38,2), guest_email varchar(255), guest_name varchar(255), order_number varchar(255), status enum ('CONFIRMED','PAYMENT_FAILED','PENDING_PAYMENT'), subtotal numeric(38,2), total_amount numeric(38,2), discount_code_id bigint, event_id bigint not null, primary key (id))
+2026-04-24T01:04:20.896+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : create table ticket_type (id bigint generated by default as identity, name varchar(255), price numeric(38,2), sales_enabled boolean not null, sold_quantity integer not null, total_quantity integer not null, event_id bigint not null, primary key (id))
+2026-04-24T01:04:20.897+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists payment drop constraint if exists UKmf7n8wo2rwrxsd6f3t9ub2mep
+2026-04-24T01:04:20.898+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists payment add constraint UKmf7n8wo2rwrxsd6f3t9ub2mep unique (order_id)
+2026-04-24T01:04:20.899+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists discount_code add constraint FKddo46y8onihfla9d8q522qj5f foreign key (event_id) references event
+2026-04-24T01:04:20.901+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists order_items add constraint FK4m3smlmiapqd1brpm0ud1ip9t foreign key (order_id) references purchase_orders
+2026-04-24T01:04:20.903+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists order_items add constraint FKomhof84e573f3gvdg8wroq38t foreign key (ticket_type_id) references ticket_type
+2026-04-24T01:04:20.904+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists payment add constraint FKsrtd2c6mw08tufivmgww58e5l foreign key (order_id) references purchase_orders
+2026-04-24T01:04:20.905+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists purchase_orders add constraint FK6x9kkmeww18v1a3rrs5ucy611 foreign key (discount_code_id) references discount_code
+2026-04-24T01:04:20.906+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists purchase_orders add constraint FK5rtno1t5717ax9yfhm2chomp0 foreign key (event_id) references event
+2026-04-24T01:04:20.907+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : alter table if exists ticket_type add constraint FKaweoyslbbcildghmy091ascje foreign key (event_id) references event
+2026-04-24T01:04:20.909+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-24T01:04:20.997+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-24T01:04:21.877+03:00  WARN 26600 --- [event-ticket-system] [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-24T01:04:21.970+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] s.w.s.m.m.a.RequestMappingHandlerMapping : 10 mappings in 'requestMappingHandlerMapping'
+2026-04-24T01:04:21.995+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2026-04-24T01:04:22.015+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 2 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-04-24T01:04:22.062+03:00  WARN 26600 --- [event-ticket-system] [  restartedMain] ion$DefaultTemplateResolverConfiguration : Cannot find template location: classpath:/templates/ (please add some templates, check your Thymeleaf configuration, or set spring.thymeleaf.check-template-location=false)
+2026-04-24T01:04:22.082+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 0 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-04-24T01:04:22.385+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-04-24T01:04:22.394+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+
+============================
+CONDITIONS EVALUATION REPORT
+============================
+
+
+Positive matches:
+-----------------
+
+   AopAutoConfiguration matched:
+      - @ConditionalOnBooleanProperty (spring.aop.auto=true) matched (OnPropertyCondition)
+
+   AopAutoConfiguration.AspectJAutoProxyingConfiguration matched:
+      - @ConditionalOnClass found required class 'org.aspectj.weaver.Advice' (OnClassCondition)
+
+   AopAutoConfiguration.AspectJAutoProxyingConfiguration.CglibAutoProxyConfiguration matched:
+      - @ConditionalOnBooleanProperty (spring.aop.proxy-target-class=true) matched (OnPropertyCondition)
+
+   ApplicationAvailabilityAutoConfiguration#applicationAvailability matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.availability.ApplicationAvailability; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   CodecsAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'org.springframework.http.codec.CodecConfigurer', 'org.springframework.web.reactive.function.client.WebClient' (OnClassCondition)
+
+   CodecsAutoConfiguration.JacksonJsonCodecConfiguration matched:
+      - @ConditionalOnClass found required class 'tools.jackson.databind.json.JsonMapper' (OnClassCondition)
+      - @ConditionalOnProperty (spring.http.codecs.preferred-json-mapper=jackson) matched (OnPropertyCondition)
+
+   CodecsAutoConfiguration.JacksonJsonCodecConfiguration#jacksonCodecCustomizer matched:
+      - @ConditionalOnBean (types: tools.jackson.databind.json.JsonMapper; SearchStrategy: all) found bean 'jacksonJsonMapper' (OnBeanCondition)
+
+   DataJpaRepositoriesAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.data.jpa.repository.JpaRepository' (OnClassCondition)
+      - @ConditionalOnBooleanProperty (spring.data.jpa.repositories.enabled=true) matched (OnPropertyCondition)
+      - @ConditionalOnBean (types: javax.sql.DataSource; SearchStrategy: all) found bean 'dataSource'; @ConditionalOnMissingBean (types: org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean,org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataSourceAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType' (OnClassCondition)
+      - @ConditionalOnMissingBean (types: io.r2dbc.spi.ConnectionFactory; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataSourceAutoConfiguration.PooledDataSourceConfiguration matched:
+      - AnyNestedCondition 1 matched 1 did not; NestedCondition on DataSourceAutoConfiguration.PooledDataSourceCondition.PooledDataSourceAvailable PooledDataSource found supported DataSource; NestedCondition on DataSourceAutoConfiguration.PooledDataSourceCondition.ExplicitType @ConditionalOnProperty (spring.datasource.type) did not find property 'spring.datasource.type' (DataSourceAutoConfiguration.PooledDataSourceCondition)
+      - @ConditionalOnMissingBean (types: javax.sql.DataSource,javax.sql.XADataSource; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataSourceAutoConfiguration.PooledDataSourceConfiguration#jdbcConnectionDetails matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.jdbc.autoconfigure.JdbcConnectionDetails; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataSourceConfiguration.Hikari matched:
+      - @ConditionalOnClass found required class 'com.zaxxer.hikari.HikariDataSource' (OnClassCondition)
+      - @ConditionalOnProperty (spring.datasource.type=com.zaxxer.hikari.HikariDataSource) matched (OnPropertyCondition)
+      - @ConditionalOnMissingBean (types: javax.sql.DataSource; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataSourceInitializationAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.jdbc.datasource.init.DatabasePopulator' (OnClassCondition)
+      - SQL InitializationDatabase Initialization default value is EMBEDDED (OnSqlInitializationCondition)
+      - @ConditionalOnSingleCandidate (types: javax.sql.DataSource; SearchStrategy: all) found a single bean 'dataSource'; @ConditionalOnMissingBean (types: org.springframework.boot.sql.autoconfigure.init.ApplicationScriptDatabaseInitializer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataSourcePoolMetadataProvidersConfiguration.HikariPoolDataSourceMetadataProviderConfiguration matched:
+      - @ConditionalOnClass found required class 'com.zaxxer.hikari.HikariDataSource' (OnClassCondition)
+
+   DataSourceTransactionManagerAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'org.springframework.jdbc.core.JdbcTemplate', 'org.springframework.transaction.TransactionManager' (OnClassCondition)
+
+   DataSourceTransactionManagerAutoConfiguration.JdbcTransactionManagerConfiguration matched:
+      - @ConditionalOnSingleCandidate (types: javax.sql.DataSource; SearchStrategy: all) found a single bean 'dataSource' (OnBeanCondition)
+
+   DataWebAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'org.springframework.data.web.PageableHandlerMethodArgumentResolver', 'org.springframework.web.servlet.config.annotation.WebMvcConfigurer' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+      - @ConditionalOnMissingBean (types: org.springframework.data.web.PageableHandlerMethodArgumentResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataWebAutoConfiguration#pageableCustomizer matched:
+      - @ConditionalOnMissingBean (types: org.springframework.data.web.config.PageableHandlerMethodArgumentResolverCustomizer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataWebAutoConfiguration#sortCustomizer matched:
+      - @ConditionalOnMissingBean (types: org.springframework.data.web.config.SortHandlerMethodArgumentResolverCustomizer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DataWebAutoConfiguration#springDataWebSettings matched:
+      - @ConditionalOnMissingBean (types: org.springframework.data.web.config.SpringDataWebSettings; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   DevToolsDataSourceAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'javax.sql.DataSource' (OnClassCondition)
+      - Devtools devtools enabled. (OnEnabledDevToolsCondition)
+      - DevTools DataSource Condition found auto-configured DataSource (DevToolsDataSourceAutoConfiguration.DevToolsDataSourceCondition)
+
+   DevToolsDataSourceAutoConfiguration.DatabaseShutdownExecutorEntityManagerFactoryDependsOnConfiguration matched:
+      - @ConditionalOnClass found required classes 'org.springframework.boot.jpa.autoconfigure.EntityManagerFactoryDependsOnPostProcessor', 'org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean' (OnClassCondition)
+      - @ConditionalOnBean (types: org.springframework.orm.jpa.AbstractEntityManagerFactoryBean; SearchStrategy: all) found bean '&entityManagerFactory' (OnBeanCondition)
+
+   DispatcherServletAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.web.servlet.DispatcherServlet' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+
+   DispatcherServletAutoConfiguration.DispatcherServletConfiguration matched:
+      - @ConditionalOnClass found required class 'jakarta.servlet.ServletRegistration' (OnClassCondition)
+      - Default DispatcherServlet did not find dispatcher servlet beans (DispatcherServletAutoConfiguration.DefaultDispatcherServletCondition)
+
+   DispatcherServletAutoConfiguration.DispatcherServletRegistrationConfiguration matched:
+      - @ConditionalOnClass found required class 'jakarta.servlet.ServletRegistration' (OnClassCondition)
+      - DispatcherServlet Registration did not find servlet registration bean (DispatcherServletAutoConfiguration.DispatcherServletRegistrationCondition)
+
+   DispatcherServletAutoConfiguration.DispatcherServletRegistrationConfiguration#dispatcherServletRegistration matched:
+      - @ConditionalOnBean (names: dispatcherServlet types: org.springframework.web.servlet.DispatcherServlet; SearchStrategy: all) found bean 'dispatcherServlet' (OnBeanCondition)
+
+   ErrorMvcAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'org.springframework.web.servlet.DispatcherServlet' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+
+   ErrorMvcAutoConfiguration#basicErrorController matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.webmvc.error.ErrorController; SearchStrategy: current) did not find any beans (OnBeanCondition)
+
+   ErrorMvcAutoConfiguration#errorAttributes matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.webmvc.error.ErrorAttributes; SearchStrategy: current) did not find any beans (OnBeanCondition)
+
+   ErrorMvcAutoConfiguration.DefaultErrorViewResolverConfiguration#conventionErrorViewResolver matched:
+      - @ConditionalOnBean (types: org.springframework.web.servlet.DispatcherServlet; SearchStrategy: all) found bean 'dispatcherServlet'; @ConditionalOnMissingBean (types: org.springframework.boot.webmvc.autoconfigure.error.ErrorViewResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   ErrorMvcAutoConfiguration.WhitelabelErrorViewConfiguration matched:
+      - @ConditionalOnBooleanProperty (spring.web.error.whitelabel.enabled=true) matched (OnPropertyCondition)
+      - ErrorTemplate Missing did not find error template view (ErrorMvcAutoConfiguration.ErrorTemplateMissingCondition)
+
+   ErrorMvcAutoConfiguration.WhitelabelErrorViewConfiguration#beanNameViewResolver matched:
+      - @ConditionalOnMissingBean (types: org.springframework.web.servlet.view.BeanNameViewResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   ErrorMvcAutoConfiguration.WhitelabelErrorViewConfiguration#defaultErrorView matched:
+      - @ConditionalOnMissingBean (names: error; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   HibernateJpaAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean', 'jakarta.persistence.EntityManager', 'org.hibernate.engine.spi.SessionImplementor' (OnClassCondition)
+
+   HibernateJpaConfiguration matched:
+      - @ConditionalOnSingleCandidate (types: javax.sql.DataSource; SearchStrategy: all) found a single bean 'dataSource' (OnBeanCondition)
+
+   HttpEncodingAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.web.filter.CharacterEncodingFilter' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+      - @ConditionalOnBooleanProperty (spring.servlet.encoding.enabled=true) matched (OnPropertyCondition)
+
+   HttpEncodingAutoConfiguration#characterEncodingFilter matched:
+      - @ConditionalOnMissingBean (types: org.springframework.web.filter.CharacterEncodingFilter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   HttpMessageConvertersAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.http.converter.HttpMessageConverter' (OnClassCondition)
+      - NoneNestedConditions 0 matched 1 did not; NestedCondition on HttpMessageConvertersAutoConfiguration.NotReactiveWebApplicationCondition.ReactiveWebApplication not a reactive web application (HttpMessageConvertersAutoConfiguration.NotReactiveWebApplicationCondition)
+
+   HttpMessageConvertersAutoConfiguration.StringHttpMessageConverterConfiguration#stringHttpMessageConvertersCustomizer matched:
+      - @ConditionalOnMissingBean (types: org.springframework.http.converter.StringHttpMessageConverter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JacksonAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'tools.jackson.databind.json.JsonMapper' (OnClassCondition)
+
+   JacksonAutoConfiguration#jacksonJsonMapper matched:
+      - @ConditionalOnMissingBean (types: tools.jackson.databind.json.JsonMapper; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JacksonAutoConfiguration#jsonMapperBuilder matched:
+      - @ConditionalOnMissingBean (types: tools.jackson.databind.json.JsonMapper$Builder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JacksonAutoConfiguration.JsonProblemDetailsConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.http.ProblemDetail' (OnClassCondition)
+
+   JacksonHttpMessageConvertersConfiguration.JacksonJsonHttpMessageConverterConfiguration matched:
+      - @ConditionalOnClass found required class 'tools.jackson.databind.json.JsonMapper' (OnClassCondition)
+      - @ConditionalOnProperty (spring.http.converters.preferred-json-mapper=jackson) matched (OnPropertyCondition)
+      - @ConditionalOnBean (types: tools.jackson.databind.json.JsonMapper; SearchStrategy: all) found bean 'jacksonJsonMapper' (OnBeanCondition)
+
+   JacksonHttpMessageConvertersConfiguration.JacksonJsonHttpMessageConverterConfiguration#jacksonJsonHttpMessageConvertersCustomizer matched:
+      - @ConditionalOnMissingBean (types: org.springframework.http.converter.json.JacksonJsonHttpMessageConverter ignored: org.springframework.hateoas.server.mvc.TypeConstrainedJacksonJsonHttpMessageConverter,org.springframework.data.rest.webmvc.alps.AlpsJacksonJsonHttpMessageConverter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JdbcClientAutoConfiguration matched:
+      - @ConditionalOnSingleCandidate (types: org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate; SearchStrategy: all) found a single bean 'namedParameterJdbcTemplate'; @ConditionalOnMissingBean (types: org.springframework.jdbc.core.simple.JdbcClient; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JdbcSessionAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'org.springframework.session.Session', 'org.springframework.jdbc.core.JdbcTemplate', 'org.springframework.session.jdbc.JdbcIndexedSessionRepository' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+      - @ConditionalOnBean (types: javax.sql.DataSource; SearchStrategy: all) found bean 'dataSource'; @ConditionalOnMissingBean (types: org.springframework.session.SessionRepository; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JdbcSessionAutoConfiguration#jdbcSessionDataSourceScriptDatabaseInitializer matched:
+      - Jdbc SessionDatabase Initialization default value is EMBEDDED (JdbcSessionAutoConfiguration.OnJdbcSessionDatasourceInitializationCondition)
+      - @ConditionalOnMissingBean (types: org.springframework.boot.session.jdbc.autoconfigure.JdbcSessionDataSourceScriptDatabaseInitializer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JdbcTemplateAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'org.springframework.jdbc.core.JdbcTemplate' (OnClassCondition)
+      - @ConditionalOnSingleCandidate (types: javax.sql.DataSource; SearchStrategy: all) found a single bean 'dataSource' (OnBeanCondition)
+
+   JdbcTemplateConfiguration matched:
+      - @ConditionalOnMissingBean (types: org.springframework.jdbc.core.JdbcOperations; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JpaBaseConfiguration#entityManagerFactory matched:
+      - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean,jakarta.persistence.EntityManagerFactory; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JpaBaseConfiguration#entityManagerFactoryBuilder matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.jpa.EntityManagerFactoryBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JpaBaseConfiguration#jpaVendorAdapter matched:
+      - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.JpaVendorAdapter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JpaBaseConfiguration#transactionManager matched:
+      - @ConditionalOnMissingBean (types: org.springframework.transaction.TransactionManager; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JpaBaseConfiguration.JpaWebConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.web.servlet.config.annotation.WebMvcConfigurer' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+      - @ConditionalOnBooleanProperty (spring.jpa.open-in-view=true) matched (OnPropertyCondition)
+      - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.support.OpenEntityManagerInViewInterceptor,org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JpaBaseConfiguration.PersistenceManagedTypesConfiguration matched:
+      - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean,jakarta.persistence.EntityManagerFactory; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JpaBaseConfiguration.PersistenceManagedTypesConfiguration#persistenceManagedTypes matched:
+      - @ConditionalOnMissingBean (types: org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   JtaAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'jakarta.transaction.Transaction' (OnClassCondition)
+      - @ConditionalOnBooleanProperty (spring.jta.enabled=true) matched (OnPropertyCondition)
+
+   LifecycleAutoConfiguration#defaultLifecycleProcessor matched:
+      - @ConditionalOnMissingBean (names: lifecycleProcessor; SearchStrategy: current) did not find any beans (OnBeanCondition)
+
+   LocalDevToolsAutoConfiguration matched:
+      - Initialized Restarter Condition available and initialized (OnInitializedRestarterCondition)
+
+   LocalDevToolsAutoConfiguration.RestartConfiguration matched:
+      - @ConditionalOnBooleanProperty (spring.devtools.restart.enabled=true) matched (OnPropertyCondition)
+
+   LocalDevToolsAutoConfiguration.RestartConfiguration#classPathFileSystemWatcher matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.devtools.classpath.ClassPathFileSystemWatcher; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   LocalDevToolsAutoConfiguration.RestartConfiguration#classPathRestartStrategy matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.devtools.classpath.ClassPathRestartStrategy; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   LocalDevToolsAutoConfiguration.RestartConfiguration#conditionEvaluationDeltaLoggingListener matched:
+      - @ConditionalOnBooleanProperty (spring.devtools.restart.log-condition-evaluation-delta=true) matched (OnPropertyCondition)
+
+   MultipartAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'org.springframework.web.multipart.support.StandardServletMultipartResolver', 'jakarta.servlet.MultipartConfigElement' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+      - @ConditionalOnBooleanProperty (spring.servlet.multipart.enabled=true) matched (OnPropertyCondition)
+
+   MultipartAutoConfiguration#multipartConfigElement matched:
+      - @ConditionalOnMissingBean (types: jakarta.servlet.MultipartConfigElement; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   MultipartAutoConfiguration#multipartResolver matched:
+      - @ConditionalOnMissingBean (types: org.springframework.web.multipart.MultipartResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   NamedParameterJdbcTemplateConfiguration matched:
+      - @ConditionalOnSingleCandidate (types: org.springframework.jdbc.core.JdbcTemplate; SearchStrategy: all) found a single bean 'jdbcTemplate'; @ConditionalOnMissingBean (types: org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   NettyAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'io.netty.util.NettyRuntime' (OnClassCondition)
+
+   PersistenceExceptionTranslationAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor' (OnClassCondition)
+
+   PersistenceExceptionTranslationAutoConfiguration#persistenceExceptionTranslationPostProcessor matched:
+      - @ConditionalOnBooleanProperty (spring.persistence.exceptiontranslation.enabled=true) matched (OnPropertyCondition)
+      - @ConditionalOnMissingBean (types: org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   PropertyPlaceholderAutoConfiguration#propertySourcesPlaceholderConfigurer matched:
+      - @ConditionalOnMissingBean (types: org.springframework.context.support.PropertySourcesPlaceholderConfigurer; SearchStrategy: current) did not find any beans (OnBeanCondition)
+
+   ReactorAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'reactor.core.publisher.Hooks' (OnClassCondition)
+
+   SessionAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.session.Session' (OnClassCondition)
+      - @ConditionalOnWebApplication (required) found 'session' scope (OnWebApplicationCondition)
+
+   SessionAutoConfiguration.ServletSessionConfiguration matched:
+      - found 'session' scope (OnWebApplicationCondition)
+
+   SessionAutoConfiguration.ServletSessionConfiguration.EmbeddedWebServerConfiguration matched:
+      - @ConditionalOnWarDeployment the application is not deployed as a WAR file. (OnWarDeploymentCondition)
+
+   SessionAutoConfiguration.ServletSessionConfiguration.EmbeddedWebServerConfiguration#cookieSerializer matched:
+      - AnyNestedCondition 1 matched 1 did not; NestedCondition on SessionAutoConfiguration.DefaultCookieSerializerCondition.CookieHttpSessionIdResolverAvailable found non-matching nested conditions @ConditionalOnBean (types: org.springframework.session.web.http.CookieHttpSessionIdResolver; SearchStrategy: all) did not find any beans of type org.springframework.session.web.http.CookieHttpSessionIdResolver, @ConditionalOnBean (types: org.springframework.session.web.http.CookieHttpSessionIdResolver; SearchStrategy: all) did not find any beans of type org.springframework.session.web.http.CookieHttpSessionIdResolver; NestedCondition on SessionAutoConfiguration.DefaultCookieSerializerCondition.NoComponentsAvailable @ConditionalOnMissingBean (types: org.springframework.session.web.http.HttpSessionIdResolver,org.springframework.session.web.http.CookieSerializer; SearchStrategy: all) did not find any beans (SessionAutoConfiguration.DefaultCookieSerializerCondition)
+
+   SessionRepositoryFilterConfiguration matched:
+      - @ConditionalOnBean (types: org.springframework.session.web.http.SessionRepositoryFilter; SearchStrategy: all) found bean 'springSessionRepositoryFilter' (OnBeanCondition)
+
+   SslAutoConfiguration#sslBundleRegistry matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.ssl.SslBundleRegistry,org.springframework.boot.ssl.SslBundles; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   TaskExecutionAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor' (OnClassCondition)
+
+   TaskExecutorConfigurations.AsyncConfigurerConfiguration matched:
+      - @ConditionalOnMissingBean (types: org.springframework.scheduling.annotation.AsyncConfigurer; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   TaskExecutorConfigurations.SimpleAsyncTaskExecutorBuilderConfiguration#simpleAsyncTaskExecutorBuilder matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+      - @ConditionalOnThreading found PLATFORM (OnThreadingCondition)
+
+   TaskExecutorConfigurations.TaskExecutorConfiguration matched:
+      - AnyNestedCondition 1 matched 1 did not; NestedCondition on TaskExecutorConfigurations.OnExecutorCondition.ModelCondition @ConditionalOnProperty (spring.task.execution.mode=force) did not find property 'spring.task.execution.mode'; NestedCondition on TaskExecutorConfigurations.OnExecutorCondition.ExecutorBeanCondition @ConditionalOnMissingBean (types: java.util.concurrent.Executor; SearchStrategy: all) did not find any beans (TaskExecutorConfigurations.OnExecutorCondition)
+
+   TaskExecutorConfigurations.TaskExecutorConfiguration#applicationTaskExecutor matched:
+      - @ConditionalOnThreading found PLATFORM (OnThreadingCondition)
+
+   TaskExecutorConfigurations.ThreadPoolTaskExecutorBuilderConfiguration#threadPoolTaskExecutorBuilder matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.task.ThreadPoolTaskExecutorBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   TaskSchedulingAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler' (OnClassCondition)
+
+   TaskSchedulingConfigurations.SimpleAsyncTaskSchedulerBuilderConfiguration#simpleAsyncTaskSchedulerBuilder matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskSchedulerBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+      - @ConditionalOnThreading found PLATFORM (OnThreadingCondition)
+
+   TaskSchedulingConfigurations.ThreadPoolTaskSchedulerBuilderConfiguration#threadPoolTaskSchedulerBuilder matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.task.ThreadPoolTaskSchedulerBuilder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   TemplateEngineConfigurations.DefaultTemplateEngineConfiguration#templateEngine matched:
+      - @ConditionalOnMissingBean (types: org.thymeleaf.spring6.ISpringTemplateEngine; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   ThymeleafAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'org.thymeleaf.templatemode.TemplateMode', 'org.thymeleaf.spring6.SpringTemplateEngine' (OnClassCondition)
+
+   ThymeleafAutoConfiguration.DefaultTemplateResolverConfiguration matched:
+      - @ConditionalOnMissingBean (names: defaultTemplateResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   ThymeleafAutoConfiguration.ThymeleafWebMvcConfiguration matched:
+      - found 'session' scope (OnWebApplicationCondition)
+
+   ThymeleafAutoConfiguration.ThymeleafWebMvcConfiguration.ThymeleafViewResolverConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.web.servlet.view.AbstractCachingViewResolver' (OnClassCondition)
+
+   ThymeleafAutoConfiguration.ThymeleafWebMvcConfiguration.ThymeleafViewResolverConfiguration#thymeleafViewResolver matched:
+      - @ConditionalOnMissingBean (names: thymeleafViewResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   TomcatServletWebServerAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'jakarta.servlet.ServletRequest', 'org.apache.catalina.startup.Tomcat', 'org.apache.coyote.UpgradeProtocol', 'org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+
+   TomcatServletWebServerAutoConfiguration#tomcatServletWebServerFactory matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.web.server.servlet.ServletWebServerFactory; SearchStrategy: current) did not find any beans (OnBeanCondition)
+
+   TomcatWebServerConfiguration matched:
+      - @ConditionalOnWarDeployment the application is not deployed as a WAR file. (OnWarDeploymentCondition)
+
+   TomcatWebServerConfiguration.TomcatWebSocketConfiguration matched:
+      - @ConditionalOnClass found required class 'org.apache.tomcat.websocket.server.WsSci' (OnClassCondition)
+
+   TransactionAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.transaction.PlatformTransactionManager' (OnClassCondition)
+
+   TransactionAutoConfiguration.EnableTransactionManagementConfiguration matched:
+      - @ConditionalOnBean (types: org.springframework.transaction.TransactionManager; SearchStrategy: all) found bean 'transactionManager'; @ConditionalOnMissingBean (types: org.springframework.transaction.annotation.AbstractTransactionManagementConfiguration; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   TransactionAutoConfiguration.EnableTransactionManagementConfiguration.CglibAutoProxyConfiguration matched:
+      - @ConditionalOnBooleanProperty (spring.aop.proxy-target-class=true) matched (OnPropertyCondition)
+
+   TransactionAutoConfiguration.TransactionTemplateConfiguration matched:
+      - @ConditionalOnSingleCandidate (types: org.springframework.transaction.PlatformTransactionManager; SearchStrategy: all) found a single bean 'transactionManager' (OnBeanCondition)
+
+   TransactionAutoConfiguration.TransactionTemplateConfiguration#transactionTemplate matched:
+      - @ConditionalOnMissingBean (types: org.springframework.transaction.support.TransactionOperations; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   TransactionManagerCustomizationAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.transaction.PlatformTransactionManager' (OnClassCondition)
+
+   TransactionManagerCustomizationAutoConfiguration#platformTransactionManagerCustomizers matched:
+      - @ConditionalOnMissingBean (types: org.springframework.boot.transaction.autoconfigure.TransactionManagerCustomizers; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   ValidationAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'jakarta.validation.executable.ExecutableValidator' (OnClassCondition)
+      - @ConditionalOnResource found location classpath:META-INF/services/jakarta.validation.spi.ValidationProvider (OnResourceCondition)
+
+   ValidationAutoConfiguration#defaultValidator matched:
+      - @ConditionalOnMissingBean (types: jakarta.validation.Validator; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   ValidationAutoConfiguration#methodValidationPostProcessor matched:
+      - @ConditionalOnMissingBean (types: org.springframework.validation.beanvalidation.MethodValidationPostProcessor; SearchStrategy: current) did not find any beans (OnBeanCondition)
+
+   WebMvcAutoConfiguration matched:
+      - @ConditionalOnClass found required classes 'jakarta.servlet.Servlet', 'org.springframework.web.servlet.DispatcherServlet', 'org.springframework.web.servlet.config.annotation.WebMvcConfigurer' (OnClassCondition)
+      - found 'session' scope (OnWebApplicationCondition)
+      - @ConditionalOnMissingBean (types: org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   WebMvcAutoConfiguration#formContentFilter matched:
+      - @ConditionalOnBooleanProperty (spring.mvc.formcontent.filter.enabled=true) matched (OnPropertyCondition)
+      - @ConditionalOnMissingBean (types: org.springframework.web.filter.FormContentFilter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   WebMvcAutoConfiguration.EnableWebMvcConfiguration#flashMapManager matched:
+      - @ConditionalOnMissingBean (names: flashMapManager; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   WebMvcAutoConfiguration.EnableWebMvcConfiguration#localeResolver matched:
+      - @ConditionalOnMissingBean (names: localeResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   WebMvcAutoConfiguration.EnableWebMvcConfiguration#viewNameTranslator matched:
+      - @ConditionalOnMissingBean (names: viewNameTranslator; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter#defaultViewResolver matched:
+      - @ConditionalOnMissingBean (types: org.springframework.web.servlet.view.InternalResourceViewResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter#requestContextFilter matched:
+      - @ConditionalOnMissingBean (types: org.springframework.web.context.request.RequestContextListener,org.springframework.web.filter.RequestContextFilter; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter#viewResolver matched:
+      - @ConditionalOnBean (types: org.springframework.web.servlet.ViewResolver; SearchStrategy: all) found beans 'defaultViewResolver', 'beanNameViewResolver', 'mvcViewResolver'; @ConditionalOnMissingBean (names: viewResolver types: org.springframework.web.servlet.view.ContentNegotiatingViewResolver; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+
+Negative matches:
+-----------------
+
+   AopAutoConfiguration.AspectJAutoProxyingConfiguration.JdkDynamicAutoProxyConfiguration:
+      Did not match:
+         - @ConditionalOnBooleanProperty (spring.aop.proxy-target-class=false) did not find property 'spring.aop.proxy-target-class' (OnPropertyCondition)
+
+   AopAutoConfiguration.ClassProxyingConfiguration:
+      Did not match:
+         - @ConditionalOnMissingClass found unwanted class 'org.aspectj.weaver.Advice' (OnClassCondition)
+
+   CodecsAutoConfiguration.Jackson2JsonCodecConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'com.fasterxml.jackson.databind.ObjectMapper' (OnClassCondition)
+
+   CodecsAutoConfiguration.KotlinxSerializationJsonCodecConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'kotlinx.serialization.json.Json' (OnClassCondition)
+
+   DataJpaRepositoriesAutoConfiguration#entityManagerFactoryBootstrapExecutorCustomizer:
+      Did not match:
+         - AnyNestedCondition 0 matched 2 did not; NestedCondition on DataJpaRepositoriesAutoConfiguration.BootstrapExecutorCondition.LazyBootstrapMode @ConditionalOnProperty (spring.data.jpa.repositories.bootstrap-mode=lazy) did not find property 'spring.data.jpa.repositories.bootstrap-mode'; NestedCondition on DataJpaRepositoriesAutoConfiguration.BootstrapExecutorCondition.DeferredBootstrapMode @ConditionalOnProperty (spring.data.jpa.repositories.bootstrap-mode=deferred) did not find property 'spring.data.jpa.repositories.bootstrap-mode' (DataJpaRepositoriesAutoConfiguration.BootstrapExecutorCondition)
+
+   DataRepositoryMetricsAutoConfiguration:
+      Did not match:
+         - @ConditionalOnBean did not find required type 'io.micrometer.core.instrument.MeterRegistry' (OnBeanCondition)
+
+   DataSourceAutoConfiguration.EmbeddedDatabaseConfiguration:
+      Did not match:
+         - EmbeddedDataSource spring.datasource.url is set (DataSourceAutoConfiguration.EmbeddedDatabaseCondition)
+
+   DataSourceCheckpointRestoreConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.crac.Resource' (OnClassCondition)
+
+   DataSourceConfiguration.Dbcp2:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.apache.commons.dbcp2.BasicDataSource' (OnClassCondition)
+
+   DataSourceConfiguration.Generic:
+      Did not match:
+         - @ConditionalOnProperty (spring.datasource.type) did not find property 'spring.datasource.type' (OnPropertyCondition)
+
+   DataSourceConfiguration.OracleUcp:
+      Did not match:
+         - @ConditionalOnClass did not find required classes 'oracle.ucp.jdbc.PoolDataSourceImpl', 'oracle.jdbc.OracleConnection' (OnClassCondition)
+
+   DataSourceConfiguration.Tomcat:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.apache.tomcat.jdbc.pool.DataSource' (OnClassCondition)
+
+   DataSourceHealthContributorAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.health.autoconfigure.contributor.ConditionalOnEnabledHealthIndicator' (OnClassCondition)
+
+   DataSourceJmxConfiguration:
+      Did not match:
+         - @ConditionalOnBooleanProperty (spring.jmx.enabled=true) did not find property 'spring.jmx.enabled' (OnPropertyCondition)
+
+   DataSourcePoolMetadataProvidersConfiguration.CommonsDbcp2PoolDataSourceMetadataProviderConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.apache.commons.dbcp2.BasicDataSource' (OnClassCondition)
+
+   DataSourcePoolMetadataProvidersConfiguration.OracleUcpPoolDataSourceMetadataProviderConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required classes 'oracle.ucp.jdbc.PoolDataSource', 'oracle.jdbc.OracleConnection' (OnClassCondition)
+
+   DataSourcePoolMetadataProvidersConfiguration.TomcatDataSourcePoolMetadataProviderConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.apache.tomcat.jdbc.pool.DataSource' (OnClassCondition)
+
+   DataSourcePoolMetricsAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'io.micrometer.core.instrument.MeterRegistry' (OnClassCondition)
+
+   DataSourceTransactionManagerAutoConfiguration.JdbcTransactionManagerConfiguration#transactionManager:
+      Did not match:
+         - @ConditionalOnMissingBean (types: org.springframework.transaction.TransactionManager; SearchStrategy: all) found beans of type 'org.springframework.transaction.TransactionManager' transactionManager (OnBeanCondition)
+
+   DevToolsR2dbcAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'io.r2dbc.spi.ConnectionFactory' (OnClassCondition)
+
+   DispatcherServletAutoConfiguration.DispatcherServletConfiguration#multipartResolver:
+      Did not match:
+         - @ConditionalOnBean (types: org.springframework.web.multipart.MultipartResolver; SearchStrategy: all) did not find any beans of type org.springframework.web.multipart.MultipartResolver (OnBeanCondition)
+
+   ErrorWebFluxAutoConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+      Matched:
+         - @ConditionalOnClass found required class 'org.springframework.web.reactive.config.WebFluxConfigurer' (OnClassCondition)
+
+   GsonHttpMessageConvertersConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'com.google.gson.Gson' (OnClassCondition)
+
+   HibernateMetricsAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'io.micrometer.core.instrument.MeterRegistry' (OnClassCondition)
+
+   HttpHandlerAutoConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+      Matched:
+         - @ConditionalOnClass found required classes 'org.springframework.web.reactive.DispatcherHandler', 'org.springframework.http.server.reactive.HttpHandler' (OnClassCondition)
+
+   Jackson2HttpMessageConvertersConfiguration.MappingJackson2HttpMessageConverterConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'com.fasterxml.jackson.databind.ObjectMapper' (OnClassCondition)
+
+   Jackson2HttpMessageConvertersConfiguration.MappingJackson2XmlHttpMessageConverterConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'com.fasterxml.jackson.dataformat.xml.XmlMapper' (OnClassCondition)
+
+   JacksonAutoConfiguration.CborConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'tools.jackson.dataformat.cbor.CBORMapper' (OnClassCondition)
+
+   JacksonAutoConfiguration.XmlConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'tools.jackson.dataformat.xml.XmlMapper' (OnClassCondition)
+
+   JacksonHttpMessageConvertersConfiguration.JacksonXmlHttpMessageConverterConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'tools.jackson.dataformat.xml.XmlMapper' (OnClassCondition)
+
+   JmxAutoConfiguration:
+      Did not match:
+         - @ConditionalOnBooleanProperty (spring.jmx.enabled=true) did not find property 'spring.jmx.enabled' (OnPropertyCondition)
+      Matched:
+         - @ConditionalOnClass found required class 'org.springframework.jmx.export.MBeanExporter' (OnClassCondition)
+
+   JndiDataSourceAutoConfiguration:
+      Did not match:
+         - @ConditionalOnProperty (spring.datasource.jndi-name) did not find property 'spring.datasource.jndi-name' (OnPropertyCondition)
+      Matched:
+         - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType' (OnClassCondition)
+
+   JndiJtaConfiguration:
+      Did not match:
+         - @ConditionalOnJndi JNDI environment is not available (OnJndiCondition)
+      Matched:
+         - @ConditionalOnClass found required class 'org.springframework.transaction.jta.JtaTransactionManager' (OnClassCondition)
+
+   JsonbHttpMessageConvertersConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'jakarta.json.bind.Jsonb' (OnClassCondition)
+
+   KotlinSerializationHttpMessageConvertersConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required classes 'kotlinx.serialization.Serializable', 'kotlinx.serialization.json.Json' (OnClassCondition)
+
+   LocalDevToolsAutoConfiguration.LiveReloadConfiguration:
+      Did not match:
+         - @ConditionalOnBooleanProperty (spring.devtools.livereload.enabled=true) did not find property 'spring.devtools.livereload.enabled' (OnPropertyCondition)
+
+   MessageSourceAutoConfiguration:
+      Did not match:
+         - ResourceBundle did not find bundle with basename messages (MessageSourceAutoConfiguration.ResourceBundleCondition)
+
+   NettyReactiveManagementContextAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.actuate.autoconfigure.web.server.ManagementContextFactory' (OnClassCondition)
+
+   NettyReactiveWebServerAutoConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+      Matched:
+         - @ConditionalOnClass found required classes 'org.springframework.http.ReactiveHttpInputMessage', 'reactor.netty.http.server.HttpServer' (OnClassCondition)
+
+   ProjectInfoAutoConfiguration#buildProperties:
+      Did not match:
+         - @ConditionalOnResource did not find resource '${spring.info.build.location:classpath:META-INF/build-info.properties}' (OnResourceCondition)
+
+   ProjectInfoAutoConfiguration#gitProperties:
+      Did not match:
+         - GitResource did not find git info at classpath:git.properties (ProjectInfoAutoConfiguration.GitResourceAvailableCondition)
+
+   ReactiveMultipartAutoConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+      Matched:
+         - @ConditionalOnClass found required classes 'org.springframework.http.codec.multipart.DefaultPartHttpMessageReader', 'org.springframework.web.reactive.config.WebFluxConfigurer' (OnClassCondition)
+
+   RemoteDevToolsAutoConfiguration:
+      Did not match:
+         - @ConditionalOnProperty (spring.devtools.remote.secret) did not find property 'spring.devtools.remote.secret' (OnPropertyCondition)
+      Matched:
+         - @ConditionalOnClass found required classes 'jakarta.servlet.Filter', 'org.springframework.http.server.ServerHttpRequest', 'org.springframework.boot.web.server.autoconfigure.ServerProperties' (OnClassCondition)
+
+   ServletHttpExchangesAutoConfiguration:
+      Did not match:
+         - @ConditionalOnBean did not find required type 'org.springframework.boot.actuate.web.exchanges.HttpExchangeRepository' (OnBeanCondition)
+
+   ServletManagementContextAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties' (OnClassCondition)
+
+   ServletMappingsAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint' (OnClassCondition)
+
+   ServletWebServerConfiguration#forwardedHeaderFilter:
+      Did not match:
+         - @ConditionalOnProperty (server.forward-headers-strategy=framework) did not find property 'server.forward-headers-strategy' (OnPropertyCondition)
+
+   SessionAutoConfiguration.ReactiveSessionConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+
+   SessionAutoConfiguration.ServletSessionConfiguration.RememberMeServicesConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.security.web.authentication.RememberMeServices' (OnClassCondition)
+
+   SessionAutoConfiguration.ServletSessionConfiguration.WarDepoymentConfiguration:
+      Did not match:
+         - @ConditionalOnWarDeployment the application is not deployed as a WAR file. (OnWarDeploymentCondition)
+
+   SessionsEndpointAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint' (OnClassCondition)
+
+   SpringApplicationAdminJmxAutoConfiguration:
+      Did not match:
+         - @ConditionalOnBooleanProperty (spring.application.admin.enabled=true) did not find property 'spring.application.admin.enabled' (OnPropertyCondition)
+
+   TaskExecutorConfigurations.AsyncConfigurerWrapperConfiguration:
+      Did not match:
+         - @ConditionalOnBean (types: org.springframework.scheduling.annotation.AsyncConfigurer; SearchStrategy: all) did not find any beans of type org.springframework.scheduling.annotation.AsyncConfigurer (OnBeanCondition)
+
+   TaskExecutorConfigurations.SimpleAsyncTaskExecutorBuilderConfiguration#simpleAsyncTaskExecutorBuilderVirtualThreads:
+      Did not match:
+         - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder; SearchStrategy: all) found beans of type 'org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder' simpleAsyncTaskExecutorBuilder (OnBeanCondition)
+
+   TaskExecutorConfigurations.TaskExecutorConfiguration#applicationTaskExecutorVirtualThreads:
+      Did not match:
+         - @ConditionalOnThreading did not find VIRTUAL (OnThreadingCondition)
+
+   TaskSchedulingAutoConfiguration#scheduledBeanLazyInitializationExcludeFilter:
+      Did not match:
+         - @ConditionalOnBean (names: org.springframework.scheduling.config.internalScheduledAnnotationProcessor; SearchStrategy: all) did not find any beans named org.springframework.scheduling.config.internalScheduledAnnotationProcessor (OnBeanCondition)
+
+   TaskSchedulingConfigurations.SimpleAsyncTaskSchedulerBuilderConfiguration#simpleAsyncTaskSchedulerBuilderVirtualThreads:
+      Did not match:
+         - @ConditionalOnMissingBean (types: org.springframework.boot.task.SimpleAsyncTaskSchedulerBuilder; SearchStrategy: all) found beans of type 'org.springframework.boot.task.SimpleAsyncTaskSchedulerBuilder' simpleAsyncTaskSchedulerBuilder (OnBeanCondition)
+
+   TaskSchedulingConfigurations.TaskSchedulerConfiguration:
+      Did not match:
+         - @ConditionalOnBean (names: org.springframework.scheduling.config.internalScheduledAnnotationProcessor; SearchStrategy: all) did not find any beans named org.springframework.scheduling.config.internalScheduledAnnotationProcessor (OnBeanCondition)
+
+   TemplateEngineConfigurations.ReactiveTemplateEngineConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+
+   ThymeleafAutoConfiguration.DataAttributeDialectConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'com.github.mxab.thymeleaf.extras.dataattribute.dialect.DataAttributeDialect' (OnClassCondition)
+
+   ThymeleafAutoConfiguration.ThymeleafSecurityDialectConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required classes 'org.thymeleaf.extras.springsecurity6.dialect.SpringSecurityDialect', 'org.springframework.security.web.server.csrf.CsrfToken' (OnClassCondition)
+
+   ThymeleafAutoConfiguration.ThymeleafWebFluxConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+
+   ThymeleafAutoConfiguration.ThymeleafWebLayoutConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect' (OnClassCondition)
+
+   ThymeleafAutoConfiguration.ThymeleafWebMvcConfiguration#resourceUrlEncodingFilter:
+      Did not match:
+         - @ConditionalOnEnabledResourceChain did not find class org.webjars.WebJarVersionLocator (OnEnabledResourceChainCondition)
+
+   TomcatMetricsAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'io.micrometer.core.instrument.binder.tomcat.TomcatMetrics' (OnClassCondition)
+
+   TomcatReactiveManagementContextAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.actuate.autoconfigure.web.server.ManagementContextFactory' (OnClassCondition)
+
+   TomcatReactiveWebServerAutoConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+      Matched:
+         - @ConditionalOnClass found required classes 'org.springframework.http.ReactiveHttpInputMessage', 'org.apache.catalina.startup.Tomcat', 'org.springframework.boot.tomcat.reactive.TomcatReactiveWebServerFactory' (OnClassCondition)
+
+   TomcatServletManagementContextAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.actuate.autoconfigure.web.server.ManagementContextFactory' (OnClassCondition)
+
+   TomcatServletWebServerAutoConfiguration#tomcatForwardedHeaderFilterCustomizer:
+      Did not match:
+         - @ConditionalOnProperty (server.forward-headers-strategy=framework) did not find property 'server.forward-headers-strategy' (OnPropertyCondition)
+
+   TomcatWebServerConfiguration#tomcatVirtualThreadsProtocolHandlerCustomizer:
+      Did not match:
+         - @ConditionalOnThreading did not find VIRTUAL (OnThreadingCondition)
+
+   TransactionAutoConfiguration#transactionalOperator:
+      Did not match:
+         - @ConditionalOnSingleCandidate (types: org.springframework.transaction.ReactiveTransactionManager; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+   TransactionAutoConfiguration.AspectJTransactionManagementConfiguration:
+      Did not match:
+         - @ConditionalOnBean (types: org.springframework.transaction.aspectj.AbstractTransactionAspect; SearchStrategy: all) did not find any beans of type org.springframework.transaction.aspectj.AbstractTransactionAspect (OnBeanCondition)
+
+   TransactionAutoConfiguration.EnableTransactionManagementConfiguration.JdkDynamicAutoProxyConfiguration:
+      Did not match:
+         - @ConditionalOnBooleanProperty (spring.aop.proxy-target-class=false) did not find property 'spring.aop.proxy-target-class' (OnPropertyCondition)
+
+   WebFluxAutoConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+      Matched:
+         - @ConditionalOnClass found required class 'org.springframework.web.reactive.config.WebFluxConfigurer' (OnClassCondition)
+
+   WebFluxHealthEndpointExtensionAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.health.actuate.endpoint.HealthEndpoint' (OnClassCondition)
+
+   WebFluxHttpExchangesAutoConfiguration:
+      Did not match:
+         - @ConditionalOnBean did not find required type 'org.springframework.boot.actuate.web.exchanges.HttpExchangeRepository' (OnBeanCondition)
+
+   WebFluxMappingsAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint' (OnClassCondition)
+
+   WebFluxObservationAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'io.micrometer.core.instrument.MeterRegistry' (OnClassCondition)
+
+   WebMvcAutoConfiguration#hiddenHttpMethodFilter:
+      Did not match:
+         - @ConditionalOnBooleanProperty (spring.mvc.hiddenmethod.filter.enabled=true) did not find property 'spring.mvc.hiddenmethod.filter.enabled' (OnPropertyCondition)
+
+   WebMvcAutoConfiguration.ProblemDetailsErrorHandlingConfiguration:
+      Did not match:
+         - @ConditionalOnBooleanProperty (spring.mvc.problemdetails.enabled=true) did not find property 'spring.mvc.problemdetails.enabled' (OnPropertyCondition)
+
+   WebMvcAutoConfiguration.ResourceChainCustomizerConfiguration:
+      Did not match:
+         - @ConditionalOnEnabledResourceChain did not find class org.webjars.WebJarVersionLocator (OnEnabledResourceChainCondition)
+
+   WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter#beanNameViewResolver:
+      Did not match:
+         - @ConditionalOnMissingBean (types: org.springframework.web.servlet.view.BeanNameViewResolver; SearchStrategy: all) found beans of type 'org.springframework.web.servlet.view.BeanNameViewResolver' beanNameViewResolver (OnBeanCondition)
+
+   WebMvcHealthEndpointExtensionAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.health.actuate.endpoint.HealthEndpoint' (OnClassCondition)
+
+   WebMvcMappingsAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint' (OnClassCondition)
+
+   WebMvcObservationAutoConfiguration:
+      Did not match:
+         - @ConditionalOnClass did not find required class 'org.springframework.boot.micrometer.observation.autoconfigure.ObservationProperties' (OnClassCondition)
+
+   WebSessionIdResolverAutoConfiguration:
+      Did not match:
+         - not a reactive web application (OnWebApplicationCondition)
+      Matched:
+         - @ConditionalOnClass found required classes 'org.springframework.web.server.session.WebSessionManager', 'reactor.core.publisher.Mono' (OnClassCondition)
+
+   XADataSourceAutoConfiguration:
+      Did not match:
+         - @ConditionalOnBean (types: org.springframework.boot.jdbc.XADataSourceWrapper; SearchStrategy: all) did not find any beans of type org.springframework.boot.jdbc.XADataSourceWrapper (OnBeanCondition)
+      Matched:
+         - @ConditionalOnClass found required classes 'javax.sql.DataSource', 'jakarta.transaction.TransactionManager', 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType' (OnClassCondition)
+
+
+Exclusions:
+-----------
+
+    None
+
+
+Unconditional classes:
+----------------------
+
+    org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration
+
+    org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration
+
+    org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration
+
+    org.springframework.boot.autoconfigure.context.LifecycleAutoConfiguration
+
+    org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration
+
+    org.springframework.boot.autoconfigure.info.ProjectInfoAutoConfiguration
+
+
+
+2026-04-24T01:04:22.410+03:00  INFO 26600 --- [event-ticket-system] [  restartedMain] c.p.e.EventTicketSystemApplication       : Started EventTicketSystemApplication in 5.679 seconds (process running for 6.274)
+2026-04-24T01:04:22.411+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.a.ApplicationAvailabilityBean      : Application availability state LivenessState changed to CORRECT
+2026-04-24T01:04:22.485+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : select count(*) from event e1_0
+2026-04-24T01:04:22.523+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : insert into event (address,city,country,description,ends_at,sales_enabled,starts_at,title,venue_name,id) values (?,?,?,?,?,?,?,?,?,default)
+2026-04-24T01:04:22.542+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : insert into ticket_type (event_id,name,price,sales_enabled,sold_quantity,total_quantity,id) values (?,?,?,?,?,?,default)
+2026-04-24T01:04:22.545+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : insert into ticket_type (event_id,name,price,sales_enabled,sold_quantity,total_quantity,id) values (?,?,?,?,?,?,default)
+2026-04-24T01:04:22.546+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : insert into ticket_type (event_id,name,price,sales_enabled,sold_quantity,total_quantity,id) values (?,?,?,?,?,?,default)
+2026-04-24T01:04:22.548+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] org.hibernate.SQL                        : insert into discount_code (active,code,event_id,expires_at,max_redemptions,type,used_count,discount_value,id) values (?,?,?,?,?,?,?,?,default)
+2026-04-24T01:04:22.551+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.boot.devtools.restart.Restarter      : Creating new Restarter for thread Thread[#1,main,5,main]
+2026-04-24T01:04:22.551+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.boot.devtools.restart.Restarter      : Immediately restarting application
+2026-04-24T01:04:22.551+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.boot.devtools.restart.Restarter      : Starting application com.paradise.event_ticket_system.EventTicketSystemApplication with URLs [file:/C:/Users/lewow/Documents/Workspace/EventTicketSystem/event-ticket-system/backend/build/classes/java/main/, file:/C:/Users/lewow/Documents/Workspace/EventTicketSystem/event-ticket-system/backend/build/resources/main/]
+2026-04-24T01:04:22.552+03:00 DEBUG 26600 --- [event-ticket-system] [  restartedMain] o.s.b.a.ApplicationAvailabilityBean      : Application availability state ReadinessState changed to ACCEPTING_TRAFFIC
+2026-04-24T01:05:00.012+03:00 DEBUG 26600 --- [event-ticket-system] [pring-session-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-04-24T01:05:00.013+03:00 DEBUG 26600 --- [event-ticket-system] [pring-session-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [DELETE FROM SPRING_SESSION
+WHERE EXPIRY_TIME < ?
+]
+2026-04-24T01:05:07.699+03:00  INFO 26600 --- [event-ticket-system] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-24T01:05:07.699+03:00  INFO 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-24T01:05:07.699+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
+2026-04-24T01:05:07.700+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
+2026-04-24T01:05:07.700+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@45317f19
+2026-04-24T01:05:07.701+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@384f12a1
+2026-04-24T01:05:07.701+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-04-24T01:05:07.701+03:00  INFO 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-04-24T01:05:07.713+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : POST "/api/checkout/orders", parameters={}
+2026-04-24T01:05:07.723+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.paradise.event_ticket_system.checkout.CheckoutController#createOrder(CreateOrderRequest)
+2026-04-24T01:05:07.837+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [CreateOrderRequest[eventId=1, guestName=John Doe, guestEmail=john.doe@email.com, discountCode=SAVE10 (truncated)...]
+2026-04-24T01:05:07.915+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : select e1_0.id,e1_0.address,e1_0.city,e1_0.country,e1_0.description,e1_0.ends_at,e1_0.sales_enabled,e1_0.starts_at,e1_0.title,e1_0.venue_name from event e1_0 where e1_0.id=?
+2026-04-24T01:05:07.948+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : select tt1_0.id,tt1_0.event_id,tt1_0.name,tt1_0.price,tt1_0.sales_enabled,tt1_0.sold_quantity,tt1_0.total_quantity from ticket_type tt1_0 where tt1_0.id in (?,?,?)
+2026-04-24T01:05:07.997+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : select dc1_0.id,dc1_0.active,dc1_0.code,dc1_0.event_id,dc1_0.expires_at,dc1_0.max_redemptions,dc1_0.type,dc1_0.used_count,dc1_0.discount_value from discount_code dc1_0 where upper(dc1_0.code)=upper(?) and dc1_0.event_id=?
+2026-04-24T01:05:08.005+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : select dc1_0.id,dc1_0.active,dc1_0.code,dc1_0.event_id,dc1_0.expires_at,dc1_0.max_redemptions,dc1_0.type,dc1_0.used_count,dc1_0.discount_value from discount_code dc1_0 where upper(dc1_0.code)=upper(?) and dc1_0.event_id=?
+2026-04-24T01:05:08.006+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : select tt1_0.id,tt1_0.event_id,tt1_0.name,tt1_0.price,tt1_0.sales_enabled,tt1_0.sold_quantity,tt1_0.total_quantity from ticket_type tt1_0 where tt1_0.id in (?,?,?)
+2026-04-24T01:05:08.013+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : insert into purchase_orders (confirmed_at,created_at,discount_amount,discount_code_id,event_id,guest_email,guest_name,order_number,status,subtotal,total_amount,id) values (?,?,?,?,?,?,?,?,?,?,?,default)
+2026-04-24T01:05:08.017+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : insert into order_items (line_total,order_id,quantity,ticket_name,ticket_type_id,unit_price,id) values (?,?,?,?,?,?,default)
+2026-04-24T01:05:08.017+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : insert into order_items (line_total,order_id,quantity,ticket_name,ticket_type_id,unit_price,id) values (?,?,?,?,?,?,default)
+2026-04-24T01:05:08.019+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] org.hibernate.SQL                        : insert into order_items (line_total,order_id,quantity,ticket_name,ticket_type_id,unit_price,id) values (?,?,?,?,?,?,default)
+2026-04-24T01:05:08.032+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-24T01:05:08.038+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Writing [OrderResponse[orderNumber=ORD-2026-CC8BC465, status=PENDING_PAYMENT, eventId=1, guestName=John Doe,  (truncated)...]
+2026-04-24T01:05:08.077+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-24T01:05:08.093+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : POST "/api/checkout/orders/ORD-2026-CC8BC465/payment", parameters={}
+2026-04-24T01:05:08.094+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.paradise.event_ticket_system.checkout.CheckoutController#submitPayment(String, PaymentRequest)
+2026-04-24T01:05:08.102+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [PaymentRequest[methodType=CARD, cardNumber=4242 4242 4242 4242]]
+2026-04-24T01:05:08.115+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : select po1_0.id,po1_0.confirmed_at,po1_0.created_at,po1_0.discount_amount,po1_0.discount_code_id,po1_0.event_id,po1_0.guest_email,po1_0.guest_name,po1_0.order_number,po1_0.status,po1_0.subtotal,po1_0.total_amount from purchase_orders po1_0 where po1_0.order_number=? for update
+2026-04-24T01:05:08.126+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : select p1_0.id,p1_0.amount,p1_0.card_last4,p1_0.created_at,p1_0.method_type,p1_0.order_id,p1_0.provider_reference,p1_0.status from payment p1_0 where p1_0.order_id=?
+2026-04-24T01:05:08.128+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : select dc1_0.id,dc1_0.active,dc1_0.code,dc1_0.event_id,dc1_0.expires_at,dc1_0.max_redemptions,dc1_0.type,dc1_0.used_count,dc1_0.discount_value from discount_code dc1_0 where dc1_0.id=?
+2026-04-24T01:05:08.131+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : select i1_0.order_id,i1_0.id,i1_0.line_total,i1_0.quantity,i1_0.ticket_name,i1_0.ticket_type_id,i1_0.unit_price from order_items i1_0 where i1_0.order_id=?
+2026-04-24T01:05:08.137+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : select tt1_0.id,tt1_0.event_id,tt1_0.name,tt1_0.price,tt1_0.sales_enabled,tt1_0.sold_quantity,tt1_0.total_quantity from ticket_type tt1_0 where tt1_0.id in (?,?,?) for update
+2026-04-24T01:05:08.142+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : insert into payment (amount,card_last4,created_at,method_type,order_id,provider_reference,status,id) values (?,?,?,?,?,?,?,default)
+2026-04-24T01:05:08.150+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : update purchase_orders set confirmed_at=?,created_at=?,discount_amount=?,discount_code_id=?,event_id=?,guest_email=?,guest_name=?,order_number=?,status=?,subtotal=?,total_amount=? where id=?
+2026-04-24T01:05:08.154+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : update discount_code set active=?,code=?,event_id=?,expires_at=?,max_redemptions=?,type=?,used_count=?,discount_value=? where id=?
+2026-04-24T01:05:08.155+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : update ticket_type set event_id=?,name=?,price=?,sales_enabled=?,sold_quantity=?,total_quantity=? where id=?
+2026-04-24T01:05:08.155+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : update ticket_type set event_id=?,name=?,price=?,sales_enabled=?,sold_quantity=?,total_quantity=? where id=?
+2026-04-24T01:05:08.156+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] org.hibernate.SQL                        : update ticket_type set event_id=?,name=?,price=?,sales_enabled=?,sold_quantity=?,total_quantity=? where id=?
+2026-04-24T01:05:08.157+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-24T01:05:08.158+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] m.m.a.RequestResponseBodyMethodProcessor : Writing [PaymentResponse[orderNumber=ORD-2026-CC8BC465, orderStatus=CONFIRMED, paymentStatus=SUCCEEDED]]
+2026-04-24T01:05:08.159+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-24T01:05:08.161+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/api/checkout/orders/ORD-2026-CC8BC465/confirmation", parameters={}
+2026-04-24T01:05:08.162+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.paradise.event_ticket_system.checkout.CheckoutController#confirmation(String)
+2026-04-24T01:05:08.164+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] org.hibernate.SQL                        : select po1_0.id,po1_0.confirmed_at,po1_0.created_at,po1_0.discount_amount,po1_0.discount_code_id,po1_0.event_id,po1_0.guest_email,po1_0.guest_name,po1_0.order_number,po1_0.status,po1_0.subtotal,po1_0.total_amount from purchase_orders po1_0 where po1_0.order_number=?
+2026-04-24T01:05:08.165+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] org.hibernate.SQL                        : select p1_0.id,p1_0.amount,p1_0.card_last4,p1_0.created_at,p1_0.method_type,p1_0.order_id,p1_0.provider_reference,p1_0.status from payment p1_0 where p1_0.order_id=?
+2026-04-24T01:05:08.168+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] org.hibernate.SQL                        : select e1_0.id,e1_0.address,e1_0.city,e1_0.country,e1_0.description,e1_0.ends_at,e1_0.sales_enabled,e1_0.starts_at,e1_0.title,e1_0.venue_name from event e1_0 where e1_0.id=?
+2026-04-24T01:05:08.169+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] org.hibernate.SQL                        : select i1_0.order_id,i1_0.id,i1_0.line_total,i1_0.quantity,i1_0.ticket_name,i1_0.ticket_type_id,i1_0.unit_price from order_items i1_0 where i1_0.order_id=?
+2026-04-24T01:05:08.170+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] org.hibernate.SQL                        : select dc1_0.id,dc1_0.active,dc1_0.code,dc1_0.event_id,dc1_0.expires_at,dc1_0.max_redemptions,dc1_0.type,dc1_0.used_count,dc1_0.discount_value from discount_code dc1_0 where dc1_0.id=?
+2026-04-24T01:05:08.172+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-24T01:05:08.177+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] m.m.a.RequestResponseBodyMethodProcessor : Writing [ConfirmationResponse[orderNumber=ORD-2026-CC8BC465, status=CONFIRMED, guestName=John Doe, guestEmail (truncated)...]
+2026-04-24T01:05:08.180+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-24T01:05:16.990+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/events/1/ticket-types", parameters={}
+2026-04-24T01:05:16.990+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.paradise.event_ticket_system.event.EventController#getTicketTypes(Long)
+2026-04-24T01:05:16.994+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-5] org.hibernate.SQL                        : select count(*) from event e1_0 where e1_0.id=?
+2026-04-24T01:05:17.006+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-5] org.hibernate.SQL                        : select tt1_0.id,tt1_0.event_id,tt1_0.name,tt1_0.price,tt1_0.sales_enabled,tt1_0.sold_quantity,tt1_0.total_quantity from ticket_type tt1_0 where tt1_0.event_id=? order by tt1_0.id
+2026-04-24T01:05:17.008+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-24T01:05:17.011+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Writing [[TicketTypeResponse[id=1, name=General Admission, price=39.00, availableQuantity=249, salesEnabled=t (truncated)...]
+2026-04-24T01:05:17.013+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-24T01:05:24.449+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/api/events/1/ticket-types", parameters={}
+2026-04-24T01:05:24.450+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.paradise.event_ticket_system.event.EventController#getTicketTypes(Long)
+2026-04-24T01:05:24.452+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-7] org.hibernate.SQL                        : select count(*) from event e1_0 where e1_0.id=?
+2026-04-24T01:05:24.453+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-7] org.hibernate.SQL                        : select tt1_0.id,tt1_0.event_id,tt1_0.name,tt1_0.price,tt1_0.sales_enabled,tt1_0.sold_quantity,tt1_0.total_quantity from ticket_type tt1_0 where tt1_0.event_id=? order by tt1_0.id
+2026-04-24T01:05:24.454+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-24T01:05:24.455+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Writing [[TicketTypeResponse[id=1, name=General Admission, price=39.00, availableQuantity=249, salesEnabled=t (truncated)...]
+2026-04-24T01:05:24.455+03:00 DEBUG 26600 --- [event-ticket-system] [nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-24T01:06:00.011+03:00 DEBUG 26600 --- [event-ticket-system] [pring-session-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-04-24T01:06:00.012+03:00 DEBUG 26600 --- [event-ticket-system] [pring-session-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [DELETE FROM SPRING_SESSION
+WHERE EXPIRY_TIME < ?
+]
