@@ -8,3 +8,23 @@ spring:
     driverClassName: org.h2.Driver
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+app:
+  recommendation:
+    scoring:
+      default-limit: 6
+      category-match-points: 3
+      tag-match-points: 2
+      home-city-match-points: 2
+      soon-window-bonus-points: 1
+      soon-window-days: 14
