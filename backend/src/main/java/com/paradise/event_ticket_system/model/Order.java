@@ -35,10 +35,10 @@ public class Order extends AuditableEntity {
     @Column(name = "guest_name")
     private String guestName;
 
-    @Column(name = "guest_phone")
+    @Column(name = "guest_phone", length = 50)
     private String guestPhone;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 50)
     private String status;
 
     @Column(name = "subtotal", nullable = false, precision = 12, scale = 2)
@@ -53,10 +53,10 @@ public class Order extends AuditableEntity {
     @Column(name = "total", nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
-    @Column(name = "currency", nullable = false)
+    @Column(name = "currency", nullable = false, length = 10)
     private String currency;
 
-    @Column(name = "payment_provider")
+    @Column(name = "payment_provider", length = 50)
     private String paymentProvider;
 
     @Column(name = "payment_reference")

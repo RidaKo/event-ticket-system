@@ -30,7 +30,7 @@ public class User extends AuditableEntity {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    @Column(name = "phone")
+    @Column(name = "phone", length = 50)
     private String phone;
 
     @Column(name = "is_guest", nullable = false)

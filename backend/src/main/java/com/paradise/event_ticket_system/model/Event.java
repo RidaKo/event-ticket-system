@@ -48,7 +48,7 @@ public class Event extends AuditableEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 50)
     private String status;
 
     @Column(name = "start_datetime", nullable = false)
@@ -57,7 +57,7 @@ public class Event extends AuditableEntity {
     @Column(name = "end_datetime", nullable = false)
     private Instant endDatetime;
 
-    @Column(name = "timezone", nullable = false)
+    @Column(name = "timezone", nullable = false, length = 100)
     private String timezone;
 
     @Column(name = "min_age")

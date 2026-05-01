@@ -40,7 +40,7 @@ public class Ticket extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_user_id")
-    private User ownerUser; 
+    private User ownerUser;
 
     @Column(name = "owner_email", nullable = false)
     private String ownerEmail;
@@ -57,7 +57,7 @@ public class Ticket extends AuditableEntity {
     @Column(name = "qr_code_url")
     private String qrCodeUrl;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 50)
     private String status;
 
     @Column(name = "checked_in_at")
