@@ -142,7 +142,7 @@ CREATE TABLE reviews (
     user_id INT,
     event_id INT,
     venue_id INT,
-    rating INT NOT NULL,
+    rating DECIMAL(3, 2) NOT NULL,
     comment CLOB,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,

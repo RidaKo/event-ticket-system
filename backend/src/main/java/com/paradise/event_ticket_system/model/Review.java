@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -37,8 +38,8 @@ public class Review extends AuditableEntity {
     @JoinColumn(name = "venue_id")
     private Venue venue;
 
-    @Column(name = "rating", nullable = false)
-    private Integer rating;
+    @Column(name = "rating", precision = 3, scale = 2, nullable = false)
+    private BigDecimal rating;
 
     @Lob
     @Column(name = "comment")
