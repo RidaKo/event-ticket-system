@@ -38,7 +38,7 @@ public class Venue extends AuditableEntity {
     @Column(name = "city", nullable = false)
     private String city;
 
-    @Column(name = "country", nullable = false)
+    @Column(name = "country", nullable = false, length = 2)
     private String country;
 
     @Column(name = "rating", precision = 3, scale = 2)
