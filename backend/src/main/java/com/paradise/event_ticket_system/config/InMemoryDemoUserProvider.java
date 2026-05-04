@@ -5,15 +5,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class InMemoryDemoUserProvider implements DemoUserProvider {
 
-    private Long demoUserId;
+    private Integer demoUserId;
 
     @Override
-    public Long getDemoUserId() {
+    public Integer getDemoUserId() {
         return demoUserId;
     }
 
     @Override
-    public void setDemoUserId(Long id) {
+    public void setDemoUserId(Integer id) {
         this.demoUserId = id;
     }
 }

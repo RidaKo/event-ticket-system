@@ -1,39 +1,50 @@
 package com.paradise.event_ticket_system.recommendation.dto;
 
-import com.paradise.event_ticket_system.event.Category;
-import com.paradise.event_ticket_system.event.Event;
+import com.paradise.event_ticket_system.event.Tag;
+import com.paradise.event_ticket_system.model.Event;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 public record RecommendedEventDto(
-        Long id,
+        Integer id,
         String title,
         String description,
-        LocalDateTime startAt,
-        LocalDateTime endAt,
+        Instant startAt,
+        Instant endAt,
         String city,
         String venue,
-        Category category,
+        String category,
         List<String> tags,
         String imageUrl
 ) {
     public static RecommendedEventDto from(Event e) {
         List<String> tagLabels = e.getTags().stream()
-                .map(t -> t.getLabel())
+                .map(Tag::getLabel)
                 .sorted()
                 .toList();
+        String venueName = e.getVenue() == null ? null : e.getVenue().getName();
+        String city = e.getVenue() == null ? null : e.getVenue().getCity();
+        String categoryValue = e.getCategory() == null
+                ? null
+                : e.getCategory().getSlug().toUpperCase(Locale.ROOT);
         return new RecommendedEventDto(
                 e.getId(),
                 e.getTitle(),
                 e.getDescription(),
-                e.getStartAt(),
-                e.getEndAt(),
-                e.getCity(),
-                e.getVenue(),
-                e.getCategory(),
+                e.getStartDatetime(),
+                e.getEndDatetime(),
+                city,
+                venueName,
+                categoryValue,
                 tagLabels,
-                e.getImageUrl()
+                e.getCoverPhotoUrl()
         );
+    }
+
+    public static Comparator<RecommendedEventDto> byStart() {
+        return Comparator.comparing(RecommendedEventDto::startAt);
     }
 }

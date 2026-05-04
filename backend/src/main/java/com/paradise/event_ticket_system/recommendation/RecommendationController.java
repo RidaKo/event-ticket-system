@@ -1,7 +1,6 @@
 package com.paradise.event_ticket_system.recommendation;
 
 import com.paradise.event_ticket_system.config.DemoUserProvider;
-import com.paradise.event_ticket_system.event.Category;
 import com.paradise.event_ticket_system.recommendation.dto.RecommendationResponse;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -38,42 +38,25 @@ public class RecommendationController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Integer limit
     ) {
-        Set<Category> parsedCategories = parseCategories(categories);
-        Set<String> parsedTagSlugs = parseTagSlugs(tags);
+        Set<String> categorySlugs = parseToLowerSlugs(categories);
+        Set<String> tagSlugs = parseToLowerSlugs(tags);
 
         RecommendationFilters filters = new RecommendationFilters(
-                parsedCategories,
-                parsedTagSlugs,
+                categorySlugs,
+                tagSlugs,
                 startDate,
                 endDate,
                 location
         );
 
-        Long userId = demoUserProvider.getDemoUserId();
+        Integer userId = demoUserProvider.getDemoUserId();
         return recommendationService.recommend(userId, filters, limit);
     }
 
-    private Set<Category> parseCategories(List<String> raw) {
+    private Set<String> parseToLowerSlugs(List<String> raw) {
         if (raw == null || raw.isEmpty()) return Set.of();
         return raw.stream()
-                .flatMap(v -> java.util.Arrays.stream(v.split(",")))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(s -> s.toUpperCase(Locale.ROOT))
-                .flatMap(s -> {
-                    try {
-                        return java.util.stream.Stream.of(Category.valueOf(s));
-                    } catch (IllegalArgumentException ex) {
-                        return java.util.stream.Stream.empty();
-                    }
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    private Set<String> parseTagSlugs(List<String> raw) {
-        if (raw == null || raw.isEmpty()) return Set.of();
-        return raw.stream()
-                .flatMap(v -> java.util.Arrays.stream(v.split(",")))
+                .flatMap(v -> Arrays.stream(v.split(",")))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .map(s -> s.toLowerCase(Locale.ROOT))

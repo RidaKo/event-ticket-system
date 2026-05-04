@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -15,14 +14,16 @@ import java.util.List;
 public class CatalogController {
 
     private final TagRepository tagRepository;
+    private final CategoryRepository categoryRepository;
 
-    public CatalogController(TagRepository tagRepository) {
+    public CatalogController(TagRepository tagRepository, CategoryRepository categoryRepository) {
         this.tagRepository = tagRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping("/categories")
     public List<CategoryOptionDto> categories() {
-        return Arrays.stream(Category.values())
+        return categoryRepository.findAllByOrderByNameAsc().stream()
                 .map(CategoryOptionDto::from)
                 .sorted(Comparator.comparing(CategoryOptionDto::label))
                 .toList();

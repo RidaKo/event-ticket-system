@@ -1,0 +1,15 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.heading {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-xl);
+}
+
+.serverError {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}

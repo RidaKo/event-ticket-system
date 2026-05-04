@@ -5,7 +5,7 @@ package com.paradise.event_ticket_system.config;
  * provider once Spring Security / session auth lands.
  */
 public interface DemoUserProvider {
-    Long getDemoUserId();
+    Integer getDemoUserId();
 
-    void setDemoUserId(Long id);
+    void setDemoUserId(Integer id);
 }

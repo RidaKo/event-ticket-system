@@ -1,13 +1,11 @@
 package com.paradise.event_ticket_system.user;
 
-import com.paradise.event_ticket_system.event.Category;
 import com.paradise.event_ticket_system.event.Tag;
-import jakarta.persistence.CollectionTable;
+import com.paradise.event_ticket_system.model.AuditableEntity;
+import com.paradise.event_ticket_system.model.Category;
+import com.paradise.event_ticket_system.model.User;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,23 +27,22 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserPreferences {
+public class UserPreferences extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @ElementCollection(fetch = FetchType.EAGER, targetClass = Category.class)
-    @Enumerated(EnumType.STRING)
-    @CollectionTable(
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
             name = "user_preferred_categories",
-            joinColumns = @JoinColumn(name = "preferences_id")
+            joinColumns = @JoinColumn(name = "preferences_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    @Column(name = "category", nullable = false)
     private Set<Category> preferredCategories = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)

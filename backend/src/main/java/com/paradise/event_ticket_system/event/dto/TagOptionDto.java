@@ -3,7 +3,7 @@ package com.paradise.event_ticket_system.event.dto;
 import com.paradise.event_ticket_system.event.Tag;
 
 public record TagOptionDto(
-        Long id,
+        Integer id,
         String slug,
         String label
 ) {

@@ -1,7 +1,6 @@
 package com.paradise.event_ticket_system.recommendation;
 
 import com.paradise.event_ticket_system.config.DemoUserProvider;
-import com.paradise.event_ticket_system.event.Category;
 import com.paradise.event_ticket_system.recommendation.dto.RecommendationResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,7 @@ class RecommendationServiceIntegrationTest {
     @Test
     void filteredRecommendationsDoNotFallbackToUnmatchedEvents() {
         RecommendationFilters filters = new RecommendationFilters(
-                Set.of(Category.SPORTS),
+                Set.of("sports"),
                 Set.of(),
                 null,
                 null,
@@ -42,7 +41,7 @@ class RecommendationServiceIntegrationTest {
         assertNotNull(response);
         assertFalse(response.fallbackUsed());
         assertEquals(1, response.items().size());
-        assertTrue(response.items().stream().allMatch(item -> item.category() == Category.SPORTS));
+        assertTrue(response.items().stream().allMatch(item -> "SPORTS".equals(item.category())));
         assertTrue(response.items().stream().allMatch(item -> "Vilnius".equalsIgnoreCase(item.city())));
     }
 }
