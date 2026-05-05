@@ -1,0 +1,36 @@
+package com.paradise.event_ticket_system.viewEvent.service;
+
+import com.paradise.event_ticket_system.model.Venue;
+import com.paradise.event_ticket_system.viewEvent.api.EventMapper;
+import com.paradise.event_ticket_system.viewEvent.api.DTO.VenueRequest;
+import com.paradise.event_ticket_system.viewEvent.api.DTO.VenueResponse;
+import com.paradise.event_ticket_system.viewEvent.domain.VenueRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+@RequiredArgsConstructor
+public class VenueService {
+
+    private final VenueRepository venueRepository;
+    private final EventMapper eventMapper;
+
+    @Transactional
+    public VenueResponse createVenue(VenueRequest request) {
+        Venue venue = eventMapper.toVenueEntity(request);
+        Venue saved = venueRepository.save(venue);
+        return eventMapper.toVenueResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public VenueResponse getVenueById(Integer id) {
+        Venue venue = venueRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Venue with id " + id + " not found"
+                ));
+        return eventMapper.toVenueResponse(venue);
+    }
+}
