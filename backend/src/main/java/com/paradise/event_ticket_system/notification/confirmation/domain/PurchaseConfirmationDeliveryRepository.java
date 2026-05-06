@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PurchaseConfirmationDeliveryRepository
 	extends JpaRepository<PurchaseConfirmationDelivery, Long> {
 
-	Optional<PurchaseConfirmationDelivery> findByOrderId(String orderId);
+	Optional<PurchaseConfirmationDelivery> findByOrderId(Integer orderId);
 }

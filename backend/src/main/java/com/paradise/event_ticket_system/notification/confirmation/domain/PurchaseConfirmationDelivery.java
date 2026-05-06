@@ -2,9 +2,10 @@ package com.paradise.event_ticket_system.notification.confirmation.domain;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.List;
 
-import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -27,8 +28,8 @@ public class PurchaseConfirmationDelivery {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "order_id", nullable = false, updatable = false, length = 100)
-	private String orderId;
+	@Column(name = "order_id", nullable = false, updatable = false)
+	private Integer orderId;
 
 	@Column(name = "order_reference", nullable = false, updatable = false, length = 100)
 	private String orderReference;
@@ -45,14 +46,15 @@ public class PurchaseConfirmationDelivery {
 	@Column(name = "event_location", nullable = false, updatable = false)
 	private String eventLocation;
 
-	@Column(name = "ticket_type", nullable = false, updatable = false)
-	private String ticketType;
-
 	@Column(name = "ticket_quantity", nullable = false, updatable = false)
-	private int quantity;
+	private int totalQuantity;
 
-	@Column(name = "ticket_url", length = 2048, updatable = false)
-	private String ticketUrl;
+	@Convert(converter = PurchaseConfirmationTicketLineListConverter.class)
+	@Column(name = "ticket_lines", nullable = false, updatable = false, length = 4000)
+	private List<PurchaseConfirmationTicketLine> ticketLines = List.of();
+
+	@Column(name = "order_access_url", length = 2048, updatable = false)
+	private String orderAccessUrl;
 
 	@Column(name = "qr_code_image_url", length = 2048, updatable = false)
 	private String qrCodeImageUrl;
@@ -76,22 +78,55 @@ public class PurchaseConfirmationDelivery {
 	protected PurchaseConfirmationDelivery() {
 	}
 
-	private PurchaseConfirmationDelivery(PurchaseConfirmationRequest request) {
-		this.orderId = request.orderId();
-		this.orderReference = request.orderReference();
-		this.attendeeEmail = request.attendeeEmail();
-		this.eventTitle = request.eventTitle();
-		this.eventDateTime = request.eventDateTime();
-		this.eventLocation = request.eventLocation();
-		this.ticketType = request.ticketType();
-		this.quantity = request.quantity();
-		this.ticketUrl = request.ticketUrl();
-		this.qrCodeImageUrl = request.qrCodeImageUrl();
+	private PurchaseConfirmationDelivery(
+		Integer orderId,
+		String orderReference,
+		String attendeeEmail,
+		String eventTitle,
+		OffsetDateTime eventDateTime,
+		String eventLocation,
+		int totalQuantity,
+		List<PurchaseConfirmationTicketLine> ticketLines,
+		String orderAccessUrl,
+		String qrCodeImageUrl
+	) {
+		this.orderId = orderId;
+		this.orderReference = orderReference;
+		this.attendeeEmail = attendeeEmail;
+		this.eventTitle = eventTitle;
+		this.eventDateTime = eventDateTime;
+		this.eventLocation = eventLocation;
+		this.totalQuantity = totalQuantity;
+		this.ticketLines = List.copyOf(ticketLines);
+		this.orderAccessUrl = orderAccessUrl;
+		this.qrCodeImageUrl = qrCodeImageUrl;
 		this.status = EmailDeliveryStatus.PENDING;
 	}
 
-	public static PurchaseConfirmationDelivery pending(PurchaseConfirmationRequest request) {
-		return new PurchaseConfirmationDelivery(request);
+	public static PurchaseConfirmationDelivery pending(
+		Integer orderId,
+		String orderReference,
+		String attendeeEmail,
+		String eventTitle,
+		OffsetDateTime eventDateTime,
+		String eventLocation,
+		int totalQuantity,
+		List<PurchaseConfirmationTicketLine> ticketLines,
+		String orderAccessUrl,
+		String qrCodeImageUrl
+	) {
+		return new PurchaseConfirmationDelivery(
+			orderId,
+			orderReference,
+			attendeeEmail,
+			eventTitle,
+			eventDateTime,
+			eventLocation,
+			totalQuantity,
+			ticketLines,
+			orderAccessUrl,
+			qrCodeImageUrl
+		);
 	}
 
 	@PrePersist
@@ -121,7 +156,7 @@ public class PurchaseConfirmationDelivery {
 		return id;
 	}
 
-	public String getOrderId() {
+	public Integer getOrderId() {
 		return orderId;
 	}
 
@@ -145,16 +180,16 @@ public class PurchaseConfirmationDelivery {
 		return eventLocation;
 	}
 
-	public String getTicketType() {
-		return ticketType;
+	public int getTotalQuantity() {
+		return totalQuantity;
 	}
 
-	public int getQuantity() {
-		return quantity;
+	public List<PurchaseConfirmationTicketLine> getTicketLines() {
+		return ticketLines;
 	}
 
-	public String getTicketUrl() {
-		return ticketUrl;
+	public String getOrderAccessUrl() {
+		return orderAccessUrl;
 	}
 
 	public String getQrCodeImageUrl() {

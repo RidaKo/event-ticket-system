@@ -2,8 +2,10 @@ package com.paradise.event_ticket_system.notification.confirmation.service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDelivery;
+import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationTicketLine;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thymeleaf.TemplateEngine;
@@ -26,13 +28,17 @@ public class ThymeleafPurchaseConfirmationEmailContentFactory {
 		context.setVariable("eventTitle", delivery.getEventTitle());
 		context.setVariable("eventDateTime", DATE_TIME_FORMATTER.format(delivery.getEventDateTime()));
 		context.setVariable("eventLocation", delivery.getEventLocation());
-		context.setVariable("ticketType", delivery.getTicketType());
-		context.setVariable("quantity", delivery.getQuantity());
+		context.setVariable("ticketLines", delivery.getTicketLines());
+		context.setVariable("totalQuantity", delivery.getTotalQuantity());
 		context.setVariable("orderReference", delivery.getOrderReference());
-		context.setVariable("ticketUrl", delivery.getTicketUrl());
+		context.setVariable("orderAccessUrl", delivery.getOrderAccessUrl());
 		context.setVariable("qrCodeImageUrl", delivery.getQrCodeImageUrl());
-		context.setVariable("hasTicketUrl", StringUtils.hasText(delivery.getTicketUrl()));
+		context.setVariable("hasOrderAccessUrl", StringUtils.hasText(delivery.getOrderAccessUrl()));
 		context.setVariable("hasQrCodeImageUrl", StringUtils.hasText(delivery.getQrCodeImageUrl()));
+		context.setVariable(
+			"hasAccessDetails",
+			StringUtils.hasText(delivery.getOrderAccessUrl()) || StringUtils.hasText(delivery.getQrCodeImageUrl())
+		);
 
 		String htmlBody = templateEngine.process("email/purchase-confirmation", context);
 		String textBody = """
@@ -43,8 +49,9 @@ public class ThymeleafPurchaseConfirmationEmailContentFactory {
 			Event: %s
 			Date and time: %s
 			Location: %s
-			Ticket type: %s
-			Quantity: %d
+			Tickets:
+			%s
+			Total quantity: %d
 			Order reference: %s
 			
 			Ticket access: %s
@@ -55,8 +62,8 @@ public class ThymeleafPurchaseConfirmationEmailContentFactory {
 			delivery.getEventTitle(),
 			DATE_TIME_FORMATTER.format(delivery.getEventDateTime()),
 			delivery.getEventLocation(),
-			delivery.getTicketType(),
-			delivery.getQuantity(),
+			formatTicketLines(delivery.getTicketLines()),
+			delivery.getTotalQuantity(),
 			delivery.getOrderReference(),
 			resolveTicketAccessSummary(delivery)
 		);
@@ -74,11 +81,24 @@ public class ThymeleafPurchaseConfirmationEmailContentFactory {
 		);
 	}
 
+	private String formatTicketLines(java.util.List<PurchaseConfirmationTicketLine> ticketLines) {
+		return StringUtils.collectionToDelimitedString(
+			ticketLines.stream()
+				.map(ticketLine -> "- %s x %d".formatted(ticketLine.ticketType(), ticketLine.quantity()))
+				.collect(Collectors.toList()),
+			"\n"
+		);
+	}
+
 	private String resolveTicketAccessSummary(PurchaseConfirmationDelivery delivery) {
-		if (StringUtils.hasText(delivery.getTicketUrl())) {
-			return delivery.getTicketUrl();
+		if (StringUtils.hasText(delivery.getOrderAccessUrl())) {
+			return delivery.getOrderAccessUrl();
+		}
+		if (StringUtils.hasText(delivery.getQrCodeImageUrl())) {
+			return "QR code included in the HTML version of this email.";
 		}
 
-		return "QR code included in the HTML version of this email.";
+		return "Open the order confirmation screen in Event Ticket System using order reference %s."
+			.formatted(delivery.getOrderReference());
 	}
 }

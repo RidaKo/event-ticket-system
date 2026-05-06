@@ -9,12 +9,16 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
   thymeleaf:
     cache: false
+  flyway:
+    enabled: true
 
 event-ticket:
   email:
     sender: log
     from-address: no-reply@event-ticket.local
+  seed:
+    enabled: true

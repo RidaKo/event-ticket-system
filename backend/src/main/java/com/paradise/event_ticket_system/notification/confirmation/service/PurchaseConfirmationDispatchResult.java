@@ -5,7 +5,7 @@ import com.paradise.event_ticket_system.notification.confirmation.domain.Purchas
 
 public record PurchaseConfirmationDispatchResult(
 	Long deliveryId,
-	String orderId,
+	Integer orderId,
 	String orderReference,
 	PurchaseConfirmationOutcome outcome,
 	boolean alreadyProcessed
@@ -31,7 +31,7 @@ public record PurchaseConfirmationDispatchResult(
 		);
 	}
 
-	public static PurchaseConfirmationDispatchResult skipped(String orderId, String orderReference) {
+	public static PurchaseConfirmationDispatchResult skipped(Integer orderId, String orderReference) {
 		return new PurchaseConfirmationDispatchResult(
 			null,
 			orderId,

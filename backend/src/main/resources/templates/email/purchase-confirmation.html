@@ -37,12 +37,8 @@
                 <td style="padding:10px 0;border-bottom:1px solid #e7edf7;" th:text="${eventLocation}">Event location</td>
               </tr>
               <tr>
-                <td style="padding:10px 0;border-bottom:1px solid #e7edf7;font-weight:bold;">Ticket type</td>
-                <td style="padding:10px 0;border-bottom:1px solid #e7edf7;" th:text="${ticketType}">Ticket type</td>
-              </tr>
-              <tr>
-                <td style="padding:10px 0;border-bottom:1px solid #e7edf7;font-weight:bold;">Quantity</td>
-                <td style="padding:10px 0;border-bottom:1px solid #e7edf7;" th:text="${quantity}">1</td>
+                <td style="padding:10px 0;border-bottom:1px solid #e7edf7;font-weight:bold;">Total tickets</td>
+                <td style="padding:10px 0;border-bottom:1px solid #e7edf7;" th:text="${totalQuantity}">1</td>
               </tr>
               <tr>
                 <td style="padding:10px 0;font-weight:bold;">Order reference</td>
@@ -50,14 +46,28 @@
               </tr>
             </table>
 
+            <div style="margin-top:20px;">
+              <h2 style="margin:0 0 12px;font-size:18px;">Ticket details</h2>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                <tr th:each="ticketLine : ${ticketLines}">
+                  <td style="padding:10px 0;border-bottom:1px solid #e7edf7;font-weight:bold;" th:text="${ticketLine.ticketType()}">Ticket type</td>
+                  <td style="padding:10px 0;border-bottom:1px solid #e7edf7;text-align:right;" th:text="${ticketLine.quantity()} + ' ticket(s)'">1 ticket</td>
+                </tr>
+              </table>
+            </div>
+
             <div style="margin-top:28px;padding:20px;background:#f7f9fd;border:1px solid #e7edf7;border-radius:10px;">
               <h2 style="margin:0 0 12px;font-size:18px;">Ticket access</h2>
-              <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">
-                Use the button below to open your ticket page at any time before the event.
+              <p th:if="${hasAccessDetails}" style="margin:0 0 16px;font-size:14px;line-height:1.6;">
+                Use the ticket access options below to open your order or keep a scannable copy with you.
               </p>
-              <div th:if="${hasTicketUrl}" style="margin-bottom:18px;">
-                <a th:href="${ticketUrl}" style="display:inline-block;padding:12px 18px;background:#334972;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
-                  Open your ticket
+              <p th:if="${!hasAccessDetails}" style="margin:0;font-size:14px;line-height:1.6;">
+                Your order has been confirmed and is available in Event Ticket System under order reference
+                <strong th:text="${orderReference}">ORDER-123</strong>.
+              </p>
+              <div th:if="${hasOrderAccessUrl}" style="margin-bottom:18px;">
+                <a th:href="${orderAccessUrl}" style="display:inline-block;padding:12px 18px;background:#334972;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
+                  Open your order
                 </a>
               </div>
               <div th:if="${hasQrCodeImageUrl}">
