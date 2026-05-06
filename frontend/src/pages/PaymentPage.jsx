@@ -1,30 +1,37 @@
-import { useEffect, useState } from 'react';
-import { getOrder, submitPayment } from '../api/checkoutApi.js';
-import CheckoutStepLayout from '../components/CheckoutStepLayout.jsx';
-import OrderSummary from '../components/OrderSummary.jsx';
-import PaymentMethodSelector from '../components/PaymentMethodSelector.jsx';
+import { Alert, Grid, Group, Loader, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { getOrder, submitPayment } from "../api/checkoutApi.js";
+import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
+import OrderSummary from "../components/OrderSummary.jsx";
+import PaymentMethodSelector from "../components/PaymentMethodSelector.jsx";
 
 export default function PaymentPage({ orderNumber, navigate }) {
   const [order, setOrder] = useState(null);
-  const [methodType, setMethodType] = useState('CARD');
-  const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242');
-  const [nameOnCard, setNameOnCard] = useState('');
-  const [expiry, setExpiry] = useState('12/28');
-  const [cvv, setCvv] = useState('123');
+  const [methodType, setMethodType] = useState("CARD");
+  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
+  const [nameOnCard, setNameOnCard] = useState("");
+  const [expiry, setExpiry] = useState("12/28");
+  const [cvv, setCvv] = useState("123");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError("");
+
     getOrder(orderNumber)
       .then((data) => {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
         setOrder(data);
-        setNameOnCard(data.guestName || '');
+        setNameOnCard(data.guestName || "");
       })
       .catch((err) => active && setError(err.message))
       .finally(() => active && setLoading(false));
+
     return () => {
       active = false;
     };
@@ -32,23 +39,23 @@ export default function PaymentPage({ orderNumber, navigate }) {
 
   async function payNow(event) {
     event.preventDefault();
-    if (methodType === 'CARD' && cardNumber.replace(/\D/g, '').length < 12) {
-      setError('Enter a valid card number');
+    if (methodType === "CARD" && cardNumber.replace(/\D/g, "").length < 12) {
+      setError("Enter a valid card number");
       return;
     }
 
     setSubmitting(true);
-    setError('');
+    setError("");
     try {
       const result = await submitPayment(orderNumber, {
         methodType,
-        cardNumber: methodType === 'CARD' ? cardNumber : '5555 5555 5555 4444'
+        cardNumber: methodType === "CARD" ? cardNumber : "5555 5555 5555 4444",
       });
-      if (result.orderStatus === 'CONFIRMED') {
+      if (result.orderStatus === "CONFIRMED") {
         navigate(`/checkout/${orderNumber}/confirmation`);
         return;
       }
-      setError('Payment failed');
+      setError("Payment failed");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -57,46 +64,82 @@ export default function PaymentPage({ orderNumber, navigate }) {
   }
 
   const sidebar = (
-    <>
+    <Stack gap="md">
       <OrderSummary
         summary={order?.summary}
         actionLabel="Pay Now"
-        onAction={() => document.getElementById('paymentForm')?.requestSubmit()}
+        onAction={() => document.getElementById("paymentForm")?.requestSubmit()}
         actionDisabled={submitting || loading || !order}
       />
-      {error && <p className="error-message">{error}</p>}
-    </>
+      {error && (
+        <Alert color="red" variant="light">
+          {error}
+        </Alert>
+      )}
+    </Stack>
   );
 
   return (
     <CheckoutStepLayout title="Payment" sidebar={sidebar}>
-      {loading && <p className="muted">Loading order...</p>}
-      {order && (
-        <form id="paymentForm" className="payment-form" onSubmit={payNow}>
-          <section className="form-section">
-            <h2>Payment Method</h2>
-            <PaymentMethodSelector value={methodType} onChange={setMethodType} />
-          </section>
+      {loading && (
+        <Group gap="sm">
+          <Loader size="sm" color="brand" />
+          <Text c="dimmed">Loading order...</Text>
+        </Group>
+      )}
 
-          {methodType === 'CARD' && (
-            <section className="form-section">
-              <h2>Card Details</h2>
-              <label htmlFor="cardNumber">Card Number</label>
-              <input id="cardNumber" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} />
-              <label htmlFor="nameOnCard">Name on Card</label>
-              <input id="nameOnCard" value={nameOnCard} onChange={(e) => setNameOnCard(e.target.value)} />
-              <div className="two-column">
-                <label>
-                  Expiration Date
-                  <input value={expiry} onChange={(e) => setExpiry(e.target.value)} />
-                </label>
-                <label>
-                  CVV
-                  <input value={cvv} onChange={(e) => setCvv(e.target.value)} />
-                </label>
-              </div>
-            </section>
-          )}
+      {order && (
+        <form id="paymentForm" onSubmit={payNow}>
+          <Stack gap="md">
+            <Paper className="form-section" radius="md" p="lg" withBorder>
+              <Stack gap="md">
+                <Title order={3} size="h4" c="brand.9">
+                  Payment Method
+                </Title>
+                <PaymentMethodSelector value={methodType} onChange={setMethodType} />
+              </Stack>
+            </Paper>
+
+            {methodType === "CARD" && (
+              <Paper className="form-section" radius="md" p="lg" withBorder>
+                <Stack gap="md">
+                  <Title order={3} size="h4" c="brand.9">
+                    Card Details
+                  </Title>
+                  <TextInput
+                    label="Card Number"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    variant="filled"
+                  />
+                  <TextInput
+                    label="Name on Card"
+                    value={nameOnCard}
+                    onChange={(e) => setNameOnCard(e.target.value)}
+                    variant="filled"
+                  />
+                  <Grid gutter="sm">
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <TextInput
+                        label="Expiration Date"
+                        value={expiry}
+                        onChange={(e) => setExpiry(e.target.value)}
+                        variant="filled"
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <TextInput
+                        label="CVV"
+                        value={cvv}
+                        onChange={(e) => setCvv(e.target.value)}
+                        variant="filled"
+                      />
+                    </Grid.Col>
+                  </Grid>
+                </Stack>
+              </Paper>
+            )}
+          </Stack>
         </form>
       )}
     </CheckoutStepLayout>

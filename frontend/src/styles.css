@@ -1,0 +1,181 @@
+body {
+  margin: 0;
+  background: var(--mantine-color-brand-0);
+  color: var(--mantine-color-brand-9);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.app-frame {
+  min-height: 100vh;
+  background: var(--mantine-color-brand-0);
+}
+
+.topbar {
+  background: var(--mantine-color-white);
+  border-bottom: 1px solid var(--mantine-color-brand-2);
+}
+
+.logo-badge {
+  flex: 0 0 auto;
+  transform: rotate(-10deg);
+}
+
+.logo-image {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+.nav-tabs {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.event-card,
+.browse-card,
+.filter-card,
+.ticket-card,
+.summary-card,
+.form-section,
+.detail-section,
+.confirmation-header,
+.event-strip {
+  border-color: var(--mantine-color-brand-2);
+  background: var(--mantine-color-white);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+.event-card {
+  display: flex;
+  block-size: 100%;
+  flex-direction: column;
+}
+
+.event-card-body {
+  flex: 1;
+}
+
+.media-placeholder {
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 1px solid var(--mantine-color-brand-2);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-brand-1);
+}
+
+.bookmark-icon {
+  color: currentColor;
+}
+
+.browse-copy {
+  min-inline-size: 0;
+}
+
+.filter-card {
+  position: sticky;
+  top: var(--mantine-spacing-md);
+}
+
+.filter-body {
+  display: grid;
+  gap: var(--mantine-spacing-xl);
+}
+
+.checkout-sidebar {
+  position: sticky;
+  top: var(--mantine-spacing-md);
+}
+
+.ticket-card[data-disabled] {
+  color: var(--mantine-color-gray-6);
+}
+
+.ticket-icon {
+  flex: 0 0 72px;
+  font-weight: 700;
+}
+
+.ticket-body {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.quantity-control {
+  inline-size: fit-content;
+  border: 1px solid var(--mantine-color-brand-2);
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+}
+
+.quantity-value {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  min-block-size: 36px;
+  border-inline: 1px solid var(--mantine-color-brand-2);
+}
+
+.summary-line {
+  min-inline-size: 0;
+}
+
+.total-row {
+  padding-top: var(--mantine-spacing-xs);
+}
+
+.discount-input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.method-card {
+  display: flex;
+  min-block-size: 86px;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  border-color: var(--mantine-color-brand-2);
+  background: var(--mantine-color-white);
+  cursor: pointer;
+}
+
+.method-card[data-selected] {
+  border-color: var(--mantine-color-brand-7);
+  box-shadow: inset 0 0 0 1px var(--mantine-color-brand-7);
+}
+
+.confirmation-shell {
+  max-inline-size: 780px;
+  margin-inline: auto;
+}
+
+.confirmation-line {
+  padding: var(--mantine-spacing-sm);
+  border: 1px solid var(--mantine-color-brand-1);
+  border-radius: var(--mantine-radius-sm);
+  border-color: var(--mantine-color-brand-1);
+  background: var(--mantine-color-brand-0);
+}
+
+@media (max-width: 62em) {
+  .filter-card,
+  .checkout-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 48em) {
+  .nav-tabs {
+    order: 3;
+    flex-basis: 100%;
+  }
+}

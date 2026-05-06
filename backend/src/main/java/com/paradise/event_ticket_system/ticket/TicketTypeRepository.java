@@ -13,6 +13,6 @@ public interface TicketTypeRepository extends JpaRepository<TicketType, Long> {
     List<TicketType> findByEventIdOrderById(Long eventId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select t from TicketType t where t.id in :ids")
+    @Query("select t from CheckoutTicketType t where t.id in :ids")
     List<TicketType> findAllByIdForUpdate(@Param("ids") Collection<Long> ids);
 }
