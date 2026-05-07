@@ -15,4 +15,5 @@ spring:
   thymeleaf:
     cache: false
   flyway:
-    enabled: false
+    ddl-auto: validate
+    enabled: true
