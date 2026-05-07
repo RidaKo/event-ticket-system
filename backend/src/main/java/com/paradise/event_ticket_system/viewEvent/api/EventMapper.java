@@ -47,6 +47,7 @@ public class EventMapper {
     public VenueResponse toVenueResponse(Venue venue) {
         return new VenueResponse(
                 venue.getId(),
+                venue.getOrganizer().getBusinessName(),
                 venue.getName(),
                 venue.getAddressLine1(),
                 venue.getCity(),
@@ -59,14 +60,15 @@ public class EventMapper {
     private ReviewResponse toReviewResponse(Review review) {
         return new ReviewResponse(
                 review.getId(),
-                review.getUser(),
+                review.getUser().getFullName(),
                 review.getRating(),
                 review.getComment(),
                 review.getCreatedAt()
         );
     }
-    public Venue toVenueEntity(VenueRequest request) {
+    public Venue toVenueEntity(VenueRequest request, Organizer organizer) {
         Venue venue = new Venue();
+        venue.setOrganizer(organizer);
         venue.setName(request.name());
         venue.setAddressLine1(request.addressLine1());
         venue.setCity(request.city());

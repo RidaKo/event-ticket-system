@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public record VenueResponse(
         Integer id,
+        String organizerName,
         String name,
         String addressLine1,
         String city,

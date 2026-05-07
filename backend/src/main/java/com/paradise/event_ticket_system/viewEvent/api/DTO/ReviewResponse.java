@@ -6,7 +6,7 @@ import java.time.Instant;
 
 public record ReviewResponse(
         Integer id,
-        User username,
+        String userName,
         BigDecimal rating,
         String comment,
         Instant createdAt

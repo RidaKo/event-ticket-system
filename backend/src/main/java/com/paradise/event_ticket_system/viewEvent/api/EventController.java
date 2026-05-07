@@ -1,6 +1,5 @@
 package com.paradise.event_ticket_system.viewEvent.api;
 
-//import com.google.firebase.database.core.Tag;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventRequest;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventResponse;
 import com.paradise.event_ticket_system.viewEvent.service.EventService;
