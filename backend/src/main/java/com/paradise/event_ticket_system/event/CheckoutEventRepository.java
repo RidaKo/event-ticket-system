@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EventRepository extends JpaRepository<Event, Integer> {
+public interface CheckoutEventRepository extends JpaRepository<Event, Integer> {
 
     @EntityGraph(attributePaths = "venue")
     Optional<Event> findWithVenueById(Integer id);

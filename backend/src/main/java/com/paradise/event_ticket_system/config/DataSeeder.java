@@ -3,7 +3,7 @@ package com.paradise.event_ticket_system.config;
 import com.paradise.event_ticket_system.discount.DiscountCode;
 import com.paradise.event_ticket_system.discount.DiscountRepository;
 import com.paradise.event_ticket_system.discount.DiscountType;
-import com.paradise.event_ticket_system.event.EventRepository;
+import com.paradise.event_ticket_system.event.CheckoutEventRepository;
 import com.paradise.event_ticket_system.model.Category;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.Organizer;
@@ -21,13 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
-    private final EventRepository eventRepository;
+    private final CheckoutEventRepository eventRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final DiscountRepository discountRepository;
     private final EntityManager entityManager;
 
     public DataSeeder(
-            EventRepository eventRepository,
+            CheckoutEventRepository eventRepository,
             TicketTypeRepository ticketTypeRepository,
             DiscountRepository discountRepository,
             EntityManager entityManager

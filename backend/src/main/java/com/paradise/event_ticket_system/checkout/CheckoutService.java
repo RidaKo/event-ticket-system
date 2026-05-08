@@ -4,7 +4,7 @@ import com.paradise.event_ticket_system.discount.DiscountCode;
 import com.paradise.event_ticket_system.discount.DiscountRepository;
 import com.paradise.event_ticket_system.discount.DiscountType;
 import com.paradise.event_ticket_system.event.CheckoutCatalogRules;
-import com.paradise.event_ticket_system.event.EventRepository;
+import com.paradise.event_ticket_system.event.CheckoutEventRepository;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.TicketType;
 import com.paradise.event_ticket_system.model.Venue;
@@ -41,7 +41,7 @@ public class CheckoutService {
 
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
 
-    private final EventRepository eventRepository;
+    private final CheckoutEventRepository eventRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final DiscountRepository discountRepository;
     private final PurchaseOrderRepository orderRepository;
@@ -49,7 +49,7 @@ public class CheckoutService {
     private final PaymentService paymentService;
 
     public CheckoutService(
-            EventRepository eventRepository,
+            CheckoutEventRepository eventRepository,
             TicketTypeRepository ticketTypeRepository,
             DiscountRepository discountRepository,
             PurchaseOrderRepository orderRepository,
