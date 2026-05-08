@@ -1,6 +1,6 @@
 package com.paradise.event_ticket_system.discount;
 
-import com.paradise.event_ticket_system.event.Event;
+import com.paradise.event_ticket_system.model.Event;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

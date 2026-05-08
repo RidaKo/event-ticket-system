@@ -1,13 +1,13 @@
 package com.paradise.event_ticket_system.checkout;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record EventSummaryResponse(
-        Long id,
+        Integer id,
         String title,
         String description,
-        LocalDateTime startsAt,
-        LocalDateTime endsAt,
+        Instant startsAt,
+        Instant endsAt,
         String venueName,
         String address,
         String city,

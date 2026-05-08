@@ -1,6 +1,8 @@
 package com.paradise.event_ticket_system.event;
 
-import com.paradise.event_ticket_system.ticket.TicketType;
+import com.paradise.event_ticket_system.model.Event;
+import com.paradise.event_ticket_system.model.TicketType;
+import com.paradise.event_ticket_system.model.Venue;
 import com.paradise.event_ticket_system.ticket.TicketTypeRepository;
 import com.paradise.event_ticket_system.ticket.TicketTypeResponse;
 import java.util.List;
@@ -24,14 +26,14 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}")
-    public EventResponse getEvent(@PathVariable Long eventId) {
-        return eventRepository.findById(eventId)
+    public EventResponse getEvent(@PathVariable Integer eventId) {
+        return eventRepository.findWithVenueById(eventId)
                 .map(this::toResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
     }
 
     @GetMapping("/{eventId}/ticket-types")
-    public List<TicketTypeResponse> getTicketTypes(@PathVariable Long eventId) {
+    public List<TicketTypeResponse> getTicketTypes(@PathVariable Integer eventId) {
         if (!eventRepository.existsById(eventId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found");
         }
@@ -41,17 +43,18 @@ public class EventController {
     }
 
     private EventResponse toResponse(Event event) {
+        Venue venue = event.getVenue();
         return new EventResponse(
                 event.getId(),
                 event.getTitle(),
                 event.getDescription(),
-                event.getStartsAt(),
-                event.getEndsAt(),
-                event.getVenueName(),
-                event.getAddress(),
-                event.getCity(),
-                event.getCountry(),
-                event.isSalesEnabled()
+                event.getStartDatetime(),
+                event.getEndDatetime(),
+                venue.getName(),
+                venue.getAddressLine1(),
+                venue.getCity(),
+                venue.getCountry(),
+                CheckoutCatalogRules.isEventSalesEnabled(event)
         );
     }
 
@@ -60,8 +63,8 @@ public class EventController {
                 ticketType.getId(),
                 ticketType.getName(),
                 ticketType.getPrice(),
-                ticketType.getAvailableQuantity(),
-                ticketType.isSalesEnabled()
+                CheckoutCatalogRules.availableQuantity(ticketType),
+                CheckoutCatalogRules.isTicketSalesEnabled(ticketType)
         );
     }
 }

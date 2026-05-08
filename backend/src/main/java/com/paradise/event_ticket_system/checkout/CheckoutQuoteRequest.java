@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record CheckoutQuoteRequest(
-        @NotNull Long eventId,
+        @NotNull Integer eventId,
         @NotEmpty List<@Valid TicketItemRequest> items,
         String discountCode
 ) {

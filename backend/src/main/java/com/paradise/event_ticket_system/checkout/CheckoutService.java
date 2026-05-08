@@ -3,8 +3,11 @@ package com.paradise.event_ticket_system.checkout;
 import com.paradise.event_ticket_system.discount.DiscountCode;
 import com.paradise.event_ticket_system.discount.DiscountRepository;
 import com.paradise.event_ticket_system.discount.DiscountType;
-import com.paradise.event_ticket_system.event.Event;
+import com.paradise.event_ticket_system.event.CheckoutCatalogRules;
 import com.paradise.event_ticket_system.event.EventRepository;
+import com.paradise.event_ticket_system.model.Event;
+import com.paradise.event_ticket_system.model.TicketType;
+import com.paradise.event_ticket_system.model.Venue;
 import com.paradise.event_ticket_system.order.OrderItem;
 import com.paradise.event_ticket_system.order.OrderStatus;
 import com.paradise.event_ticket_system.order.PurchaseOrder;
@@ -15,10 +18,10 @@ import com.paradise.event_ticket_system.payment.PaymentRepository;
 import com.paradise.event_ticket_system.payment.PaymentResult;
 import com.paradise.event_ticket_system.payment.PaymentService;
 import com.paradise.event_ticket_system.payment.PaymentStatus;
-import com.paradise.event_ticket_system.ticket.TicketType;
 import com.paradise.event_ticket_system.ticket.TicketTypeRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Comparator;
@@ -70,7 +73,7 @@ public class CheckoutService {
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
         Event event = loadEventForCheckout(request.eventId());
-        Map<Long, Integer> requestedItems = mergeItems(request.items());
+        Map<Integer, Integer> requestedItems = mergeItems(request.items());
         OrderSummaryResponse summary = buildSummary(event, requestedItems, request.discountCode());
 
         PurchaseOrder order = new PurchaseOrder();
@@ -88,7 +91,7 @@ public class CheckoutService {
             order.setDiscountCode(discountCode);
         }
 
-        Map<Long, TicketType> ticketTypes = loadTicketTypes(requestedItems.keySet()).stream()
+        Map<Integer, TicketType> ticketTypes = loadTicketTypes(requestedItems.keySet()).stream()
                 .collect(Collectors.toMap(TicketType::getId, Function.identity()));
         summary.items().forEach(line -> {
             TicketType ticketType = ticketTypes.get(line.ticketTypeId());
@@ -116,7 +119,7 @@ public class CheckoutService {
         PurchaseOrder order = loadOrderForUpdate(orderNumber);
         requirePending(order);
 
-        Map<Long, Integer> requestedItems = order.getItems().stream()
+        Map<Integer, Integer> requestedItems = order.getItems().stream()
                 .collect(Collectors.toMap(item -> item.getTicketType().getId(), OrderItem::getQuantity));
         OrderSummaryResponse summary = buildSummary(order.getEvent(), requestedItems, discountCode);
         order.setSubtotal(summary.subtotal());
@@ -139,7 +142,7 @@ public class CheckoutService {
         List<TicketType> lockedTicketTypes = ticketTypeRepository.findAllByIdForUpdate(order.getItems().stream()
                 .map(item -> item.getTicketType().getId())
                 .toList());
-        Map<Long, TicketType> ticketTypeById = lockedTicketTypes.stream()
+        Map<Integer, TicketType> ticketTypeById = lockedTicketTypes.stream()
                 .collect(Collectors.toMap(TicketType::getId, Function.identity()));
 
         for (OrderItem item : order.getItems()) {
@@ -165,7 +168,8 @@ public class CheckoutService {
 
         for (OrderItem item : order.getItems()) {
             TicketType ticketType = ticketTypeById.get(item.getTicketType().getId());
-            ticketType.setSoldQuantity(ticketType.getSoldQuantity() + item.getQuantity());
+            int quantitySold = ticketType.getQuantitySold() == null ? 0 : ticketType.getQuantitySold();
+            ticketType.setQuantitySold(quantitySold + item.getQuantity());
         }
 
         if (order.getDiscountCode() != null) {
@@ -189,6 +193,7 @@ public class CheckoutService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Order is not confirmed");
         }
         Event event = order.getEvent();
+        Venue venue = event.getVenue();
         Payment payment = order.getPayment();
         return new ConfirmationResponse(
                 order.getOrderNumber(),
@@ -200,12 +205,12 @@ public class CheckoutService {
                         event.getId(),
                         event.getTitle(),
                         event.getDescription(),
-                        event.getStartsAt(),
-                        event.getEndsAt(),
-                        event.getVenueName(),
-                        event.getAddress(),
-                        event.getCity(),
-                        event.getCountry()
+                        event.getStartDatetime(),
+                        event.getEndDatetime(),
+                        venue.getName(),
+                        venue.getAddressLine1(),
+                        venue.getCity(),
+                        venue.getCountry()
                 ),
                 toSummary(order),
                 payment == null ? null : payment.getMethodType(),
@@ -213,24 +218,24 @@ public class CheckoutService {
         );
     }
 
-    private Event loadEventForCheckout(Long eventId) {
+    private Event loadEventForCheckout(Integer eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
-        if (!event.isSalesEnabled()) {
+        if (!CheckoutCatalogRules.isEventSalesEnabled(event)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ticket sales are disabled for this event");
         }
-        if (event.getStartsAt() != null && !event.getStartsAt().isAfter(LocalDateTime.now())) {
+        if (event.getStartDatetime() != null && !event.getStartDatetime().isAfter(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Event sales are closed");
         }
         return event;
     }
 
-    private OrderSummaryResponse buildSummary(Event event, Map<Long, Integer> requestedItems, String discountCode) {
+    private OrderSummaryResponse buildSummary(Event event, Map<Integer, Integer> requestedItems, String discountCode) {
         if (requestedItems.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select at least one ticket");
         }
 
-        Map<Long, TicketType> ticketTypes = loadTicketTypes(requestedItems.keySet()).stream()
+        Map<Integer, TicketType> ticketTypes = loadTicketTypes(requestedItems.keySet()).stream()
                 .collect(Collectors.toMap(TicketType::getId, Function.identity()));
         if (ticketTypes.size() != requestedItems.size()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown ticket type selected");
@@ -268,7 +273,7 @@ public class CheckoutService {
         );
     }
 
-    private List<TicketType> loadTicketTypes(Collection<Long> ticketTypeIds) {
+    private List<TicketType> loadTicketTypes(Collection<Integer> ticketTypeIds) {
         return ticketTypeRepository.findAllById(ticketTypeIds).stream()
                 .sorted(Comparator.comparing(TicketType::getId))
                 .toList();
@@ -278,18 +283,18 @@ public class CheckoutService {
         if (ticketType == null || !ticketType.getEvent().getId().equals(event.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ticket type does not belong to this event");
         }
-        if (!ticketType.isSalesEnabled()) {
+        if (!CheckoutCatalogRules.isTicketSalesEnabled(ticketType)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, ticketType.getName() + " is not available");
         }
         if (quantity < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ticket quantity must be at least 1");
         }
-        if (quantity > ticketType.getAvailableQuantity()) {
+        if (quantity > CheckoutCatalogRules.availableQuantity(ticketType)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Not enough tickets available for " + ticketType.getName());
         }
     }
 
-    private DiscountCode loadValidDiscount(Long eventId, String discountCode) {
+    private DiscountCode loadValidDiscount(Integer eventId, String discountCode) {
         DiscountCode discount = discountRepository.findByCodeIgnoreCaseAndEventId(discountCode.trim(), eventId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Discount code is invalid"));
         validateDiscount(discount);
@@ -316,8 +321,8 @@ public class CheckoutService {
         return money(amount.min(subtotal));
     }
 
-    private Map<Long, Integer> mergeItems(List<TicketItemRequest> items) {
-        Map<Long, Integer> merged = new HashMap<>();
+    private Map<Integer, Integer> mergeItems(List<TicketItemRequest> items) {
+        Map<Integer, Integer> merged = new HashMap<>();
         for (TicketItemRequest item : items) {
             if (item.quantity() == null || item.quantity() < 1) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ticket quantity must be at least 1");

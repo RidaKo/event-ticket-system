@@ -3,7 +3,7 @@ package com.paradise.event_ticket_system.checkout;
 import java.math.BigDecimal;
 
 public record TicketLineResponse(
-        Long ticketTypeId,
+        Integer ticketTypeId,
         String name,
         BigDecimal unitPrice,
         int quantity,

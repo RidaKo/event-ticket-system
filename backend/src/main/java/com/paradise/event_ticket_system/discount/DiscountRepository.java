@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DiscountRepository extends JpaRepository<DiscountCode, Long> {
 
-    Optional<DiscountCode> findByCodeIgnoreCaseAndEventId(String code, Long eventId);
+    Optional<DiscountCode> findByCodeIgnoreCaseAndEventId(String code, Integer eventId);
 }

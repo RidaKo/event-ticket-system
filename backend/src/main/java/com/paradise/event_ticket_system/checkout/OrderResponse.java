@@ -5,7 +5,7 @@ import com.paradise.event_ticket_system.order.OrderStatus;
 public record OrderResponse(
         String orderNumber,
         OrderStatus status,
-        Long eventId,
+        Integer eventId,
         String guestName,
         String guestEmail,
         OrderSummaryResponse summary

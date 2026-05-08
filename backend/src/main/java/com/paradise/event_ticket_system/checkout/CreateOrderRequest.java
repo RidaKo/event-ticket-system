@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record CreateOrderRequest(
-        @NotNull Long eventId,
+        @NotNull Integer eventId,
         String guestName,
         @Email @NotEmpty String guestEmail,
         String discountCode,
