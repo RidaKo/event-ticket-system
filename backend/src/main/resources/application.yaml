@@ -14,17 +14,9 @@ spring:
     hibernate:
       ddl-auto: create-drop
     open-in-view: false
-<<<<<<< checkout-handling-payments
     defer-datasource-initialization: false
-=======
-    defer-datasource-initialization: true
->>>>>>> master
   thymeleaf:
     cache: false
   flyway:
     ddl-auto: validate
-<<<<<<< checkout-handling-payments
     enabled: true
-=======
-    enabled: true
->>>>>>> master
