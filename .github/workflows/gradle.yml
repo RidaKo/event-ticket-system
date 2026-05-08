@@ -6,9 +6,8 @@ on:
       - "backend/**"
       - ".github/workflows/backend-build.yml"
   pull_request:
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-build.yml"
+    branches:
+      - "**"
 
 jobs:
   build:
