@@ -1,6 +1,7 @@
-package com.paradise.event_ticket_system.payment;
+package com.paradise.event_ticket_system.model;
 
-import com.paradise.event_ticket_system.order.PurchaseOrder;
+import com.paradise.event_ticket_system.payment.PaymentMethodType;
+import com.paradise.event_ticket_system.payment.PaymentStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

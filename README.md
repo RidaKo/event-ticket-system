@@ -13,6 +13,15 @@ The backend runs on `http://localhost:8080`. It serves APIs under `/api`. A quic
 http://localhost:8080/api/events/1
 ```
 
+#### Optional seed data
+By default, only the core schema migrations run. To load sample data (event, ticket types, discount code), start the backend with the `seed` profile so Flyway also runs the optional seed scripts.
+
+Example (from the backend folder):
+
+```bash
+./gradlew bootRun --args='--spring.profiles.active=seed'
+```
+
 ### Frontend
 The frontend is a Vite + React application located in the `frontend` folder.
 

@@ -1,8 +1,7 @@
-package com.paradise.event_ticket_system.order;
+package com.paradise.event_ticket_system.model;
 
 import com.paradise.event_ticket_system.discount.DiscountCode;
-import com.paradise.event_ticket_system.model.Event;
-import com.paradise.event_ticket_system.payment.Payment;
+import com.paradise.event_ticket_system.order.OrderStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

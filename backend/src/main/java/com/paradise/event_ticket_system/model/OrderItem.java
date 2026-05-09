@@ -1,6 +1,5 @@
-package com.paradise.event_ticket_system.order;
+package com.paradise.event_ticket_system.model;
 
-import com.paradise.event_ticket_system.model.TicketType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
