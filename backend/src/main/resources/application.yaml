@@ -22,9 +22,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-  sql:
-    init:
-      mode: never
 
 springdoc:
   swagger-ui:

@@ -1,7 +1,6 @@
 package com.paradise.event_ticket_system.viewEvent.api;
 
 import com.paradise.event_ticket_system.viewEvent.api.DTO.TicketTypeRequest;
-import com.paradise.event_ticket_system.viewEvent.api.DTO.TicketTypeResponse;
 import com.paradise.event_ticket_system.viewEvent.service.TicketTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,15 +28,17 @@ public class TicketTypeController {
     @GetMapping
     @Operation(summary = "Get ticket types for an event")
     @ApiResponse(responseCode = "200", description = "Ticket types retrieved successfully")
-    public ResponseEntity<List<TicketTypeResponse>> getTicketTypes(@PathVariable Integer eventId) {
-        return ResponseEntity.ok(ticketTypeService.getTicketTypesForEvent(eventId));
+    public ResponseEntity<List<com.paradise.event_ticket_system.ticket.TicketTypeResponse>> getTicketTypes(
+            @PathVariable Integer eventId
+    ) {
+        return ResponseEntity.ok(ticketTypeService.getCheckoutTicketTypesForEvent(eventId));
     }
 
     @PostMapping
     @Operation(summary = "Create ticket type for an event")
     @ApiResponse(responseCode = "201", description = "Ticket type created successfully")
     @ApiResponse(responseCode = "404", description = "Event not found")
-    public ResponseEntity<TicketTypeResponse> createTicketType(
+        public ResponseEntity<com.paradise.event_ticket_system.viewEvent.api.DTO.TicketTypeResponse> createTicketType(
             @PathVariable Integer eventId,
             @RequestBody @Valid TicketTypeRequest request
     ) {
