@@ -11,7 +11,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -42,7 +42,7 @@ public class TicketType extends AuditableEntity {
     private String description;
 
     @Column(name = "price", nullable = false, precision = 12, scale = 2)
-    @DecimalMin("0.01")
+    @PositiveOrZero
     private BigDecimal price;
 
     @Column(name = "currency", nullable = false, length = 10)

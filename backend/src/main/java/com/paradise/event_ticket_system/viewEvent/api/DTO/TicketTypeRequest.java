@@ -3,6 +3,8 @@ package com.paradise.event_ticket_system.viewEvent.api.DTO;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -13,6 +15,7 @@ public record TicketTypeRequest(
         String description,
 
         @NotNull(message = "Price is required")
+        @PositiveOrZero
         BigDecimal price,
 
         @NotBlank(message = "Currency is required")
