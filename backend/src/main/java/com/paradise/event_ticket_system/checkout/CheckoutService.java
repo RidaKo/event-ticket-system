@@ -2,7 +2,6 @@ package com.paradise.event_ticket_system.checkout;
 
 import com.paradise.event_ticket_system.discount.DiscountCode;
 import com.paradise.event_ticket_system.discount.DiscountRepository;
-import com.paradise.event_ticket_system.discount.DiscountType;
 import com.paradise.event_ticket_system.event.CheckoutCatalogRules;
 import com.paradise.event_ticket_system.event.CheckoutEventRepository;
 import com.paradise.event_ticket_system.model.Event;
@@ -13,7 +12,6 @@ import com.paradise.event_ticket_system.order.OrderStatus;
 import com.paradise.event_ticket_system.order.PurchaseOrder;
 import com.paradise.event_ticket_system.order.PurchaseOrderRepository;
 import com.paradise.event_ticket_system.payment.Payment;
-import com.paradise.event_ticket_system.payment.PaymentMethodType;
 import com.paradise.event_ticket_system.payment.PaymentRepository;
 import com.paradise.event_ticket_system.payment.PaymentResult;
 import com.paradise.event_ticket_system.payment.PaymentService;
