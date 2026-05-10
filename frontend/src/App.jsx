@@ -22,6 +22,7 @@ import {
   Title,
 } from "@mantine/core";
 import ticketLogo from "./assets/ticket_small.png";
+import AccountPage from "./pages/AccountPage.jsx";
 import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
@@ -139,11 +140,21 @@ function readRoute() {
     return { name: "orders" };
   }
 
+  if (path === "/signin") {
+    return { name: "account" };
+  }
+
   return { name: "browse" };
 }
 
 function routeToTab(routeName) {
-  return routeName === "browse" ? "browse" : "orders";
+  if (routeName === "browse") {
+    return "browse";
+  }
+  if (["orders", "tickets", "payment", "confirmation"].includes(routeName)) {
+    return "orders";
+  }
+  return null;
 }
 
 function TicketLogo() {
@@ -443,7 +454,7 @@ function OrdersPage({ navigate }) {
   );
 }
 
-function Topbar({ activeTab, navigate }) {
+function Topbar({ activeTab, navigate, isAccountRoute }) {
   return (
     <Box component="header" className="topbar">
       <Container size="xl" px={{ base: "md", sm: "xl" }} py="sm">
@@ -473,7 +484,11 @@ function Topbar({ activeTab, navigate }) {
           </Tabs>
 
           <Group gap="sm" wrap="wrap">
-            <Button variant="default" color="gray">
+            <Button
+              variant={isAccountRoute ? "filled" : "default"}
+              color={isAccountRoute ? "brand" : "gray"}
+              onClick={() => navigate("/signin")}
+            >
               Sign in
             </Button>
             <Button color="brand">Create event</Button>
@@ -504,12 +519,17 @@ export default function App() {
   return (
     <CheckoutProvider>
       <Box className="app-frame">
-        <Topbar activeTab={routeToTab(route.name)} navigate={navigate} />
+        <Topbar
+          activeTab={routeToTab(route.name)}
+          navigate={navigate}
+          isAccountRoute={route.name === "account"}
+        />
 
         <Box component="main">
           <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
             {route.name === "browse" && <BrowsePage />}
             {route.name === "orders" && <OrdersPage navigate={navigate} />}
+            {route.name === "account" && <AccountPage navigate={navigate} />}
             {route.name === "tickets" && (
               <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
             )}
