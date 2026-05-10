@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.OrderItem;
+import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
+import com.paradise.event_ticket_system.model.PurchaseConfirmationTicketLine;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
-import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDelivery;
-import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationTicketLine;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 

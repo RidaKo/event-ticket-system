@@ -1,7 +1,7 @@
 package com.paradise.event_ticket_system.notification.confirmation.service;
 
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationOutcome;
-import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDelivery;
+import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 
 public record PurchaseConfirmationDispatchResult(
 	Long deliveryId,

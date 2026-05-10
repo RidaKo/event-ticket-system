@@ -1,7 +1,7 @@
 package com.paradise.event_ticket_system.notification.confirmation.service;
 
-import com.paradise.event_ticket_system.notification.confirmation.domain.EmailDeliveryStatus;
-import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDelivery;
+import com.paradise.event_ticket_system.model.EmailDeliveryStatus;
+import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDeliveryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

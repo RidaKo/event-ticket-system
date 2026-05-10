@@ -1,4 +1,4 @@
-package com.paradise.event_ticket_system.notification.confirmation.domain;
+package com.paradise.event_ticket_system.model;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
