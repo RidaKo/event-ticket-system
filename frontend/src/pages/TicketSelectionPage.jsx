@@ -1,4 +1,4 @@
-import { Alert, Group, Loader, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Alert, Group, Loader, Paper, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
 import { createOrder, quoteCheckout } from "../api/checkoutApi.js";
 import { getEvent, getTicketTypes } from "../api/eventsApi.js";
@@ -6,10 +6,10 @@ import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
 import DiscountCodeInput from "../components/DiscountCodeInput.jsx";
 import OrderSummary from "../components/OrderSummary.jsx";
 import TicketQuantitySelector from "../components/TicketQuantitySelector.jsx";
-import { useCheckout } from "../state/CheckoutContext.jsx";
+
+const MVP_GUEST_EMAIL = "guest@event-ticket.local";
 
 export default function TicketSelectionPage({ eventId, navigate }) {
-  const { guest, updateGuest } = useCheckout();
   const [event, setEvent] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [quantities, setQuantities] = useState({});
@@ -85,18 +85,14 @@ export default function TicketSelectionPage({ eventId, navigate }) {
       setError("Select at least one ticket");
       return;
     }
-    if (!guest.guestEmail.trim()) {
-      setError("Email address is required");
-      return;
-    }
 
     setSubmitting(true);
     setError("");
     try {
       const order = await createOrder({
         eventId,
-        guestName: guest.guestName.trim() || null,
-        guestEmail: guest.guestEmail.trim(),
+        guestName: null,
+        guestEmail: MVP_GUEST_EMAIL,
         discountCode: summary.discountCode,
         items: selectedItems,
       });
@@ -123,24 +119,6 @@ export default function TicketSelectionPage({ eventId, navigate }) {
               onApply={setDiscountCode}
               disabled={selectedItems.length === 0}
             />
-            <Stack gap="xs">
-              <Text size="xs" fw="bold" c="dimmed" tt="uppercase">
-                Contact
-              </Text>
-              <TextInput
-                value={guest.guestName}
-                onChange={(e) => updateGuest({ ...guest, guestName: e.target.value })}
-                placeholder="John Doe"
-                variant="filled"
-              />
-              <TextInput
-                type="email"
-                value={guest.guestEmail}
-                onChange={(e) => updateGuest({ ...guest, guestEmail: e.target.value })}
-                placeholder="john.doe@email.com"
-                variant="filled"
-              />
-            </Stack>
           </Stack>
         }
       />

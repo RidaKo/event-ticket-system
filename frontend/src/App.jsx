@@ -11,6 +11,7 @@ import {
   Grid,
   Group,
   Image,
+  Loader,
   Paper,
   Pill,
   SimpleGrid,
@@ -22,6 +23,8 @@ import {
   Title,
 } from "@mantine/core";
 import ticketLogo from "./assets/ticket_small.png";
+import { getEvents } from "./api/eventsApi.js";
+import EventDetailsPage from "./pages/EventDetailsPage.jsx";
 import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
@@ -33,6 +36,7 @@ const tags = ["Outdoor", "Family", "Networking", "Educational"];
 const recommendedItems = [
   {
     id: 1,
+    checkoutEventId: 1,
     title: "Riverside Jazz Night",
     date: "Fri, Jun 12",
     venue: "Paradise Hall",
@@ -41,6 +45,7 @@ const recommendedItems = [
   },
   {
     id: 2,
+    checkoutEventId: 1,
     title: "Startup Founders Mixer",
     date: "Sat, Jun 13",
     venue: "North Pier Studio",
@@ -49,6 +54,7 @@ const recommendedItems = [
   },
   {
     id: 3,
+    checkoutEventId: 1,
     title: "Family Food Festival",
     date: "Sun, Jun 14",
     venue: "Central Park",
@@ -57,6 +63,7 @@ const recommendedItems = [
   },
   {
     id: 4,
+    checkoutEventId: 1,
     title: "Open Air Cinema",
     date: "Thu, Jun 18",
     venue: "Riverfront Lawn",
@@ -65,6 +72,7 @@ const recommendedItems = [
   },
   {
     id: 5,
+    checkoutEventId: 1,
     title: "Design Systems Workshop",
     date: "Fri, Jun 19",
     venue: "Creative Campus",
@@ -73,6 +81,7 @@ const recommendedItems = [
   },
   {
     id: 6,
+    checkoutEventId: 1,
     title: "City Arena Finals",
     date: "Sat, Jun 20",
     venue: "City Arena",
@@ -82,35 +91,40 @@ const recommendedItems = [
 ];
 const browseItems = [
   {
-    id: 1,
+    id: 101,
+    checkoutEventId: 1,
     title: "Acoustic Sessions",
     date: "Today",
     venue: "Old Town Stage",
     tag: "Music",
   },
   {
-    id: 2,
+    id: 102,
+    checkoutEventId: 1,
     title: "Modern Art Walk",
     date: "Tomorrow",
     venue: "Gallery District",
     tag: "Arts",
   },
   {
-    id: 3,
+    id: 103,
+    checkoutEventId: 1,
     title: "Junior Football Camp",
     date: "This weekend",
     venue: "South Field",
     tag: "Sports",
   },
   {
-    id: 4,
+    id: 104,
+    checkoutEventId: 1,
     title: "Cloud Engineering Forum",
     date: "Next Tuesday",
     venue: "Tech Hub",
     tag: "Technology",
   },
   {
-    id: 5,
+    id: 105,
+    checkoutEventId: 1,
     title: "Street Food Showcase",
     date: "Next Friday",
     venue: "Market Square",
@@ -135,6 +149,11 @@ function readRoute() {
     return { name: "tickets", eventId: Number(tickets[1]) };
   }
 
+  const eventDetails = path.match(/^\/events\/(\d+)$/);
+  if (eventDetails) {
+    return { name: "eventDetails", eventId: Number(eventDetails[1]) };
+  }
+
   if (path === "/orders") {
     return { name: "orders" };
   }
@@ -143,7 +162,9 @@ function readRoute() {
 }
 
 function routeToTab(routeName) {
-  return routeName === "browse" ? "browse" : "orders";
+  return routeName === "browse" || routeName === "eventDetails" || routeName === "tickets"
+    ? "browse"
+    : "orders";
 }
 
 function TicketLogo() {
@@ -192,9 +213,80 @@ function ProfileIcon() {
   );
 }
 
-function EventCard({ event }) {
+function handleCardKeyDown(event, open) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    open();
+  }
+}
+
+function formatBrowseDate(value) {
+  if (!value) {
+    return "Date to be announced";
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
+}
+
+function mapApiEvent(event) {
+  return {
+    ...event,
+    date: formatBrowseDate(event.startDatetime),
+    venue: event.venueName || event.venue?.name || "Venue to be announced",
+    tag: event.categoryName || "Event",
+    category: event.city || event.venue?.city || "Featured",
+  };
+}
+
+function sortByPopularity(events) {
+  return [...events].sort((left, right) => {
+    const ratingDiff = Number(right.averageRating || 0) - Number(left.averageRating || 0);
+    if (ratingDiff !== 0) {
+      return ratingDiff;
+    }
+    return Number(right.reviewCount || 0) - Number(left.reviewCount || 0);
+  });
+}
+
+function sortByDate(events) {
+  return [...events].sort((left, right) => new Date(left.startDatetime || 0) - new Date(right.startDatetime || 0));
+}
+
+function toFallbackDetailEvent(event) {
+  return {
+    ...event,
+    description: `${event.title} at ${event.venue}.`,
+    startDatetime: null,
+    venueName: event.venue,
+    categoryName: event.tag,
+    city: event.category,
+    averageRating: null,
+    reviewCount: null,
+    reviews: [],
+  };
+}
+
+function findFallbackEvent(eventId) {
+  const event = [...recommendedItems, ...browseItems].find((item) => item.id === eventId);
+  return event ? toFallbackDetailEvent(event) : null;
+}
+
+function EventCard({ event, navigate }) {
+  const open = () => navigate(`/events/${event.id}`);
   return (
-    <Card className="event-card" radius="md" padding="md" withBorder>
+    <Card
+      className="event-card event-link-card"
+      radius="md"
+      padding="md"
+      withBorder
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(keyEvent) => handleCardKeyDown(keyEvent, open)}
+    >
       <Card.Section inheritPadding pt="md">
         <AspectRatio ratio={16 / 9}>
           <Box className="media-placeholder">
@@ -215,6 +307,7 @@ function EventCard({ event }) {
             color="brand"
             radius="xl"
             aria-label={`Bookmark ${event.title}`}
+            onClick={(clickEvent) => clickEvent.stopPropagation()}
           >
             <BookmarkIcon />
           </ActionIcon>
@@ -240,9 +333,19 @@ function EventCard({ event }) {
   );
 }
 
-function BrowseCard({ event }) {
+function BrowseCard({ event, navigate }) {
+  const open = () => navigate(`/events/${event.id}`);
   return (
-    <Paper className="browse-card" radius="md" p="sm" withBorder>
+    <Paper
+      className="browse-card event-link-card"
+      radius="md"
+      p="sm"
+      withBorder
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(keyEvent) => handleCardKeyDown(keyEvent, open)}
+    >
       <Grid gutter="md" align="center">
         <Grid.Col span={{ base: 12, xs: 4, sm: 3 }}>
           <AspectRatio ratio={4 / 3}>
@@ -272,6 +375,7 @@ function BrowseCard({ event }) {
                 color="brand"
                 radius="xl"
                 aria-label={`Bookmark ${event.title}`}
+                onClick={(clickEvent) => clickEvent.stopPropagation()}
               >
                 <BookmarkIcon />
               </ActionIcon>
@@ -354,7 +458,40 @@ function FilterPanel() {
   );
 }
 
-function BrowsePage() {
+function BrowsePage({ navigate }) {
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setLoadingEvents(true);
+
+    getEvents()
+      .then((data) => {
+        if (!active) {
+          return;
+        }
+        setEvents(Array.isArray(data) ? data.map(mapApiEvent) : []);
+      })
+      .catch(() => {
+        if (active) {
+          setEvents([]);
+        }
+      })
+      .finally(() => active && setLoadingEvents(false));
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const hasApiEvents = events.length > 0;
+  const popularEvents = hasApiEvents ? sortByPopularity(events).slice(0, 6) : recommendedItems;
+  const popularEventIds = new Set(popularEvents.map((event) => event.id));
+  const listedEvents = hasApiEvents
+    ? sortByDate(events).filter((event) => !popularEventIds.has(event.id))
+    : browseItems;
+
   return (
     <Grid gutter="lg" align="flex-start">
       <Grid.Col span={{ base: 12, md: 4, lg: 3 }}>
@@ -366,16 +503,25 @@ function BrowsePage() {
           <section>
             <Group justify="space-between" align="baseline" gap="md" mb="md">
               <Title order={2} c="brand.9">
-                Recommended for you
+                Popular Events
               </Title>
               <Text c="dimmed" size="sm">
-                Based on your preferences
+                Highest rated events
               </Text>
             </Group>
 
+            {loadingEvents && (
+              <Group gap="sm" mb="md">
+                <Loader size="sm" color="brand" />
+                <Text c="dimmed" size="sm">
+                  Loading events...
+                </Text>
+              </Group>
+            )}
+
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-              {recommendedItems.map((item) => (
-                <EventCard key={item.id} event={item} />
+              {popularEvents.map((item) => (
+                <EventCard key={item.id} event={item} navigate={navigate} />
               ))}
             </SimpleGrid>
           </section>
@@ -388,8 +534,8 @@ function BrowsePage() {
             </Group>
 
             <Stack gap="sm">
-              {browseItems.map((item) => (
-                <BrowseCard key={item.id} event={item} />
+              {listedEvents.map((item) => (
+                <BrowseCard key={item.id} event={item} navigate={navigate} />
               ))}
             </Stack>
           </section>
@@ -508,8 +654,15 @@ export default function App() {
 
         <Box component="main">
           <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
-            {route.name === "browse" && <BrowsePage />}
+            {route.name === "browse" && <BrowsePage navigate={navigate} />}
             {route.name === "orders" && <OrdersPage navigate={navigate} />}
+            {route.name === "eventDetails" && (
+              <EventDetailsPage
+                eventId={route.eventId}
+                navigate={navigate}
+                fallbackEvent={findFallbackEvent(route.eventId)}
+              />
+            )}
             {route.name === "tickets" && (
               <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
             )}

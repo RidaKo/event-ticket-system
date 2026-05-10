@@ -63,6 +63,26 @@ body {
   flex: 1;
 }
 
+.event-link-card {
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.event-link-card:hover,
+.event-link-card:focus-visible {
+  border-color: var(--mantine-color-brand-4);
+  box-shadow: var(--mantine-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.event-link-card:focus-visible {
+  outline: 2px solid var(--mantine-color-brand-6);
+  outline-offset: 2px;
+}
+
 .media-placeholder {
   display: grid;
   place-items: center;
@@ -156,6 +176,24 @@ body {
 .confirmation-shell {
   max-inline-size: 780px;
   margin-inline: auto;
+}
+
+.event-details-shell {
+  max-inline-size: 960px;
+  margin-inline: auto;
+}
+
+.event-details-image {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  border: 1px solid var(--mantine-color-brand-2);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.event-info-block {
+  border-color: var(--mantine-color-brand-1);
+  background: var(--mantine-color-brand-0);
 }
 
 .confirmation-line {
