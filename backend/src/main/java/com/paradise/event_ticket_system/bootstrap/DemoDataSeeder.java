@@ -5,12 +5,16 @@ import java.time.Instant;
 
 import com.paradise.event_ticket_system.model.Category;
 import com.paradise.event_ticket_system.model.Event;
-import com.paradise.event_ticket_system.model.Order;
+import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Organizer;
-import com.paradise.event_ticket_system.model.Ticket;
+import com.paradise.event_ticket_system.model.Payment;
+import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.model.TicketType;
 import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.model.Venue;
+import com.paradise.event_ticket_system.order.OrderStatus;
+import com.paradise.event_ticket_system.payment.PaymentMethodType;
+import com.paradise.event_ticket_system.payment.PaymentStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -35,7 +39,7 @@ public class DemoDataSeeder implements ApplicationRunner {
 	@Override
 	@Transactional
 	public void run(ApplicationArguments args) {
-		Long existingOrders = entityManager.createQuery("select count(o) from Order o", Long.class).getSingleResult();
+		Long existingOrders = entityManager.createQuery("select count(o) from PurchaseOrder o", Long.class).getSingleResult();
 		if (existingOrders != null && existingOrders > 0) {
 			log.info("Skipping demo seed because orders already exist.");
 			return;
@@ -83,6 +87,7 @@ public class DemoDataSeeder implements ApplicationRunner {
 		generalAdmission.setPrice(new BigDecimal("85.00"));
 		generalAdmission.setCurrency("USD");
 		generalAdmission.setQuantityTotal(100);
+		generalAdmission.setQuantitySold(0);
 		entityManager.persist(generalAdmission);
 
 		TicketType vipTicket = new TicketType();
@@ -91,59 +96,49 @@ public class DemoDataSeeder implements ApplicationRunner {
 		vipTicket.setPrice(new BigDecimal("150.00"));
 		vipTicket.setCurrency("USD");
 		vipTicket.setQuantityTotal(50);
+		vipTicket.setQuantitySold(0);
 		entityManager.persist(vipTicket);
 
-		User attendee = new User();
-		attendee.setEmail("attendee@example.com");
-		attendee.setFullName("Alex Buyer");
-		attendee.setPasswordHash("buyer-hash");
-		entityManager.persist(attendee);
-
-		Order order = new Order();
-		order.setUser(attendee);
-		order.setStatus("CONFIRMED");
+		PurchaseOrder order = new PurchaseOrder();
+		order.setOrderNumber("ORD-2026-04-8472");
+		order.setEvent(event);
+		order.setGuestName("Alex Buyer");
+		order.setGuestEmail("attendee@example.com");
+		order.setStatus(OrderStatus.CONFIRMED);
 		order.setSubtotal(new BigDecimal("385.00"));
-		order.setFees(new BigDecimal("8.50"));
-		order.setTax(new BigDecimal("7.45"));
-		order.setTotal(new BigDecimal("400.95"));
-		order.setCurrency("USD");
-		order.setPaymentProvider("stripe");
-		order.setPaymentReference("ORD-2026-04-8472");
+		order.setDiscountAmount(BigDecimal.ZERO);
+		order.setTotalAmount(new BigDecimal("385.00"));
+		order.addItem(orderItem(generalAdmission, "General Admission", "85.00", 1));
+		order.addItem(orderItem(vipTicket, "VIP Ticket", "150.00", 2));
 		entityManager.persist(order);
 
-		entityManager.persist(ticket(order, event, generalAdmission, attendee, "GA-001", "https://cdn.example.com/qr/GA-001.png"));
-		entityManager.persist(ticket(order, event, vipTicket, attendee, "VIP-001", "https://cdn.example.com/qr/VIP-001.png"));
-		entityManager.persist(ticket(order, event, vipTicket, attendee, "VIP-002", "https://cdn.example.com/qr/VIP-002.png"));
+		Payment payment = new Payment();
+		payment.setOrder(order);
+		payment.setAmount(order.getTotalAmount());
+		payment.setMethodType(PaymentMethodType.CARD);
+		payment.setProviderReference("mock_seed_payment");
+		payment.setCardLast4("4242");
+		payment.setStatus(PaymentStatus.SUCCEEDED);
+		order.setPayment(payment);
+		entityManager.persist(payment);
 
 		entityManager.flush();
 
 		log.info(
-			"Seeded demo order data. orderId={}, orderReference={}, testPayload={{\"orderId\":{},\"paymentStatus\":\"SUCCEEDED\"}}",
+			"Seeded demo order data. orderId={}, orderNumber={}, testPayload={{\"orderNumber\":\"{}\"}}",
 			order.getId(),
-			order.getPaymentReference(),
-			order.getId()
+			order.getOrderNumber(),
+			order.getOrderNumber()
 		);
 	}
 
-	private Ticket ticket(
-		Order order,
-		Event event,
-		TicketType ticketType,
-		User attendee,
-		String ticketCode,
-		String qrCodeUrl
-	) {
-		Ticket ticket = new Ticket();
-		ticket.setOrder(order);
-		ticket.setEvent(event);
-		ticket.setTicketType(ticketType);
-		ticket.setOwnerUser(attendee);
-		ticket.setOwnerEmail(attendee.getEmail());
-		ticket.setOwnerName(attendee.getFullName());
-		ticket.setPricePaid(ticketType.getPrice());
-		ticket.setTicketCode(ticketCode);
-		ticket.setQrCodeUrl(qrCodeUrl);
-		ticket.setStatus("READY");
-		return ticket;
+	private OrderItem orderItem(TicketType ticketType, String ticketName, String unitPrice, int quantity) {
+		OrderItem item = new OrderItem();
+		item.setTicketType(ticketType);
+		item.setTicketName(ticketName);
+		item.setUnitPrice(new BigDecimal(unitPrice));
+		item.setQuantity(quantity);
+		item.setLineTotal(new BigDecimal(unitPrice).multiply(BigDecimal.valueOf(quantity)));
+		return item;
 	}
 }

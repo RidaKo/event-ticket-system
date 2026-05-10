@@ -1,9 +1,8 @@
 package com.paradise.event_ticket_system.notification.confirmation.api;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record PurchaseConfirmationRequest(
-	@NotNull Integer orderId,
-	@NotNull PaymentStatus paymentStatus
+	@NotBlank String orderNumber
 ) {
 }

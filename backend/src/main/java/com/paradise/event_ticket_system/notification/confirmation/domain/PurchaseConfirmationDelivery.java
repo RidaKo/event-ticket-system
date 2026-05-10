@@ -29,7 +29,7 @@ public class PurchaseConfirmationDelivery {
 	private Long id;
 
 	@Column(name = "order_id", nullable = false, updatable = false)
-	private Integer orderId;
+	private Long orderId;
 
 	@Column(name = "order_reference", nullable = false, updatable = false, length = 100)
 	private String orderReference;
@@ -79,7 +79,7 @@ public class PurchaseConfirmationDelivery {
 	}
 
 	private PurchaseConfirmationDelivery(
-		Integer orderId,
+		Long orderId,
 		String orderReference,
 		String attendeeEmail,
 		String eventTitle,
@@ -104,7 +104,7 @@ public class PurchaseConfirmationDelivery {
 	}
 
 	public static PurchaseConfirmationDelivery pending(
-		Integer orderId,
+		Long orderId,
 		String orderReference,
 		String attendeeEmail,
 		String eventTitle,
@@ -156,7 +156,7 @@ public class PurchaseConfirmationDelivery {
 		return id;
 	}
 
-	public Integer getOrderId() {
+	public Long getOrderId() {
 		return orderId;
 	}
 

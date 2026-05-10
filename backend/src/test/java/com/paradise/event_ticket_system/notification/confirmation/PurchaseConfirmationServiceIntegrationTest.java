@@ -5,15 +5,21 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.paradise.event_ticket_system.checkout.CheckoutService;
+import com.paradise.event_ticket_system.checkout.CreateOrderRequest;
+import com.paradise.event_ticket_system.checkout.OrderResponse;
+import com.paradise.event_ticket_system.checkout.PaymentRequest;
+import com.paradise.event_ticket_system.checkout.PaymentResponse;
+import com.paradise.event_ticket_system.checkout.TicketItemRequest;
 import com.paradise.event_ticket_system.model.Category;
 import com.paradise.event_ticket_system.model.Event;
-import com.paradise.event_ticket_system.model.Order;
+import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Organizer;
-import com.paradise.event_ticket_system.model.Ticket;
+import com.paradise.event_ticket_system.model.Payment;
+import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.model.TicketType;
 import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.model.Venue;
-import com.paradise.event_ticket_system.notification.confirmation.api.PaymentStatus;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationOutcome;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
 import com.paradise.event_ticket_system.notification.confirmation.domain.EmailDeliveryStatus;
@@ -23,6 +29,9 @@ import com.paradise.event_ticket_system.notification.confirmation.service.Purcha
 import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationEmailMessage;
 import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationEmailSender;
 import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationService;
+import com.paradise.event_ticket_system.order.OrderStatus;
+import com.paradise.event_ticket_system.payment.PaymentMethodType;
+import com.paradise.event_ticket_system.payment.PaymentStatus;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +51,9 @@ class PurchaseConfirmationServiceIntegrationTest {
 
 	@Autowired
 	private PurchaseConfirmationService purchaseConfirmationService;
+
+	@Autowired
+	private CheckoutService checkoutService;
 
 	@Autowired
 	private PurchaseConfirmationDeliveryRepository deliveryRepository;
@@ -65,24 +77,24 @@ class PurchaseConfirmationServiceIntegrationTest {
 	}
 
 	@Test
-	void sendsConfirmationFromPersistedOrderAfterSuccessfulPayment() {
-		OrderFixture fixture = createOrderFixture();
+	void sendsConfirmationFromPersistedPurchaseOrderAfterSuccessfulPayment() {
+		OrderFixture fixture = createPurchaseOrderFixture(OrderStatus.CONFIRMED, PaymentStatus.SUCCEEDED);
 
 		PurchaseConfirmationDispatchResult result = purchaseConfirmationService.handle(
-			new PurchaseConfirmationRequest(fixture.orderId(), PaymentStatus.SUCCEEDED)
+			new PurchaseConfirmationRequest(fixture.orderNumber())
 		);
 
 		assertThat(result.outcome()).isEqualTo(PurchaseConfirmationOutcome.QUEUED);
 		assertThat(result.alreadyProcessed()).isFalse();
 		assertThat(result.orderId()).isEqualTo(fixture.orderId());
-		assertThat(result.orderReference()).isEqualTo(fixture.orderReference());
+		assertThat(result.orderReference()).isEqualTo(fixture.orderNumber());
 
 		List<PurchaseConfirmationDelivery> deliveries = deliveryRepository.findAll();
 		assertThat(deliveries).hasSize(1);
 
 		PurchaseConfirmationDelivery delivery = deliveries.getFirst();
 		assertThat(delivery.getOrderId()).isEqualTo(fixture.orderId());
-		assertThat(delivery.getOrderReference()).isEqualTo(fixture.orderReference());
+		assertThat(delivery.getOrderReference()).isEqualTo(fixture.orderNumber());
 		assertThat(delivery.getStatus()).isEqualTo(EmailDeliveryStatus.SENT);
 		assertThat(delivery.getSentAt()).isNotNull();
 		assertThat(delivery.getTotalQuantity()).isEqualTo(3);
@@ -92,7 +104,7 @@ class PurchaseConfirmationServiceIntegrationTest {
 
 		assertThat(emailSender.messages()).hasSize(1);
 		PurchaseConfirmationEmailMessage message = emailSender.messages().getFirst();
-		assertThat(message.subject()).contains(fixture.eventTitle(), fixture.orderReference());
+		assertThat(message.subject()).contains(fixture.eventTitle(), fixture.orderNumber());
 		assertThat(message.htmlBody()).contains("General Admission");
 		assertThat(message.htmlBody()).contains("VIP Ticket");
 		assertThat(message.textBody()).contains("- General Admission x 1");
@@ -101,29 +113,29 @@ class PurchaseConfirmationServiceIntegrationTest {
 	}
 
 	@Test
-	void doesNotSendEmailWhenPaymentFails() {
-		OrderFixture fixture = createOrderFixture();
+	void doesNotSendEmailWhenPersistedPaymentFails() {
+		OrderFixture fixture = createPurchaseOrderFixture(OrderStatus.PAYMENT_FAILED, PaymentStatus.FAILED);
 
 		PurchaseConfirmationDispatchResult result = purchaseConfirmationService.handle(
-			new PurchaseConfirmationRequest(fixture.orderId(), PaymentStatus.FAILED)
+			new PurchaseConfirmationRequest(fixture.orderNumber())
 		);
 
 		assertThat(result.outcome()).isEqualTo(PurchaseConfirmationOutcome.SKIPPED);
 		assertThat(result.orderId()).isEqualTo(fixture.orderId());
-		assertThat(result.orderReference()).isEqualTo(fixture.orderReference());
+		assertThat(result.orderReference()).isEqualTo(fixture.orderNumber());
 		assertThat(deliveryRepository.findAll()).isEmpty();
 		assertThat(emailSender.messages()).isEmpty();
 	}
 
 	@Test
 	void preventsDuplicateEmailSendsForSameOrder() {
-		OrderFixture fixture = createOrderFixture();
+		OrderFixture fixture = createPurchaseOrderFixture(OrderStatus.CONFIRMED, PaymentStatus.SUCCEEDED);
 
 		PurchaseConfirmationDispatchResult first = purchaseConfirmationService.handle(
-			new PurchaseConfirmationRequest(fixture.orderId(), PaymentStatus.SUCCEEDED)
+			new PurchaseConfirmationRequest(fixture.orderNumber())
 		);
 		PurchaseConfirmationDispatchResult second = purchaseConfirmationService.handle(
-			new PurchaseConfirmationRequest(fixture.orderId(), PaymentStatus.SUCCEEDED)
+			new PurchaseConfirmationRequest(fixture.orderNumber())
 		);
 
 		assertThat(first.outcome()).isEqualTo(PurchaseConfirmationOutcome.QUEUED);
@@ -133,115 +145,156 @@ class PurchaseConfirmationServiceIntegrationTest {
 		assertThat(emailSender.messages()).hasSize(1);
 	}
 
-	private OrderFixture createOrderFixture() {
+	@Test
+	void checkoutSuccessfulPaymentQueuesPurchaseConfirmation() {
+		CatalogFixture catalog = createCatalogFixture();
+
+		OrderResponse order = checkoutService.createOrder(new CreateOrderRequest(
+			catalog.eventId(),
+			"Alex Buyer",
+			"attendee@example.com",
+			null,
+			List.of(
+				new TicketItemRequest(catalog.generalAdmissionTicketTypeId(), 1),
+				new TicketItemRequest(catalog.vipTicketTypeId(), 2)
+			)
+		));
+		PaymentResponse payment = checkoutService.submitPayment(
+			order.orderNumber(),
+			new PaymentRequest(PaymentMethodType.CARD, "4242 4242 4242 4242")
+		);
+
+		assertThat(payment.orderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
+		assertThat(deliveryRepository.findAll()).hasSize(1);
+		assertThat(emailSender.messages()).hasSize(1);
+		assertThat(emailSender.messages().getFirst().subject()).contains(order.orderNumber());
+	}
+
+	private OrderFixture createPurchaseOrderFixture(OrderStatus orderStatus, PaymentStatus paymentStatus) {
 		return transactionTemplate.execute(status -> {
-			User organizerUser = new User();
-			organizerUser.setEmail("organizer@example.com");
-			organizerUser.setFullName("Event Organizer");
-			organizerUser.setPasswordHash("organizer-hash");
-			entityManager.persist(organizerUser);
+			CatalogFixture catalog = createCatalogFixtureInCurrentTransaction();
+			Event event = entityManager.getReference(Event.class, catalog.eventId());
+			TicketType generalAdmission = entityManager.getReference(TicketType.class, catalog.generalAdmissionTicketTypeId());
+			TicketType vipTicket = entityManager.getReference(TicketType.class, catalog.vipTicketTypeId());
 
-			Organizer organizer = new Organizer();
-			organizer.setUser(organizerUser);
-			organizer.setBusinessName("Paradise Events");
-			entityManager.persist(organizer);
-
-			Category category = new Category();
-			category.setName("Music");
-			category.setSlug("music");
-			entityManager.persist(category);
-
-			Venue venue = new Venue();
-			venue.setOrganizer(organizer);
-			venue.setName("Central Park Arena");
-			venue.setAddressLine1("123 Main Street");
-			venue.setCity("New York");
-			venue.setCountry("US");
-			entityManager.persist(venue);
-
-			Event event = new Event();
-			event.setOrganizer(organizer);
-			event.setVenue(venue);
-			event.setCategory(category);
-			event.setTitle("Spring Music Festival");
-			event.setSlug("spring-music-festival");
-			event.setStatus("PUBLISHED");
-			event.setStartDatetime(Instant.parse("2026-06-20T23:00:00Z"));
-			event.setEndDatetime(Instant.parse("2026-06-21T03:00:00Z"));
-			event.setTimezone("America/New_York");
-			entityManager.persist(event);
-
-			TicketType generalAdmission = new TicketType();
-			generalAdmission.setEvent(event);
-			generalAdmission.setName("General Admission");
-			generalAdmission.setPrice(new BigDecimal("85.00"));
-			generalAdmission.setCurrency("USD");
-			generalAdmission.setQuantityTotal(100);
-			entityManager.persist(generalAdmission);
-
-			TicketType vipTicket = new TicketType();
-			vipTicket.setEvent(event);
-			vipTicket.setName("VIP Ticket");
-			vipTicket.setPrice(new BigDecimal("150.00"));
-			vipTicket.setCurrency("USD");
-			vipTicket.setQuantityTotal(50);
-			entityManager.persist(vipTicket);
-
-			User attendee = new User();
-			attendee.setEmail("attendee@example.com");
-			attendee.setFullName("Alex Buyer");
-			attendee.setPasswordHash("buyer-hash");
-			entityManager.persist(attendee);
-
-			Order order = new Order();
-			order.setUser(attendee);
-			order.setStatus("CONFIRMED");
+			PurchaseOrder order = new PurchaseOrder();
+			order.setOrderNumber("ORD-2026-04-8472");
+			order.setEvent(event);
+			order.setGuestName("Alex Buyer");
+			order.setGuestEmail("attendee@example.com");
+			order.setStatus(orderStatus);
 			order.setSubtotal(new BigDecimal("385.00"));
-			order.setFees(new BigDecimal("8.50"));
-			order.setTax(new BigDecimal("7.45"));
-			order.setTotal(new BigDecimal("400.95"));
-			order.setCurrency("USD");
-			order.setPaymentProvider("stripe");
-			order.setPaymentReference("ORD-2026-04-8472");
+			order.setDiscountAmount(BigDecimal.ZERO);
+			order.setTotalAmount(new BigDecimal("385.00"));
+
+			order.addItem(orderItem(generalAdmission, "General Admission", "85.00", 1));
+			order.addItem(orderItem(vipTicket, "VIP Ticket", "150.00", 2));
 			entityManager.persist(order);
 
-			entityManager.persist(ticket(order, event, generalAdmission, attendee, "GA-001", "https://cdn.example.com/qr/GA-001.png"));
-			entityManager.persist(ticket(order, event, vipTicket, attendee, "VIP-001", "https://cdn.example.com/qr/VIP-001.png"));
-			entityManager.persist(ticket(order, event, vipTicket, attendee, "VIP-002", "https://cdn.example.com/qr/VIP-002.png"));
+			Payment payment = new Payment();
+			payment.setOrder(order);
+			payment.setAmount(order.getTotalAmount());
+			payment.setMethodType(PaymentMethodType.CARD);
+			payment.setProviderReference("mock_test_payment");
+			payment.setCardLast4("4242");
+			payment.setStatus(paymentStatus);
+			order.setPayment(payment);
+			entityManager.persist(payment);
 
 			entityManager.flush();
 			entityManager.clear();
 
-			return new OrderFixture(order.getId(), order.getPaymentReference(), event.getTitle());
+			return new OrderFixture(order.getId(), order.getOrderNumber(), event.getTitle());
 		});
 	}
 
-	private Ticket ticket(
-		Order order,
-		Event event,
-		TicketType ticketType,
-		User attendee,
-		String ticketCode,
-		String qrCodeUrl
-	) {
-		Ticket ticket = new Ticket();
-		ticket.setOrder(order);
-		ticket.setEvent(event);
-		ticket.setTicketType(ticketType);
-		ticket.setOwnerUser(attendee);
-		ticket.setOwnerEmail(attendee.getEmail());
-		ticket.setOwnerName(attendee.getFullName());
-		ticket.setPricePaid(ticketType.getPrice());
-		ticket.setTicketCode(ticketCode);
-		ticket.setQrCodeUrl(qrCodeUrl);
-		ticket.setStatus("READY");
-		return ticket;
+	private CatalogFixture createCatalogFixture() {
+		return transactionTemplate.execute(status -> createCatalogFixtureInCurrentTransaction());
+	}
+
+	private CatalogFixture createCatalogFixtureInCurrentTransaction() {
+		User organizerUser = new User();
+		organizerUser.setEmail("organizer@example.com");
+		organizerUser.setFullName("Event Organizer");
+		organizerUser.setPasswordHash("organizer-hash");
+		entityManager.persist(organizerUser);
+
+		Organizer organizer = new Organizer();
+		organizer.setUser(organizerUser);
+		organizer.setBusinessName("Paradise Events");
+		entityManager.persist(organizer);
+
+		Category category = new Category();
+		category.setName("Music");
+		category.setSlug("music");
+		entityManager.persist(category);
+
+		Venue venue = new Venue();
+		venue.setOrganizer(organizer);
+		venue.setName("Central Park Arena");
+		venue.setAddressLine1("123 Main Street");
+		venue.setCity("New York");
+		venue.setCountry("US");
+		entityManager.persist(venue);
+
+		Event event = new Event();
+		event.setOrganizer(organizer);
+		event.setVenue(venue);
+		event.setCategory(category);
+		event.setTitle("Spring Music Festival");
+		event.setSlug("spring-music-festival");
+		event.setStatus("PUBLISHED");
+		event.setStartDatetime(Instant.parse("2026-06-20T23:00:00Z"));
+		event.setEndDatetime(Instant.parse("2026-06-21T03:00:00Z"));
+		event.setTimezone("America/New_York");
+		entityManager.persist(event);
+
+		TicketType generalAdmission = new TicketType();
+		generalAdmission.setEvent(event);
+		generalAdmission.setName("General Admission");
+		generalAdmission.setPrice(new BigDecimal("85.00"));
+		generalAdmission.setCurrency("USD");
+		generalAdmission.setQuantityTotal(100);
+		generalAdmission.setQuantitySold(0);
+		generalAdmission.setMaxPerOrder(10);
+		generalAdmission.setIsActive(true);
+		entityManager.persist(generalAdmission);
+
+		TicketType vipTicket = new TicketType();
+		vipTicket.setEvent(event);
+		vipTicket.setName("VIP Ticket");
+		vipTicket.setPrice(new BigDecimal("150.00"));
+		vipTicket.setCurrency("USD");
+		vipTicket.setQuantityTotal(50);
+		vipTicket.setQuantitySold(0);
+		vipTicket.setMaxPerOrder(10);
+		vipTicket.setIsActive(true);
+		entityManager.persist(vipTicket);
+
+		entityManager.flush();
+
+		return new CatalogFixture(event.getId(), generalAdmission.getId(), vipTicket.getId());
+	}
+
+	private OrderItem orderItem(TicketType ticketType, String ticketName, String unitPrice, int quantity) {
+		OrderItem item = new OrderItem();
+		item.setTicketType(ticketType);
+		item.setTicketName(ticketName);
+		item.setUnitPrice(new BigDecimal(unitPrice));
+		item.setQuantity(quantity);
+		item.setLineTotal(new BigDecimal(unitPrice).multiply(BigDecimal.valueOf(quantity)));
+		return item;
 	}
 
 	private void clearDatabase() {
 		jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
 		for (String table : List.of(
 			"purchase_confirmation_deliveries",
+			"payment",
+			"order_items",
+			"purchase_orders",
+			"discount_code",
 			"tickets",
 			"orders",
 			"ticket_types",
@@ -256,7 +309,10 @@ class PurchaseConfirmationServiceIntegrationTest {
 		jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
 	}
 
-	private record OrderFixture(Integer orderId, String orderReference, String eventTitle) {
+	private record CatalogFixture(Integer eventId, Integer generalAdmissionTicketTypeId, Integer vipTicketTypeId) {
+	}
+
+	private record OrderFixture(Long orderId, String orderNumber, String eventTitle) {
 	}
 
 	@TestConfiguration

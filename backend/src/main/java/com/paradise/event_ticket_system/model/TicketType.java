@@ -10,6 +10,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import jakarta.validation.constraints.PositiveOrZero;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.Getter;
@@ -39,6 +42,7 @@ public class TicketType extends AuditableEntity {
     private String description;
 
     @Column(name = "price", nullable = false, precision = 12, scale = 2)
+    @PositiveOrZero
     private BigDecimal price;
 
     @Column(name = "currency", nullable = false, length = 10)
@@ -61,4 +65,8 @@ public class TicketType extends AuditableEntity {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Long version;
 }
