@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.order;
 
+import com.paradise.event_ticket_system.model.PurchaseOrder;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

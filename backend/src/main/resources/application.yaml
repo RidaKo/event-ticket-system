@@ -15,11 +15,16 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     open-in-view: false
-    defer-datasource-initialization: false
   thymeleaf:
     cache: false
   flyway:
-    ddl-auto: validate
+    enabled: true
+    locations: classpath:db/migration
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
     enabled: true
