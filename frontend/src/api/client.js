@@ -1,11 +1,27 @@
-import axios from "axios";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
-// Default baseURL is "" so requests go to "/api/..." on the dev server,
-// where Vite's proxy (see vite.config.ts) forwards /api -> :8080. Override
-// with VITE_API_URL when hitting the backend directly (e.g. preview builds).
-const baseURL = import.meta.env.VITE_API_URL ?? "";
+export async function apiFetch(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers
+    },
+    ...options
+  });
 
-export const apiClient = axios.create({
-  baseURL,
-  timeout: 10_000,
-});
+  if (!response.ok) {
+    let message = 'Request failed';
+    try {
+      const body = await response.json();
+      message = body.detail || body.message || body.error || message;
+    } catch {
+      message = response.statusText || message;
+    }
+    throw new Error(message);
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+  return response.json();
+}

@@ -1,0 +1,54 @@
+# =========================
+# IDE / Editor
+# =========================
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+out/
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Backend / Java / Gradle
+# =========================
+backend/.gradle/
+backend/bin/
+backend/build/
+backend/out/
+
+# Keep Gradle wrapper committed
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# =========================
+# Frontend / Node / Vite
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# npm / yarn logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# =========================
+# Local logs created while running
+# =========================
+*.log
+backend-bootrun.log
+backend-bootrun.err.log
+frontend-vite.log
+frontend-vite.err.log
+
+# =========================
+# Environment files
+# =========================
+.env
+.env.*
+!.env.example
