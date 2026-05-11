@@ -25,61 +25,14 @@ import ticketLogo from "./assets/ticket_small.png";
 import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
+import { getCatalog } from "./api/catalog.js";
+import { getRecommendedEvents } from "./api/recommendations.js";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
+import { EMPTY_FILTERS } from "./lib/catalog.js";
+import { mapRecommendedEvent } from "./lib/recommendations.js";
 
 const checkoutEventId = 1;
-const categories = ["Music", "Sports", "Arts", "Technology", "Food"];
-const tags = ["Outdoor", "Family", "Networking", "Educational"];
-const recommendedItems = [
-  {
-    id: 1,
-    title: "Riverside Jazz Night",
-    date: "Fri, Jun 12",
-    venue: "Paradise Hall",
-    tag: "Music",
-    category: "Outdoor",
-  },
-  {
-    id: 2,
-    title: "Startup Founders Mixer",
-    date: "Sat, Jun 13",
-    venue: "North Pier Studio",
-    tag: "Networking",
-    category: "Technology",
-  },
-  {
-    id: 3,
-    title: "Family Food Festival",
-    date: "Sun, Jun 14",
-    venue: "Central Park",
-    tag: "Family",
-    category: "Food",
-  },
-  {
-    id: 4,
-    title: "Open Air Cinema",
-    date: "Thu, Jun 18",
-    venue: "Riverfront Lawn",
-    tag: "Outdoor",
-    category: "Arts",
-  },
-  {
-    id: 5,
-    title: "Design Systems Workshop",
-    date: "Fri, Jun 19",
-    venue: "Creative Campus",
-    tag: "Educational",
-    category: "Technology",
-  },
-  {
-    id: 6,
-    title: "City Arena Finals",
-    date: "Sat, Jun 20",
-    venue: "City Arena",
-    tag: "Family",
-    category: "Sports",
-  },
-];
+const RECOMMENDED_LIMIT = 6;
 const browseItems = [
   {
     id: 1,
@@ -288,7 +241,21 @@ function BrowseCard({ event }) {
   );
 }
 
-function FilterPanel() {
+function FilterPanel({ draft, onDraftChange, onApply, onReset, catalog, catalogLoading, catalogError }) {
+  function toggleInArray(key, item) {
+    onDraftChange((current) => {
+      const exists = current[key].includes(item);
+      return {
+        ...current,
+        [key]: exists ? current[key].filter((value) => value !== item) : [...current[key], item],
+      };
+    });
+  }
+
+  function setField(key, value) {
+    onDraftChange((current) => ({ ...current, [key]: value }));
+  }
+
   return (
     <Paper className="filter-card" radius="md" withBorder>
       <Box>
@@ -304,12 +271,28 @@ function FilterPanel() {
               Category
             </Text>
             <Group gap="xs">
-              {categories.map((item) => (
-                <Pill key={item} size="sm">
-                  {item}
+              {(catalog.categories ?? []).map((item) => (
+                <Pill
+                  key={item.value}
+                  size="sm"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => toggleInArray("categories", item.value)}
+                  bg={draft.categories.includes(item.value) ? "var(--mantine-color-brand-1)" : undefined}
+                >
+                  {item.label}
                 </Pill>
               ))}
             </Group>
+            {catalogLoading && (
+              <Text size="xs" c="dimmed">
+                Loading categories...
+              </Text>
+            )}
+            {catalogError && (
+              <Text size="xs" c="red">
+                Could not load categories.
+              </Text>
+            )}
           </Stack>
 
           <Stack gap="xs">
@@ -317,36 +300,71 @@ function FilterPanel() {
               Interest Tags
             </Text>
             <Group gap="xs">
-              {tags.map((item) => (
-                <Pill key={item} size="sm">
-                  {item}
+              {(catalog.tags ?? []).map((item) => (
+                <Pill
+                  key={item.slug}
+                  size="sm"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => toggleInArray("tags", item.slug)}
+                  bg={draft.tags.includes(item.slug) ? "var(--mantine-color-brand-1)" : undefined}
+                >
+                  {item.label}
                 </Pill>
               ))}
             </Group>
+            {catalogLoading && (
+              <Text size="xs" c="dimmed">
+                Loading tags...
+              </Text>
+            )}
+            {catalogError && (
+              <Text size="xs" c="red">
+                Could not load tags.
+              </Text>
+            )}
           </Stack>
 
           <Stack gap="xs">
             <Text className="filter-label" size="xs" fw="bold" c="dimmed" tt="uppercase">
               Date Range
             </Text>
-            <TextInput placeholder="Start date" variant="filled" />
-            <TextInput placeholder="End date" variant="filled" />
+            <TextInput
+              type="date"
+              value={draft.startDate}
+              onChange={(event) => setField("startDate", event.currentTarget.value)}
+              placeholder="Start date"
+              variant="filled"
+            />
+            <TextInput
+              type="date"
+              value={draft.endDate}
+              onChange={(event) => setField("endDate", event.currentTarget.value)}
+              placeholder="End date"
+              variant="filled"
+            />
           </Stack>
 
           <Stack gap="xs">
             <Text className="filter-label" size="xs" fw="bold" c="dimmed" tt="uppercase">
               Location
             </Text>
-            <TextInput placeholder="City or venue" variant="filled" />
+            <TextInput
+              value={draft.location}
+              onChange={(event) => setField("location", event.currentTarget.value)}
+              placeholder="City or venue"
+              variant="filled"
+            />
           </Stack>
 
           <Divider color="brand.1" />
 
           <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="sm">
-            <Button variant="light" color="gray">
+            <Button variant="light" color="gray" onClick={onReset}>
               Reset
             </Button>
-            <Button color="brand">Apply</Button>
+            <Button color="brand" onClick={onApply}>
+              Apply
+            </Button>
           </SimpleGrid>
         </Box>
       </Box>
@@ -355,10 +373,98 @@ function FilterPanel() {
 }
 
 function BrowsePage() {
+  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
+  const [catalog, setCatalog] = useState({ categories: [], tags: [] });
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState(false);
+  const [recommendedItems, setRecommendedItems] = useState([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(true);
+  const [recommendationsError, setRecommendationsError] = useState(false);
+  const [fallbackUsed, setFallbackUsed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCatalog() {
+      setCatalogLoading(true);
+      setCatalogError(false);
+      try {
+        const data = await getCatalog();
+        if (!cancelled) {
+          setCatalog(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setCatalogError(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setCatalogLoading(false);
+        }
+      }
+    }
+
+    loadCatalog();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRecommendations() {
+      setRecommendationsLoading(true);
+      setRecommendationsError(false);
+      try {
+        const response = await getRecommendedEvents({
+          ...appliedFilters,
+          limit: RECOMMENDED_LIMIT,
+        });
+        if (!cancelled) {
+          setRecommendedItems((response.items ?? []).map(mapRecommendedEvent));
+          setFallbackUsed(Boolean(response.fallbackUsed));
+        }
+      } catch {
+        if (!cancelled) {
+          setRecommendationsError(true);
+          setRecommendedItems([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setRecommendationsLoading(false);
+        }
+      }
+    }
+
+    loadRecommendations();
+    return () => {
+      cancelled = true;
+    };
+  }, [appliedFilters]);
+
+  function handleApplyFilters() {
+    setAppliedFilters(draftFilters);
+  }
+
+  function handleResetFilters() {
+    setDraftFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+  }
+
   return (
     <Grid gutter="lg" align="flex-start">
       <Grid.Col span={{ base: 12, md: 4, lg: 3 }}>
-        <FilterPanel />
+        <FilterPanel
+          draft={draftFilters}
+          onDraftChange={setDraftFilters}
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+          catalog={catalog}
+          catalogLoading={catalogLoading}
+          catalogError={catalogError}
+        />
       </Grid.Col>
 
       <Grid.Col span={{ base: 12, md: 8, lg: 9 }}>
@@ -369,15 +475,35 @@ function BrowsePage() {
                 Recommended for you
               </Title>
               <Text c="dimmed" size="sm">
-                Based on your preferences
+                {fallbackUsed ? "Showing popular upcoming events" : "Based on your preferences"}
               </Text>
             </Group>
 
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-              {recommendedItems.map((item) => (
-                <EventCard key={item.id} event={item} />
-              ))}
-            </SimpleGrid>
+            {recommendationsLoading && (
+              <Text c="dimmed" size="sm">
+                Loading recommendations...
+              </Text>
+            )}
+
+            {recommendationsError && !recommendationsLoading && (
+              <Text c="red" size="sm">
+                Could not load recommendations. Please try again.
+              </Text>
+            )}
+
+            {!recommendationsLoading && !recommendationsError && recommendedItems.length === 0 && (
+              <Text c="dimmed" size="sm">
+                No matches for the selected filters.
+              </Text>
+            )}
+
+            {!recommendationsLoading && !recommendationsError && recommendedItems.length > 0 && (
+              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+                {recommendedItems.map((item) => (
+                  <EventCard key={item.id} event={item} />
+                ))}
+              </SimpleGrid>
+            )}
           </section>
 
           <section>
