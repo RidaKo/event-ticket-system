@@ -1,6 +1,6 @@
 package com.paradise.event_ticket_system.recommendation;
 
-import com.paradise.event_ticket_system.event.EventRepository;
+import com.paradise.event_ticket_system.viewEvent.domain.EventRepository;
 import com.paradise.event_ticket_system.event.EventStatus;
 import com.paradise.event_ticket_system.event.Tag;
 import com.paradise.event_ticket_system.model.Category;

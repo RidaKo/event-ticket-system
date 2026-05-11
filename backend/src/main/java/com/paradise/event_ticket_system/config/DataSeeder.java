@@ -1,7 +1,7 @@
 package com.paradise.event_ticket_system.config;
 
-import com.paradise.event_ticket_system.event.CategoryRepository;
-import com.paradise.event_ticket_system.event.EventRepository;
+import com.paradise.event_ticket_system.viewEvent.domain.CategoryRepository;
+import com.paradise.event_ticket_system.viewEvent.domain.EventRepository;
 import com.paradise.event_ticket_system.event.EventStatus;
 import com.paradise.event_ticket_system.event.Tag;
 import com.paradise.event_ticket_system.event.TagRepository;
@@ -12,7 +12,7 @@ import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.model.Venue;
 import com.paradise.event_ticket_system.user.UserPreferences;
 import com.paradise.event_ticket_system.user.UserPreferencesRepository;
-import com.paradise.event_ticket_system.user.UserRepository;
+import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
 import jakarta.persistence.EntityManager;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
