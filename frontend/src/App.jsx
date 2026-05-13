@@ -26,6 +26,7 @@ import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
+import CreateEventPage from "./pages/CreateEventPage.jsx";
 
 const checkoutEventId = 1;
 const categories = ["Music", "Sports", "Arts", "Technology", "Food"];
@@ -137,6 +138,9 @@ function readRoute() {
 
   if (path === "/orders") {
     return { name: "orders" };
+  }
+  if (path === "/create-event") {
+    return { name: "create-event" };
   }
 
   return { name: "browse" };
@@ -476,7 +480,9 @@ function Topbar({ activeTab, navigate }) {
             <Button variant="default" color="gray">
               Sign in
             </Button>
-            <Button color="brand">Create event</Button>
+            <Button color="brand" onClick={() => navigate("/create-event")}>
+              Create event
+            </Button>
             <ActionIcon size="lg" radius="xl" variant="filled" color="brand" aria-label="Profile">
               <ProfileIcon />
             </ActionIcon>
@@ -518,6 +524,9 @@ export default function App() {
             )}
             {route.name === "confirmation" && (
               <ConfirmationPage orderNumber={route.orderNumber} navigate={navigate} />
+            )}
+            {route.name === "create-event" && (
+                <CreateEventPage navigate={navigate} />
             )}
           </Container>
         </Box>
