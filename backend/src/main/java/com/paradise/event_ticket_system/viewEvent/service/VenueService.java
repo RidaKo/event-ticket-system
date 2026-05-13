@@ -1,7 +1,9 @@
 package com.paradise.event_ticket_system.viewEvent.service;
 
 import com.paradise.event_ticket_system.model.Organizer;
+import com.paradise.event_ticket_system.model.Review;
 import com.paradise.event_ticket_system.model.Venue;
+import com.paradise.event_ticket_system.viewEvent.api.DTO.EventResponse;
 import com.paradise.event_ticket_system.viewEvent.api.EventMapper;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.VenueRequest;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.VenueResponse;
@@ -12,6 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,4 +46,11 @@ public class VenueService {
                 ));
         return eventMapper.toVenueResponse(venue);
     }
+    @Transactional(readOnly = true)
+    public List<VenueResponse> getAllVenues() {
+        return venueRepository.findAll().stream()
+                .map(eventMapper::toVenueResponse)
+                .toList();
+    }
+
 }

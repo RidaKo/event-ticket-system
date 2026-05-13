@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.viewEvent.service;
 
+import com.paradise.event_ticket_system.category.CategoryRepository;
 import com.paradise.event_ticket_system.model.*;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventRequest;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventResponse;
