@@ -147,7 +147,9 @@ function readRoute() {
 }
 
 function routeToTab(routeName) {
-  return routeName === "browse" ? "browse" : "orders";
+  if (routeName === "browse") return "browse";
+  if (routeName === "orders") return "orders";
+  return null;
 }
 
 function TicketLogo() {

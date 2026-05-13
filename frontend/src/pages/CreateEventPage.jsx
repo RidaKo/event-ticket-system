@@ -1,16 +1,12 @@
-import { useState } from "react";
-import { createEvent } from "../api/eventsApi.js";
+import { useEffect, useState } from "react";
 import {
-    ActionIcon,
     Box,
     Button,
     Card,
     Container,
-    Grid,
     Group,
     Select,
     SimpleGrid,
-    Tabs,
     Text,
     TextInput,
     Textarea,
@@ -18,101 +14,16 @@ import {
     NumberInput,
 } from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
-
-function TicketLogo() {
-    return (
-        <Box
-            w={48}
-            h={48}
-            style={{
-                borderRadius: "16px",
-                background: "linear-gradient(135deg, #5f3dc4, #845ef7)",
-            }}
-        />
-    );
-}
-
-function ProfileIcon() {
-    return (
-        <Box
-            w={18}
-            h={18}
-            style={{
-                borderRadius: "50%",
-                backgroundColor: "white",
-            }}
-        />
-    );
-}
-
-function Topbar({ navigate }) {
-    return (
-        <Box
-            component="header"
-            style={{
-                borderBottom: "1px solid #e9ecef",
-                backgroundColor: "white",
-                position: "sticky",
-                top: 0,
-                zIndex: 100,
-            }}
-        >
-            <Container size="xl" px={{ base: "md", sm: "xl" }} py="sm">
-                <Group justify="space-between" align="center" gap="md" wrap="wrap">
-                    <Group gap="sm" wrap="nowrap">
-                        <TicketLogo />
-                        <Box>
-                            <Title order={1} size="h2" c="violet.9">
-                                Event
-                            </Title>
-                            <Title order={1} size="h2" c="violet.9">
-                                Ticket
-                            </Title>
-                        </Box>
-                    </Group>
-
-                    <Tabs
-                        value="create"
-                        color="violet"
-                    >
-                        <Tabs.List>
-                            <Tabs.Tab value="browse" onClick={() => navigate("/")}>
-                                Browse Events
-                            </Tabs.Tab>
-                            <Tabs.Tab value="orders" onClick={() => navigate("/orders")}>
-                                Your Orders
-                            </Tabs.Tab>
-                            <Tabs.Tab value="create">
-                                Create Event
-                            </Tabs.Tab>
-                        </Tabs.List>
-                    </Tabs>
-
-                    <Group gap="sm" wrap="wrap">
-                        <Button variant="default" color="gray">
-                            Sign in
-                        </Button>
-                        <ActionIcon
-                            size="lg"
-                            radius="xl"
-                            variant="filled"
-                            color="violet"
-                            aria-label="Profile"
-                        >
-                            <ProfileIcon />
-                        </ActionIcon>
-                    </Group>
-                </Group>
-            </Container>
-        </Box>
-    );
-}
+import {createEvent, getCategories, getVenues} from "../api/eventsApi.js";
 
 export default function CreateEventPage() {
+    const [venues, setVenues] = useState([]);
+    const [categories, setCategories] = useState([]);
+
     const [form, setForm] = useState({
-        venueId: "",
-        organizerId: "",
-        categoryId: "",
+        venueId: null,
+        organizerId: 1,
+        categoryId: null,
         title: "",
         slug: "",
         description: "",
@@ -124,6 +35,26 @@ export default function CreateEventPage() {
         coverPhotoUrl: "",
         photoUrls: "",
     });
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const [venuesData, categoriesData] = await Promise.all([
+                    getVenues(),
+                    getCategories(),
+                ]);
+                console.log("VENUES DATA:", venuesData);
+
+                setVenues(venuesData);
+                console.log(venues);
+                setCategories(categoriesData);
+            } catch (err) {
+                console.error("Failed to load venues/categories", err);
+            }
+        }
+
+        loadData();
+    }, []);
 
     const handleChange = (field, value) => {
         setForm((prev) => ({
@@ -149,9 +80,9 @@ export default function CreateEventPage() {
             alert("Event created successfully!");
 
             setForm({
-                venueId: "",
-                organizerId: "",
-                categoryId: "",
+                venueId: null,
+                organizerId: 1,
+                categoryId: null,
                 title: "",
                 slug: "",
                 description: "",
@@ -169,37 +100,22 @@ export default function CreateEventPage() {
         }
     };
 
-    const navigate = (path) => {
-        window.location.href = path;
-    };
-
     return (
         <Box bg="#f8f9fa" mih="100vh">
-            <Topbar navigate={navigate} />
-
             <Container size="lg" py="xl">
-                <Card
-                    radius="xl"
-                    shadow="sm"
-                    p="xl"
-                    withBorder
-                >
-                    <Group justify="space-between" align="flex-start" mb="xl">
-                        <Box>
-                            <Title order={2} mb={4}>
-                                Create New Event
-                            </Title>
-                            <Text c="dimmed">
-                                Fill in the event details and publish your event.
-                            </Text>
-                        </Box>
-                    </Group>
+                <Card radius="xl" shadow="sm" p="xl" withBorder>
+                    <Title order={2} mb="sm">
+                        Create Event
+                    </Title>
+
+                    <Text c="dimmed" mb="xl">
+                        Fill in the event details
+                    </Text>
 
                     <form onSubmit={handleSubmit}>
                         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
                             <TextInput
                                 label="Event Title"
-                                placeholder="Summer Music Festival"
                                 required
                                 value={form.title}
                                 onChange={(e) => handleChange("title", e.currentTarget.value)}
@@ -207,34 +123,35 @@ export default function CreateEventPage() {
 
                             <TextInput
                                 label="Slug"
-                                placeholder="summer-music-festival"
                                 required
                                 value={form.slug}
                                 onChange={(e) => handleChange("slug", e.currentTarget.value)}
                             />
 
-                            <NumberInput
-                                label="Venue ID"
-                                placeholder="1"
-                                required
-                                value={form.venueId}
+                            {/* VENUE SELECT */}
+                            <Select
+                                label="Venue"
+                                placeholder="Select venue"
+                                data={venues.map((v) => ({ value: String(v.id), label: `${v.name} (${v.addressLine1}, ${v.city})` }))}
+                                value={form.venueId ? String(form.venueId) : null}
                                 onChange={(value) => handleChange("venueId", value)}
+                                required
+                            />
+
+                            {/* CATEGORY SELECT */}
+                            <Select
+                                label="Category"
+                                placeholder="Select category"
+                                data={categories.map((c) => ({ value: String(c.id), label: c.name }))}
+                                value={form.categoryId ? String(form.categoryId) : null}
+                                onChange={(value) => handleChange("categoryId", value)}
+                                required
                             />
 
                             <NumberInput
                                 label="Organizer ID"
-                                placeholder="1"
-                                required
                                 value={form.organizerId}
                                 onChange={(value) => handleChange("organizerId", value)}
-                            />
-
-                            <NumberInput
-                                label="Category ID"
-                                placeholder="1"
-                                required
-                                value={form.categoryId}
-                                onChange={(value) => handleChange("categoryId", value)}
                             />
 
                             <Select
@@ -248,55 +165,35 @@ export default function CreateEventPage() {
                         <Textarea
                             mt="lg"
                             label="Description"
-                            placeholder="Describe your event..."
-                            minRows={5}
-                            required
+                            minRows={4}
                             value={form.description}
                             onChange={(e) => handleChange("description", e.currentTarget.value)}
                         />
 
-                        <Grid mt="lg">
-                            <Grid.Col span={{ base: 12, md: 6 }}>
-                                <DateTimePicker
-                                    label="Start Date & Time"
-                                    placeholder="Pick start date"
-                                    required
-                                    value={form.startDatetime}
-                                    onChange={(value) => handleChange("startDatetime", value)}
-                                />
-                            </Grid.Col>
-
-                            <Grid.Col span={{ base: 12, md: 6 }}>
-                                <DateTimePicker
-                                    label="End Date & Time"
-                                    placeholder="Pick end date"
-                                    required
-                                    value={form.endDatetime}
-                                    onChange={(value) => handleChange("endDatetime", value)}
-                                />
-                            </Grid.Col>
-                        </Grid>
-
-                        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg" mt="lg">
-                            <TextInput
-                                label="Timezone"
-                                placeholder="Europe/Vilnius"
-                                value={form.timezone}
-                                onChange={(e) => handleChange("timezone", e.currentTarget.value)}
+                        <Group mt="lg" grow>
+                            <DateTimePicker
+                                label="Start"
+                                value={form.startDatetime}
+                                onChange={(value) => handleChange("startDatetime", value)}
                             />
 
-                            <NumberInput
-                                label="Minimum Age"
-                                placeholder="18"
-                                value={form.minAge}
-                                onChange={(value) => handleChange("minAge", value)}
+                            <DateTimePicker
+                                label="End"
+                                value={form.endDatetime}
+                                onChange={(value) => handleChange("endDatetime", value)}
                             />
-                        </SimpleGrid>
+                        </Group>
+
+                        <NumberInput
+                            mt="lg"
+                            label="Minimum Age"
+                            value={form.minAge}
+                            onChange={(value) => handleChange("minAge", value)}
+                        />
 
                         <TextInput
                             mt="lg"
                             label="Cover Photo URL"
-                            placeholder="https://example.com/cover.jpg"
                             value={form.coverPhotoUrl}
                             onChange={(e) => handleChange("coverPhotoUrl", e.currentTarget.value)}
                         />
@@ -304,21 +201,13 @@ export default function CreateEventPage() {
                         <Textarea
                             mt="lg"
                             label="Photo URLs"
-                            description="Separate multiple URLs with commas"
-                            placeholder="https://example.com/1.jpg, https://example.com/2.jpg"
-                            minRows={3}
+                            description="comma separated"
                             value={form.photoUrls}
                             onChange={(e) => handleChange("photoUrls", e.currentTarget.value)}
                         />
 
                         <Group justify="flex-end" mt="xl">
-                            <Button variant="default">
-                                Cancel
-                            </Button>
-
-                            <Button type="submit" color="violet">
-                                Create Event
-                            </Button>
+                            <Button type="submit">Create Event</Button>
                         </Group>
                     </form>
                 </Card>
