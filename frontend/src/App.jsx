@@ -22,7 +22,8 @@ import {
   Title,
 } from "@mantine/core";
 import ticketLogo from "./assets/ticket_small.png";
-import AccountPage from "./pages/AccountPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import SignUpPage from "./pages/SignUpPage.jsx";
 import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
@@ -141,7 +142,11 @@ function readRoute() {
   }
 
   if (path === "/signin") {
-    return { name: "account" };
+    return { name: "signin" };
+  }
+
+  if (path === "/signup") {
+    return { name: "signup" };
   }
 
   return { name: "browse" };
@@ -454,7 +459,7 @@ function OrdersPage({ navigate }) {
   );
 }
 
-function Topbar({ activeTab, navigate, isAccountRoute }) {
+function Topbar({ activeTab, navigate, isAuthRoute }) {
   return (
     <Box component="header" className="topbar">
       <Container size="xl" px={{ base: "md", sm: "xl" }} py="sm">
@@ -485,8 +490,8 @@ function Topbar({ activeTab, navigate, isAccountRoute }) {
 
           <Group gap="sm" wrap="wrap">
             <Button
-              variant={isAccountRoute ? "filled" : "default"}
-              color={isAccountRoute ? "brand" : "gray"}
+              variant={isAuthRoute ? "filled" : "default"}
+              color={isAuthRoute ? "brand" : "gray"}
               onClick={() => navigate("/signin")}
             >
               Sign in
@@ -522,14 +527,15 @@ export default function App() {
         <Topbar
           activeTab={routeToTab(route.name)}
           navigate={navigate}
-          isAccountRoute={route.name === "account"}
+          isAuthRoute={["signin", "signup"].includes(route.name)}
         />
 
         <Box component="main">
           <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
             {route.name === "browse" && <BrowsePage />}
             {route.name === "orders" && <OrdersPage navigate={navigate} />}
-            {route.name === "account" && <AccountPage navigate={navigate} />}
+            {route.name === "signin" && <LoginPage navigate={navigate} />}
+            {route.name === "signup" && <SignUpPage navigate={navigate} />}
             {route.name === "tickets" && (
               <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
             )}
