@@ -17,26 +17,57 @@ import {
 import { useEffect, useState } from "react";
 import { getEvent } from "../api/eventsApi.js";
 
-function formatDate(value) {
+function formatDate(value, timeZone) {
   if (!value) {
     return "Date to be announced";
   }
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Date to be announced";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      ...(timeZone ? { timeZone } : {}),
+    }).format(date);
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(date);
+  }
 }
 
-function formatTime(value) {
+function formatTime(value, timeZone) {
   if (!value) {
     return "Time to be announced";
   }
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Time to be announced";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+      ...(timeZone ? { timeZone } : {}),
+    }).format(date);
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date);
+  }
 }
 
 function compactAddress(event) {
@@ -45,9 +76,27 @@ function compactAddress(event) {
     .join(", ");
 }
 
-export default function EventDetailsPage({ eventId, navigate, fallbackEvent }) {
-  const [event, setEvent] = useState(fallbackEvent || null);
-  const [loading, setLoading] = useState(!fallbackEvent);
+function getUnavailableReason(event) {
+  if (event.salesEnabled === false) {
+    return "Ticket sales are not available for this event.";
+  }
+
+  const status = typeof event.status === "string" ? event.status.toLowerCase() : "";
+  if (status === "draft" || status === "cancelled" || status === "canceled") {
+    return "Ticket sales are not available for this event.";
+  }
+
+  const availability = typeof event.availability === "string" ? event.availability.toLowerCase() : "";
+  if (availability === "sold_out" || availability === "sold out" || availability === "unavailable") {
+    return "Ticket sales are not available for this event.";
+  }
+
+  return "";
+}
+
+export default function EventDetailsPage({ eventId, navigate }) {
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -66,16 +115,15 @@ export default function EventDetailsPage({ eventId, navigate, fallbackEvent }) {
         if (!active) {
           return;
         }
-        if (!fallbackEvent) {
-          setError(err.message);
-        }
+        setEvent(null);
+        setError(err.message || "Unable to load event.");
       })
       .finally(() => active && setLoading(false));
 
     return () => {
       active = false;
     };
-  }, [eventId, fallbackEvent]);
+  }, [eventId]);
 
   if (loading && !event) {
     return (
@@ -96,8 +144,10 @@ export default function EventDetailsPage({ eventId, navigate, fallbackEvent }) {
 
   const address = compactAddress(event);
   const ticketEventId = event.checkoutEventId || event.id;
-  const eventDate = event.date || formatDate(event.startDatetime);
-  const eventTime = event.time || formatTime(event.startDatetime);
+  const eventTimeZone = event.timezone || event.timeZone || event.venue?.timezone;
+  const eventDate = formatDate(event.startDatetime, eventTimeZone);
+  const eventTime = formatTime(event.startDatetime, eventTimeZone);
+  const unavailableReason = getUnavailableReason(event);
 
   return (
     <Stack gap="lg" className="event-details-shell">
@@ -145,10 +195,19 @@ export default function EventDetailsPage({ eventId, navigate, fallbackEvent }) {
                     {eventTime}
                   </Text>
                 </Stack>
-                <Button color="brand" onClick={() => navigate(`/events/${ticketEventId}/checkout/tickets`)}>
-                  Buy tickets
+                <Button
+                  color="brand"
+                  disabled={Boolean(unavailableReason)}
+                  onClick={() => navigate(`/events/${ticketEventId}/checkout/tickets`)}
+                >
+                  {unavailableReason ? "Tickets unavailable" : "Buy tickets"}
                 </Button>
               </Group>
+              {unavailableReason && (
+                <Text size="sm" c="dimmed">
+                  {unavailableReason}
+                </Text>
+              )}
             </Stack>
           </Grid.Col>
         </Grid>

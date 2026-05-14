@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   ActionIcon,
+  Alert,
   AspectRatio,
   Badge,
   Box,
@@ -29,108 +30,12 @@ import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
+import { demoBrowseEvents, demoRecommendedEvents } from "./data/demoEvents.js";
 
 const checkoutEventId = 1;
+const useDemoEvents = import.meta.env.VITE_USE_DEMO_EVENTS === "true";
 const categories = ["Music", "Sports", "Arts", "Technology", "Food"];
 const tags = ["Outdoor", "Family", "Networking", "Educational"];
-const recommendedItems = [
-  {
-    id: 1,
-    checkoutEventId: 1,
-    title: "Riverside Jazz Night",
-    date: "Fri, Jun 12",
-    venue: "Paradise Hall",
-    tag: "Music",
-    category: "Outdoor",
-  },
-  {
-    id: 2,
-    checkoutEventId: 1,
-    title: "Startup Founders Mixer",
-    date: "Sat, Jun 13",
-    venue: "North Pier Studio",
-    tag: "Networking",
-    category: "Technology",
-  },
-  {
-    id: 3,
-    checkoutEventId: 1,
-    title: "Family Food Festival",
-    date: "Sun, Jun 14",
-    venue: "Central Park",
-    tag: "Family",
-    category: "Food",
-  },
-  {
-    id: 4,
-    checkoutEventId: 1,
-    title: "Open Air Cinema",
-    date: "Thu, Jun 18",
-    venue: "Riverfront Lawn",
-    tag: "Outdoor",
-    category: "Arts",
-  },
-  {
-    id: 5,
-    checkoutEventId: 1,
-    title: "Design Systems Workshop",
-    date: "Fri, Jun 19",
-    venue: "Creative Campus",
-    tag: "Educational",
-    category: "Technology",
-  },
-  {
-    id: 6,
-    checkoutEventId: 1,
-    title: "City Arena Finals",
-    date: "Sat, Jun 20",
-    venue: "City Arena",
-    tag: "Family",
-    category: "Sports",
-  },
-];
-const browseItems = [
-  {
-    id: 101,
-    checkoutEventId: 1,
-    title: "Acoustic Sessions",
-    date: "Today",
-    venue: "Old Town Stage",
-    tag: "Music",
-  },
-  {
-    id: 102,
-    checkoutEventId: 1,
-    title: "Modern Art Walk",
-    date: "Tomorrow",
-    venue: "Gallery District",
-    tag: "Arts",
-  },
-  {
-    id: 103,
-    checkoutEventId: 1,
-    title: "Junior Football Camp",
-    date: "This weekend",
-    venue: "South Field",
-    tag: "Sports",
-  },
-  {
-    id: 104,
-    checkoutEventId: 1,
-    title: "Cloud Engineering Forum",
-    date: "Next Tuesday",
-    venue: "Tech Hub",
-    tag: "Technology",
-  },
-  {
-    id: 105,
-    checkoutEventId: 1,
-    title: "Street Food Showcase",
-    date: "Next Friday",
-    venue: "Market Square",
-    tag: "Food",
-  },
-];
 
 function readRoute() {
   const path = window.location.pathname;
@@ -253,25 +158,6 @@ function sortByPopularity(events) {
 
 function sortByDate(events) {
   return [...events].sort((left, right) => new Date(left.startDatetime || 0) - new Date(right.startDatetime || 0));
-}
-
-function toFallbackDetailEvent(event) {
-  return {
-    ...event,
-    description: `${event.title} at ${event.venue}.`,
-    startDatetime: null,
-    venueName: event.venue,
-    categoryName: event.tag,
-    city: event.category,
-    averageRating: null,
-    reviewCount: null,
-    reviews: [],
-  };
-}
-
-function findFallbackEvent(eventId) {
-  const event = [...recommendedItems, ...browseItems].find((item) => item.id === eventId);
-  return event ? toFallbackDetailEvent(event) : null;
 }
 
 function EventCard({ event, navigate }) {
@@ -461,10 +347,12 @@ function FilterPanel() {
 function BrowsePage({ navigate }) {
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [eventsError, setEventsError] = useState("");
 
   useEffect(() => {
     let active = true;
     setLoadingEvents(true);
+    setEventsError("");
 
     getEvents()
       .then((data) => {
@@ -473,9 +361,10 @@ function BrowsePage({ navigate }) {
         }
         setEvents(Array.isArray(data) ? data.map(mapApiEvent) : []);
       })
-      .catch(() => {
+      .catch((err) => {
         if (active) {
           setEvents([]);
+          setEventsError(err.message || "Unable to load events.");
         }
       })
       .finally(() => active && setLoadingEvents(false));
@@ -486,11 +375,14 @@ function BrowsePage({ navigate }) {
   }, []);
 
   const hasApiEvents = events.length > 0;
-  const popularEvents = hasApiEvents ? sortByPopularity(events).slice(0, 6) : recommendedItems;
+  const showDemoEvents = useDemoEvents && !loadingEvents && !hasApiEvents;
+  const popularEvents = hasApiEvents ? sortByPopularity(events).slice(0, 6) : showDemoEvents ? demoRecommendedEvents : [];
   const popularEventIds = new Set(popularEvents.map((event) => event.id));
   const listedEvents = hasApiEvents
     ? sortByDate(events).filter((event) => !popularEventIds.has(event.id))
-    : browseItems;
+    : showDemoEvents
+      ? demoBrowseEvents
+      : [];
 
   return (
     <Grid gutter="lg" align="flex-start">
@@ -500,6 +392,19 @@ function BrowsePage({ navigate }) {
 
       <Grid.Col span={{ base: 12, md: 8, lg: 9 }}>
         <Stack gap="xl">
+          {eventsError && (
+            <Alert color="red" variant="light">
+              Unable to load events from the API: {eventsError}
+              {showDemoEvents ? " Showing demo events because VITE_USE_DEMO_EVENTS is enabled." : ""}
+            </Alert>
+          )}
+
+          {!eventsError && showDemoEvents && (
+            <Alert color="blue" variant="light">
+              Showing demo events because VITE_USE_DEMO_EVENTS is enabled.
+            </Alert>
+          )}
+
           <section>
             <Group justify="space-between" align="baseline" gap="md" mb="md">
               <Title order={2} c="brand.9">
@@ -524,6 +429,12 @@ function BrowsePage({ navigate }) {
                 <EventCard key={item.id} event={item} navigate={navigate} />
               ))}
             </SimpleGrid>
+
+            {!loadingEvents && popularEvents.length === 0 && (
+              <Text c="dimmed" size="sm" mt="md">
+                No popular events are available.
+              </Text>
+            )}
           </section>
 
           <section>
@@ -537,6 +448,11 @@ function BrowsePage({ navigate }) {
               {listedEvents.map((item) => (
                 <BrowseCard key={item.id} event={item} navigate={navigate} />
               ))}
+              {!loadingEvents && listedEvents.length === 0 && (
+                <Text c="dimmed" size="sm">
+                  No additional events are available.
+                </Text>
+              )}
             </Stack>
           </section>
         </Stack>
@@ -657,11 +573,7 @@ export default function App() {
             {route.name === "browse" && <BrowsePage navigate={navigate} />}
             {route.name === "orders" && <OrdersPage navigate={navigate} />}
             {route.name === "eventDetails" && (
-              <EventDetailsPage
-                eventId={route.eventId}
-                navigate={navigate}
-                fallbackEvent={findFallbackEvent(route.eventId)}
-              />
+              <EventDetailsPage eventId={route.eventId} navigate={navigate} />
             )}
             {route.name === "tickets" && (
               <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
