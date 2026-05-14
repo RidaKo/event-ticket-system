@@ -26,7 +26,13 @@ import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
-import CreateEventPage from "./pages/CreateEventPage.jsx";
+import CreateEventPage from "./pages/Organizer/CreateEventPage.jsx";
+import OrganizerTopbar from "./components/OrganizerTopbar";
+import organizerRouteToTab from "./components/OrganizerTabMapper.jsx";
+
+import OrganizerDashboardPage from "./pages/Organizer/OrganizerDashboardPage";
+import OrganizerEventsPage from "./pages/Organizer/OrganizerEventsPage.jsx";
+import CreateVenuePage from "./pages/Organizer/CreateVenuePage";
 
 const checkoutEventId = 1;
 const categories = ["Music", "Sports", "Arts", "Technology", "Food"];
@@ -139,8 +145,13 @@ function readRoute() {
   if (path === "/orders") {
     return { name: "orders" };
   }
-  if (path === "/create-event") {
-    return { name: "create-event" };
+  if (path.startsWith("/organizer/")) {
+    const parts = path.split("/");
+
+    return {
+      organizerId: parts[2],
+      name: parts[3] || "dashboard",
+    };
   }
 
   return { name: "browse" };
@@ -482,9 +493,6 @@ function Topbar({ activeTab, navigate }) {
             <Button variant="default" color="gray">
               Sign in
             </Button>
-            <Button color="brand" onClick={() => navigate("/create-event")}>
-              Create event
-            </Button>
             <ActionIcon size="lg" radius="xl" variant="filled" color="brand" aria-label="Profile">
               <ProfileIcon />
             </ActionIcon>
@@ -500,8 +508,11 @@ export default function App() {
 
   useEffect(() => {
     const onPopState = () => setRoute(readRoute());
+
     window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+
+    return () =>
+        window.removeEventListener("popstate", onPopState);
   }, []);
 
   function navigate(path) {
@@ -509,30 +520,97 @@ export default function App() {
     setRoute(readRoute());
   }
 
-  return (
-    <CheckoutProvider>
-      <Box className="app-frame">
-        <Topbar activeTab={routeToTab(route.name)} navigate={navigate} />
+  const isOrganizerRoute = route.organizerId != null;
 
-        <Box component="main">
-          <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
-            {route.name === "browse" && <BrowsePage />}
-            {route.name === "orders" && <OrdersPage navigate={navigate} />}
-            {route.name === "tickets" && (
-              <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
-            )}
-            {route.name === "payment" && (
-              <PaymentPage orderNumber={route.orderNumber} navigate={navigate} />
-            )}
-            {route.name === "confirmation" && (
-              <ConfirmationPage orderNumber={route.orderNumber} navigate={navigate} />
-            )}
-            {route.name === "create-event" && (
-                <CreateEventPage navigate={navigate} />
-            )}
-          </Container>
+  return (
+      <CheckoutProvider>
+        <Box className="app-frame">
+
+          {isOrganizerRoute ? (
+              <OrganizerTopbar
+                  activeTab={organizerRouteToTab(route.name)}
+                  navigate={navigate}
+                  organizerId={route.organizerId}
+              />
+          ) : (
+              <Topbar
+                  activeTab={routeToTab(route.name)}
+                  navigate={navigate}
+              />
+          )}
+
+          <Box component="main">
+            <Container
+                size="xl"
+                px={{ base: "md", sm: "xl" }}
+                py={{ base: "lg", sm: "xl" }}
+            >
+
+              {/* PUBLIC ROUTES */}
+
+              {!isOrganizerRoute && (
+                  <>
+                    {route.name === "browse" && (
+                        <BrowsePage />
+                    )}
+
+                    {route.name === "orders" && (
+                        <OrdersPage navigate={navigate} />
+                    )}
+
+                    {route.name === "tickets" && (
+                        <TicketSelectionPage
+                            eventId={route.eventId}
+                            navigate={navigate}
+                        />
+                    )}
+
+                    {route.name === "payment" && (
+                        <PaymentPage
+                            orderNumber={route.orderNumber}
+                            navigate={navigate}
+                        />
+                    )}
+
+                    {route.name === "confirmation" && (
+                        <ConfirmationPage
+                            orderNumber={route.orderNumber}
+                            navigate={navigate}
+                        />
+                    )}
+                  </>
+              )}
+
+              {/* ORGANIZER ROUTES */}
+
+              {isOrganizerRoute && (
+                  <>
+                    {route.name === "dashboard" && (
+                        <OrganizerDashboardPage organizerId={route.organizerId} />
+                    )}
+
+                    {route.name === "create-event" && (
+                        <CreateEventPage
+                            organizerId={route.organizerId}
+                            navigate={navigate}
+                        />
+                    )}
+
+                    {route.name === "events" && (
+                        <OrganizerEventsPage
+                            organizerId={route.organizerId}
+                        />
+                    )}
+
+                    {route.name === "create-venue" && (
+                        <CreateVenuePage organizerId={route.organizerId} />
+                    )}
+                  </>
+              )}
+
+            </Container>
+          </Box>
         </Box>
-      </Box>
-    </CheckoutProvider>
+      </CheckoutProvider>
   );
 }

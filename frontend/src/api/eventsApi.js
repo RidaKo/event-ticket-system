@@ -17,10 +17,10 @@ export function createEvent(eventData) {
     },
   });
 }
-export function getVenues() {
-  return apiFetch("/venues");
-}
-
-export function getCategories() {
-  return apiFetch("/categories");
+export function getEventsByOrganizerId(
+    organizerId
+) {
+  return apiFetch(
+      `/organizers/${organizerId}/events`
+  );
 }

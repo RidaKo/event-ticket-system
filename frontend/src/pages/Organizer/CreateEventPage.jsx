@@ -9,6 +9,7 @@ import {
     NumberInput,
     Select,
     SimpleGrid,
+    Text,
     TextInput,
     Textarea,
     Title,
@@ -16,9 +17,9 @@ import {
 
 import { DateTimePicker } from "@mantine/dates";
 
-import {createEvent} from "../api/eventsApi.js";
-import {getCategories} from "../api/categoriesApi.js";
-import {getVenues} from "../api/venuesApi.js";
+import {createEvent} from "../../api/eventsApi.js";
+import {getCategories} from "../../api/categoriesApi.js";
+import {getVenues} from "../../api/venuesApi.js";
 
 export default function CreateEventPage({
                                             organizerId,
