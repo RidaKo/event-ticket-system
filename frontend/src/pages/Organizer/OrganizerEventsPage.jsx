@@ -1,70 +1,71 @@
 import { useEffect, useState } from "react";
+import { Card, Group, Select, Stack, Text, Title } from "@mantine/core";
+import { getEventsByOrganizerId, updateEventStatus } from "../../api/eventsApi.js";
 
-import {
-    Card,
-    Group,
-    Stack,
-    Text,
-    Title,
-} from "@mantine/core";
-
-import { getEventsByOrganizerId } from "../../api/eventsApi.js";
-
-export default function OrganizerEventsPage({
-                                                organizerId,
-                                            }) {
-
+export default function OrganizerEventsPage({ organizerId }) {
     const [events, setEvents] = useState([]);
 
+    // fetch only on load / reload
     useEffect(() => {
-        loadEvents();
-    }, []);
-
-    async function loadEvents() {
-
-        try {
-            const data =
-                await getEventsByOrganizerId(
-                    organizerId
-                );
-
-            setEvents(data);
-
-        } catch (err) {
-            console.error(err);
+        async function loadEvents() {
+            try {
+                const data = await getEventsByOrganizerId(organizerId);
+                setEvents(data);
+            } catch (err) {
+                console.error(err);
+            }
         }
+
+        if (organizerId) loadEvents();
+    }, [organizerId]);
+
+
+    function handleStatusChange(eventId, status) {
+
+        setEvents((prev) =>
+            prev.map((e) =>
+                e.id === eventId
+                    ? { ...e, status }
+                    : e
+            )
+        );
+
+        updateEventStatus(eventId, status).catch((err) => {
+            console.error("Backend update failed:", err);
+        });
     }
 
     return (
         <>
-            <Title mb="lg">
-                My Events
-            </Title>
+            <Title mb="lg">My Events</Title>
 
             <Stack>
-
                 {events.map((event) => (
-                    <Card
-                        key={event.id}
-                        withBorder
-                        p="lg"
-                    >
-                        <Group justify="space-between">
+                    <Card key={event.id} withBorder p="md" mb="sm">
+                        <Group justify="space-between" align="center">
 
                             <div>
-                                <Title order={4}>
-                                    {event.title}
-                                </Title>
-
-                                <Text c="dimmed">
-                                    {event.status}
+                                <Text fw={600}>{event.title}</Text>
+                                <Text size="sm" c="dimmed">
+                                    {event.startDatetime}
                                 </Text>
                             </div>
 
+                            <Select
+                                value={event.status}
+                                data={[
+                                    { value: "DRAFT", label: "Draft" },
+                                    { value: "PUBLISHED", label: "Published" },
+                                    { value: "CANCELED", label: "Canceled" },
+                                ]}
+                                onChange={(value) =>
+                                    handleStatusChange(event.id, value)
+                                }
+                                w={150}
+                            />
                         </Group>
                     </Card>
                 ))}
-
             </Stack>
         </>
     );

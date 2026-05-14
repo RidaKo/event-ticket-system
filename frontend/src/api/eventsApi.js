@@ -24,3 +24,10 @@ export function getEventsByOrganizerId(
       `/organizers/${organizerId}/events`
   );
 }
+
+export function updateEventStatus(eventId, status) {
+  return apiFetch(`/events/${eventId}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
