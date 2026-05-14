@@ -80,4 +80,11 @@ public class EventService {
                 })
                 .toList();
     }
+    @Transactional
+    public void updateStatus(Integer eventId, String status) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        event.setStatus(status);
+    }
 }
