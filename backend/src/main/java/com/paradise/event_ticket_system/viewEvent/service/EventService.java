@@ -59,4 +59,25 @@ public class EventService {
         Event saved = eventRepository.save(event);
         return eventMapper.toEventResponse(saved, List.of());
     }
+    @Transactional(readOnly = true)
+    public List<EventResponse> getEventsByOrganizerId(
+            Integer organizerId
+    ) {
+
+        return eventRepository.findByOrganizerId(organizerId)
+                .stream()
+                .map(event -> {
+
+                    List<Review> reviews =
+                            reviewRepository.findByEventIdWithUser(
+                                    event.getId()
+                            );
+
+                    return eventMapper.toEventResponse(
+                            event,
+                            reviews
+                    );
+                })
+                .toList();
+    }
 }

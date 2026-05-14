@@ -52,5 +52,12 @@ public class VenueService {
                 .map(eventMapper::toVenueResponse)
                 .toList();
     }
+    @Transactional(readOnly = true)
+    public List<VenueResponse> getVenuesByOrganizerId(Integer organizerId) {
+        return venueRepository.findByOrganizerId(organizerId)
+                .stream()
+                .map(eventMapper::toVenueResponse)
+                .toList();
+    }
 
 }
