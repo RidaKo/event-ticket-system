@@ -25,9 +25,16 @@ export function getEventsByOrganizerId(
   );
 }
 
-export function updateEventStatus(eventId, status) {
-  return apiFetch(`/events/${eventId}/status`, {
-    method: "PATCH",
-    body: JSON.stringify({ status }),
-  });
+export function updateEventStatus(
+    organizerId,
+    eventId,
+    status
+) {
+  return apiFetch(
+      `/organizers/${organizerId}/events/${eventId}/status`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }
+  );
 }
