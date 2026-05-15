@@ -1,5 +1,7 @@
 package com.paradise.event_ticket_system.viewEvent.api.DTO;
 
+import com.paradise.event_ticket_system.event.EventStatus;
+
 import java.time.Instant;
 import java.util.List;
 
@@ -8,7 +10,7 @@ public record EventResponse(
         String title,
         String slug,
         String description,
-        String status,
+        EventStatus status,
         Instant startDatetime,
         Instant endDatetime,
         String timezone,

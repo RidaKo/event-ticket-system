@@ -45,13 +45,19 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(request));
     }
 
-    @PatchMapping("/{eventId}/status")
-    @Operation(summary = "Update status of an event")
+    @PatchMapping("/{organizerId}/events/{eventId}/status")
     public ResponseEntity<Void> updateStatus(
+            @PathVariable Integer organizerId,
             @PathVariable Integer eventId,
             @RequestBody UpdateEventStatusRequest request
     ) {
-        eventService.updateStatus(eventId, request.status());
+
+        eventService.updateStatus(
+                organizerId,
+                eventId,
+                request.status()
+        );
+
         return ResponseEntity.ok().build();
     }
 }
