@@ -6,8 +6,8 @@ import java.util.Set;
 /**
  * Request-time filters for the recommendation feed.
  *
- * @param categorySlugs lower-case category slugs (e.g. "music", "sports")
- * @param tagSlugs      lower-case tag slugs (e.g. "outdoor")
+ * @param categorySlugs lower-case category slugs; an event must match every selected slug
+ * @param tagSlugs      lower-case tag slugs; an event must include every selected tag
  */
 public record RecommendationFilters(
         Set<String> categorySlugs,

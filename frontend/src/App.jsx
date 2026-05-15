@@ -28,48 +28,14 @@ import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { getCatalog } from "./api/catalog.js";
 import { getRecommendedEvents } from "./api/recommendations.js";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
-import { EMPTY_FILTERS } from "./lib/catalog.js";
+import { createEmptyFilters, hasActiveFilters, normalizeFilters } from "./lib/catalog.js";
+import { dateRangeToFilters, filtersToDateRange } from "./lib/dateFilters.js";
 import { mapRecommendedEvent } from "./lib/recommendations.js";
+import { DatePickerInput } from "@mantine/dates";
 
 const checkoutEventId = 1;
 const RECOMMENDED_LIMIT = 6;
-const browseItems = [
-  {
-    id: 1,
-    title: "Acoustic Sessions",
-    date: "Today",
-    venue: "Old Town Stage",
-    tag: "Music",
-  },
-  {
-    id: 2,
-    title: "Modern Art Walk",
-    date: "Tomorrow",
-    venue: "Gallery District",
-    tag: "Arts",
-  },
-  {
-    id: 3,
-    title: "Junior Football Camp",
-    date: "This weekend",
-    venue: "South Field",
-    tag: "Sports",
-  },
-  {
-    id: 4,
-    title: "Cloud Engineering Forum",
-    date: "Next Tuesday",
-    venue: "Tech Hub",
-    tag: "Technology",
-  },
-  {
-    id: 5,
-    title: "Street Food Showcase",
-    date: "Next Friday",
-    venue: "Market Square",
-    tag: "Food",
-  },
-];
+const TOTAL_FETCH_LIMIT = 20;
 
 function readRoute() {
   const path = window.location.pathname;
@@ -181,9 +147,11 @@ function EventCard({ event }) {
         </Text>
 
         <Group gap="xs" mt="auto">
-          <Badge radius="sm" variant="light" color="brand">
-            {event.tag}
-          </Badge>
+          {(event.tags?.length ? event.tags : [event.tag]).map((label) => (
+            <Badge key={`${event.id}-${label}`} radius="sm" variant="light" color="brand">
+              {label}
+            </Badge>
+          ))}
           <Badge radius="sm" variant="light" color="gray">
             {event.category}
           </Badge>
@@ -229,10 +197,12 @@ function BrowseCard({ event }) {
                 <BookmarkIcon />
               </ActionIcon>
             </Group>
-            <Group>
-              <Badge radius="sm" variant="light" color="brand">
-                {event.tag}
-              </Badge>
+            <Group gap="xs">
+              {(event.tags?.length ? event.tags : [event.tag]).map((label) => (
+                <Badge key={`${event.id}-${label}`} radius="sm" variant="light" color="brand">
+                  {label}
+                </Badge>
+              ))}
             </Group>
           </Stack>
         </Grid.Col>
@@ -324,23 +294,32 @@ function FilterPanel({ draft, onDraftChange, onApply, onReset, catalog, catalogL
             )}
           </Stack>
 
-          <Stack gap="xs">
-            <Text className="filter-label" size="xs" fw="bold" c="dimmed" tt="uppercase">
-              Date Range
-            </Text>
-            <TextInput
-              type="date"
-              value={draft.startDate}
-              onChange={(event) => setField("startDate", event.currentTarget.value)}
-              placeholder="Start date"
-              variant="filled"
-            />
-            <TextInput
-              type="date"
-              value={draft.endDate}
-              onChange={(event) => setField("endDate", event.currentTarget.value)}
-              placeholder="End date"
-              variant="filled"
+          <Stack gap="xs" className="filter-date-range">
+            <DatePickerInput
+              type="range"
+              label="Select event date"
+              placeholder="Select event date"
+              value={filtersToDateRange(draft)}
+              onChange={(range) =>
+                onDraftChange((current) => ({
+                  ...current,
+                  ...dateRangeToFilters(range),
+                }))
+              }
+              valueFormat="MMM D, YYYY"
+              numberOfColumns={1}
+              clearable
+              allowSingleDateInRange
+              popoverProps={{ withinPortal: true, classNames: { dropdown: "filter-date-dropdown" } }}
+              classNames={{ input: "filter-date-input" }}
+              styles={{
+                label: {
+                  fontSize: "var(--mantine-font-size-xs)",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  color: "var(--mantine-color-dimmed)",
+                },
+              }}
             />
           </Stack>
 
@@ -373,15 +352,23 @@ function FilterPanel({ draft, onDraftChange, onApply, onReset, catalog, catalogL
 }
 
 function BrowsePage() {
-  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
+  const [draftFilters, setDraftFilters] = useState(createEmptyFilters);
+  const [appliedFilters, setAppliedFilters] = useState(createEmptyFilters);
   const [catalog, setCatalog] = useState({ categories: [], tags: [] });
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState(false);
-  const [recommendedItems, setRecommendedItems] = useState([]);
+  const [eventItems, setEventItems] = useState([]);
   const [recommendationsLoading, setRecommendationsLoading] = useState(true);
   const [recommendationsError, setRecommendationsError] = useState(false);
   const [fallbackUsed, setFallbackUsed] = useState(false);
+
+  const recommendedItems = eventItems.slice(0, RECOMMENDED_LIMIT);
+  const browseItems = eventItems.slice(RECOMMENDED_LIMIT);
+  const showBrowseAllAboveHint =
+    !recommendationsLoading &&
+    !recommendationsError &&
+    browseItems.length === 0 &&
+    recommendedItems.length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -420,16 +407,16 @@ function BrowsePage() {
       try {
         const response = await getRecommendedEvents({
           ...appliedFilters,
-          limit: RECOMMENDED_LIMIT,
+          limit: TOTAL_FETCH_LIMIT,
         });
         if (!cancelled) {
-          setRecommendedItems((response.items ?? []).map(mapRecommendedEvent));
+          setEventItems((response.items ?? []).map(mapRecommendedEvent));
           setFallbackUsed(Boolean(response.fallbackUsed));
         }
       } catch {
         if (!cancelled) {
           setRecommendationsError(true);
-          setRecommendedItems([]);
+          setEventItems([]);
         }
       } finally {
         if (!cancelled) {
@@ -445,12 +432,15 @@ function BrowsePage() {
   }, [appliedFilters]);
 
   function handleApplyFilters() {
-    setAppliedFilters(draftFilters);
+    const normalized = normalizeFilters(draftFilters);
+    setDraftFilters(normalized);
+    setAppliedFilters(normalized);
   }
 
   function handleResetFilters() {
-    setDraftFilters(EMPTY_FILTERS);
-    setAppliedFilters(EMPTY_FILTERS);
+    const empty = createEmptyFilters();
+    setDraftFilters(empty);
+    setAppliedFilters(empty);
   }
 
   return (
@@ -474,9 +464,11 @@ function BrowsePage() {
               <Title order={2} c="brand.9">
                 Recommended for you
               </Title>
-              <Text c="dimmed" size="sm">
-                {fallbackUsed ? "Showing popular upcoming events" : "Based on your preferences"}
-              </Text>
+              {!hasActiveFilters(appliedFilters) && (
+                <Text c="dimmed" size="sm">
+                  {fallbackUsed ? "Showing popular upcoming events" : "Based on your preferences"}
+                </Text>
+              )}
             </Group>
 
             {recommendationsLoading && (
@@ -513,11 +505,29 @@ function BrowsePage() {
               </Title>
             </Group>
 
-            <Stack gap="sm">
-              {browseItems.map((item) => (
-                <BrowseCard key={item.id} event={item} />
-              ))}
-            </Stack>
+            {showBrowseAllAboveHint ? (
+              <Text c="dimmed" size="sm" ta="center">
+                All matching events are shown above.
+              </Text>
+            ) : (
+              <Stack gap="sm">
+                {recommendationsLoading && (
+                  <Text c="dimmed" size="sm">
+                    Loading events...
+                  </Text>
+                )}
+
+                {!recommendationsLoading && !recommendationsError && browseItems.length === 0 && (
+                  <Text c="dimmed" size="sm">
+                    No additional events match the selected filters.
+                  </Text>
+                )}
+
+                {!recommendationsLoading &&
+                  !recommendationsError &&
+                  browseItems.map((item) => <BrowseCard key={item.id} event={item} />)}
+              </Stack>
+            )}
           </section>
         </Stack>
       </Grid.Col>

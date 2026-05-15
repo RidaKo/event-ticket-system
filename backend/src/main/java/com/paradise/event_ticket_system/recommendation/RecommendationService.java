@@ -87,8 +87,7 @@ public class RecommendationService {
                 .map(ScoredEvent::event)
                 .toList());
 
-        boolean fallbackUsed = prefs == null
-                || (prefs.getPreferredCategories().isEmpty() && prefs.getPreferredTags().isEmpty());
+        boolean fallbackUsed = false;
 
         if (!hasActiveFilters && picks.size() < effectiveLimit) {
             fallbackUsed = true;
@@ -115,15 +114,16 @@ public class RecommendationService {
             String slug = event.getCategory() == null
                     ? null
                     : event.getCategory().getSlug().toLowerCase(Locale.ROOT);
-            if (slug == null || !filters.categorySlugs().contains(slug)) {
+            if (slug == null || !filters.categorySlugs().stream().allMatch(slug::equals)) {
                 return false;
             }
         }
         if (filters.tagSlugs() != null && !filters.tagSlugs().isEmpty()) {
             Set<String> eventSlugs = event.getTags().stream()
                     .map(Tag::getSlug)
+                    .map(s -> s.toLowerCase(Locale.ROOT))
                     .collect(Collectors.toSet());
-            if (filters.tagSlugs().stream().noneMatch(eventSlugs::contains)) {
+            if (!filters.tagSlugs().stream().allMatch(eventSlugs::contains)) {
                 return false;
             }
         }

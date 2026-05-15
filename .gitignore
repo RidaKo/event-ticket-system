@@ -25,6 +25,9 @@ backend/out/
 # Keep Gradle wrapper committed
 !backend/gradle/wrapper/gradle-wrapper.jar
 
+# Accidental root-level npm lockfile (use frontend/package-lock.json)
+/package-lock.json
+
 # =========================
 # Frontend / Node / Vite
 # =========================

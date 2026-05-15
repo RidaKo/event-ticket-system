@@ -44,8 +44,7 @@ CREATE TABLE user_preferred_tags (
         FOREIGN KEY (tag_id) REFERENCES tags(id)
 );
 
--- Seed categories used by the recommendation feature so the catalog endpoint
--- and DataSeeder lookups have something to work with on first boot.
+-- Seed categories used by the recommendation catalog endpoint on first boot.
 INSERT INTO categories (name, slug, created_at, updated_at) VALUES
     ('Music', 'music', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Sports', 'sports', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),

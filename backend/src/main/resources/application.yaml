@@ -1,6 +1,11 @@
 spring:
   application:
     name: event-ticket-system
+  profiles:
+    default: local
+    group:
+      local:
+        - seed
   datasource:
     url: jdbc:h2:mem:mydb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa

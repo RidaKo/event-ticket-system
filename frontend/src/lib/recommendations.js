@@ -18,13 +18,25 @@ export function formatEventDate(isoDate) {
   });
 }
 
+export function formatTagLabel(value) {
+  if (!value) return "Event";
+  return value
+    .toLowerCase()
+    .split(/[\s_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 export function mapRecommendedEvent(event) {
+  const tags = (event.tags ?? []).map((tag) => formatTagLabel(tag)).filter(Boolean);
+
   return {
     id: event.id,
     title: event.title,
     date: formatEventDate(event.startAt),
     venue: event.venue || event.city || "Venue TBA",
-    tag: event.tags?.[0] || "Event",
+    tags,
+    tag: tags[0] ?? "Event",
     category: formatCategoryLabel(event.category),
   };
 }
