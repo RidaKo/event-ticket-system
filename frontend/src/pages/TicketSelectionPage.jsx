@@ -64,7 +64,9 @@ export default function TicketSelectionPage({ eventId, navigate }) {
         }
         setSummary(quotedSummary);
         setError("");
-        setDiscountError("");
+        if (appliedDiscountCode) {
+          setDiscountError("");
+        }
       })
       .catch((err) => {
         if (!active) {
@@ -105,6 +107,10 @@ export default function TicketSelectionPage({ eventId, navigate }) {
       setError("");
       setDiscountError("");
     } catch (err) {
+      if (appliedDiscountCode) {
+        setSummary(null);
+      }
+      setAppliedDiscountCode("");
       setDiscountError(err.message || "Discount code is invalid");
     }
   }
@@ -144,7 +150,7 @@ export default function TicketSelectionPage({ eventId, navigate }) {
           <Stack gap="md">
             <DiscountCodeInput
               value={appliedDiscountCode}
-              appliedCode={summary?.discountCode}
+              appliedCode={appliedDiscountCode}
               error={discountError}
               onApply={applyDiscountCode}
               disabled={selectedItems.length === 0}
