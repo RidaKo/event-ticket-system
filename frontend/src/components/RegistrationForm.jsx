@@ -30,12 +30,13 @@ export default function RegistrationForm({
   const [form, setForm] = useState({ ...emptyRegistration, ...initialValues });
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function updateForm(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  function submitRegistration(event) {
+  async function submitRegistration(event) {
     event.preventDefault();
     setError("");
     setNotice("");
@@ -65,13 +66,22 @@ export default function RegistrationForm({
       return;
     }
 
-    onSubmit?.({
-      ...form,
-      fullName: form.fullName.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-    });
-    setNotice(successMessage);
+    setSubmitting(true);
+    try {
+      await onSubmit?.({
+        ...form,
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+      });
+      if (successMessage) {
+        setNotice(successMessage);
+      }
+    } catch (err) {
+      setError(err.message || "Unable to create account");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -137,7 +147,7 @@ export default function RegistrationForm({
           </Alert>
         )}
 
-        <Button type="submit" color="brand" fullWidth>
+        <Button type="submit" color="brand" fullWidth loading={submitting}>
           {submitLabel}
         </Button>
       </Stack>
