@@ -1,7 +1,6 @@
 package com.paradise.event_ticket_system.recommendation;
 
-import com.paradise.event_ticket_system.viewEvent.domain.EventRepository;
-import com.paradise.event_ticket_system.event.EventStatus;
+import com.paradise.event_ticket_system.event.CheckoutCatalogRules;
 import com.paradise.event_ticket_system.event.Tag;
 import com.paradise.event_ticket_system.model.Category;
 import com.paradise.event_ticket_system.model.Event;
@@ -9,12 +8,14 @@ import com.paradise.event_ticket_system.recommendation.dto.RecommendationRespons
 import com.paradise.event_ticket_system.recommendation.dto.RecommendedEventDto;
 import com.paradise.event_ticket_system.user.UserPreferences;
 import com.paradise.event_ticket_system.user.UserPreferencesRepository;
+import com.paradise.event_ticket_system.viewEvent.domain.EventRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -22,27 +23,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Ranks upcoming published events for a user using a lightweight rule-based score.
+ * Ranks upcoming discoverable events for a user using a lightweight rule-based score.
  *
- * Signals:
- *   Persisted user preferences: preferredCategories, preferredTags, homeCity.
- *   Request-time filters:       categorySlugs, tagSlugs, startDate, endDate, location.
- *
- * Scoring (configurable via app.recommendation.scoring.*):
- *   +3 per matching preferred category
- *   +2 per matching preferred tag
- *   +2 if event venue city == prefs.homeCity (case-insensitive)
- *   +1 if startAt is within the next 14 days
- *
- * If the scored result is shorter than the requested limit AND no filters are
- * active, the response is padded with the next upcoming events (ordered by
- * startAt) and {@code fallbackUsed} is set to true.
+ * Discoverable statuses align with {@link CheckoutCatalogRules} (excludes DRAFT/CANCELLED/etc.)
+ * until event lifecycle is unified in a follow-up change.
  */
 @Service
 public class RecommendationService {
 
     private static final ZoneId DEFAULT_ZONE = ZoneId.systemDefault();
-    private static final String PUBLISHED = EventStatus.PUBLISHED.name();
 
     private final EventRepository eventRepository;
     private final UserPreferencesRepository preferencesRepository;
@@ -69,7 +58,7 @@ public class RecommendationService {
                 ? null
                 : preferencesRepository.findByUserId(userId).orElse(null);
 
-        List<Event> upcoming = eventRepository.findUpcomingPublished(now, PUBLISHED);
+        List<Event> upcoming = eventRepository.findUpcomingDiscoverable(now, CheckoutCatalogRules.closedStatusNames());
 
         List<Event> filtered = upcoming.stream()
                 .filter(e -> passesFilters(e, filters))
@@ -110,43 +99,67 @@ public class RecommendationService {
         if (filters == null || filters.isEmpty()) {
             return true;
         }
-        if (filters.categorySlugs() != null && !filters.categorySlugs().isEmpty()) {
-            String slug = event.getCategory() == null
-                    ? null
-                    : event.getCategory().getSlug().toLowerCase(Locale.ROOT);
-            if (slug == null || !filters.categorySlugs().stream().allMatch(slug::equals)) {
-                return false;
-            }
+        return matchesCategories(event, filters.categorySlugs())
+                && matchesTags(event, filters.tagSlugs())
+                && matchesDateRange(event, filters.startDate(), filters.endDate())
+                && matchesLocation(event, filters.location());
+    }
+
+    private boolean matchesCategories(Event event, Set<String> categorySlugs) {
+        if (!hasValues(categorySlugs)) {
+            return true;
         }
-        if (filters.tagSlugs() != null && !filters.tagSlugs().isEmpty()) {
-            Set<String> eventSlugs = event.getTags().stream()
-                    .map(Tag::getSlug)
-                    .map(s -> s.toLowerCase(Locale.ROOT))
-                    .collect(Collectors.toSet());
-            if (!filters.tagSlugs().stream().allMatch(eventSlugs::contains)) {
-                return false;
-            }
+        String slug = event.getCategory() == null
+                ? null
+                : event.getCategory().getSlug().toLowerCase(Locale.ROOT);
+        return slug != null && categorySlugs.stream().allMatch(slug::equals);
+    }
+
+    private boolean matchesTags(Event event, Set<String> tagSlugs) {
+        if (!hasValues(tagSlugs)) {
+            return true;
+        }
+        Set<String> eventSlugs = event.getTags().stream()
+                .map(Tag::getSlug)
+                .map(slug -> slug.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+        return tagSlugs.stream().allMatch(eventSlugs::contains);
+    }
+
+    private boolean matchesDateRange(Event event, LocalDate startDate, LocalDate endDate) {
+        if (startDate == null && endDate == null) {
+            return true;
         }
         LocalDate eventDay = event.getStartDatetime().atZone(DEFAULT_ZONE).toLocalDate();
-        if (filters.startDate() != null && eventDay.isBefore(filters.startDate())) {
+        if (startDate != null && eventDay.isBefore(startDate)) {
             return false;
         }
-        if (filters.endDate() != null && eventDay.isAfter(filters.endDate())) {
+        if (endDate != null && eventDay.isAfter(endDate)) {
             return false;
-        }
-        if (filters.location() != null && !filters.location().isBlank()) {
-            String needle = filters.location().toLowerCase(Locale.ROOT);
-            String city = event.getVenue() == null || event.getVenue().getCity() == null
-                    ? ""
-                    : event.getVenue().getCity().toLowerCase(Locale.ROOT);
-            String venueName = event.getVenue() == null || event.getVenue().getName() == null
-                    ? ""
-                    : event.getVenue().getName().toLowerCase(Locale.ROOT);
-            if (!city.contains(needle) && !venueName.contains(needle)) {
-                return false;
-            }
         }
         return true;
+    }
+
+    private boolean matchesLocation(Event event, String location) {
+        if (!hasText(location)) {
+            return true;
+        }
+        String needle = location.toLowerCase(Locale.ROOT);
+        String city = event.getVenue() == null || event.getVenue().getCity() == null
+                ? ""
+                : event.getVenue().getCity().toLowerCase(Locale.ROOT);
+        String venueName = event.getVenue() == null || event.getVenue().getName() == null
+                ? ""
+                : event.getVenue().getName().toLowerCase(Locale.ROOT);
+        return city.contains(needle) || venueName.contains(needle);
+    }
+
+    private static boolean hasValues(Collection<?> values) {
+        return values != null && !values.isEmpty();
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private int score(Event event, UserPreferences prefs, Instant now) {

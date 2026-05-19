@@ -1,7 +1,8 @@
 package com.paradise.event_ticket_system.recommendation;
 
-import com.paradise.event_ticket_system.config.DemoUserProvider;
+import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.recommendation.dto.RecommendationResponse;
+import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,13 +21,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/events")
 public class RecommendationController {
 
+    private static final String DEMO_USER_EMAIL = "alex@demo.local";
+
     private final RecommendationService recommendationService;
-    private final DemoUserProvider demoUserProvider;
+    private final UserRepository userRepository;
 
     public RecommendationController(RecommendationService recommendationService,
-                                    DemoUserProvider demoUserProvider) {
+                                    UserRepository userRepository) {
         this.recommendationService = recommendationService;
-        this.demoUserProvider = demoUserProvider;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/recommended")
@@ -49,12 +52,16 @@ public class RecommendationController {
                 location
         );
 
-        Integer userId = demoUserProvider.getDemoUserId();
+        Integer userId = userRepository.findByEmailIgnoreCase(DEMO_USER_EMAIL)
+                .map(User::getId)
+                .orElse(null);
         return recommendationService.recommend(userId, filters, limit);
     }
 
     private Set<String> parseToLowerSlugs(List<String> raw) {
-        if (raw == null || raw.isEmpty()) return Set.of();
+        if (raw == null || raw.isEmpty()) {
+            return Set.of();
+        }
         return raw.stream()
                 .flatMap(v -> Arrays.stream(v.split(",")))
                 .map(String::trim)

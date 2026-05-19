@@ -34,9 +34,9 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
            LEFT JOIN FETCH e.tags
            JOIN FETCH e.venue v
            JOIN FETCH e.category c
-           WHERE e.status = :publishedStatus
+           WHERE UPPER(e.status) NOT IN :closedStatuses
              AND e.startDatetime > :now
            """)
-    List<Event> findUpcomingPublished(@Param("now") Instant now,
-                                      @Param("publishedStatus") String publishedStatus);
+    List<Event> findUpcomingDiscoverable(@Param("now") Instant now,
+                                         @Param("closedStatuses") List<String> closedStatuses);
 }

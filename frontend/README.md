@@ -1,36 +1,47 @@
 # Frontend
 
-React + TypeScript SPA for the Event Ticket System. See `ARCHITECTURE.md` for structure and conventions.
+React + Mantine browse and checkout UI for the Event Ticket System.
+
+## Stack
+
+- React 18 (JSX)
+- Mantine 7
+- Vite 8
+
+Entry point: `src/main.jsx` → `src/App.jsx`
 
 ## Prerequisites
 
-- Node.js 20+ (22 recommended)
+- Node.js 20+
 - npm 10+
-- Backend running at `http://localhost:8080` (see the root `README.md`)
+- Backend at `http://localhost:8080` (see root `README.md`)
 
 ## Setup
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env   # then edit if needed
+cp .env.example .env   # optional
 ```
 
 ## Scripts
 
-| Command              | Purpose                                               |
-| -------------------- | ----------------------------------------------------- |
-| `npm run dev`        | Dev server at http://localhost:5173 with API proxy    |
-| `npm run build`      | Typecheck + production build to `dist/`               |
-| `npm run preview`    | Preview the production build locally                  |
-| `npm run lint`       | ESLint                                                |
-| `npm run format`     | Prettier (writes)                                     |
-| `npm run typecheck`  | `tsc -b --noEmit`                                     |
-| `npm test`           | Vitest (watch)                                        |
-| `npm test -- --run`  | Vitest (single run)                                   |
-| `npm run test:ui`    | Vitest UI                                             |
-| `npm run test:e2e`   | Playwright E2E                                        |
+| Command           | Purpose                                            |
+| ----------------- | -------------------------------------------------- |
+| `npm run dev`     | Dev server at http://localhost:5173 (proxies `/api`) |
+| `npm run build`   | Production build to `dist/`                        |
+| `npm run preview` | Preview the production build                       |
 
-## API proxy
+## API
 
-Vite proxies `/api/*` to `http://localhost:8080` in dev — configured in `vite.config.ts`. The app reads `VITE_API_BASE_URL` (defaults to `/api`) so production deployments can point at the real backend URL.
+- Dev: Vite proxies `/api/*` to `http://localhost:8080` (`vite.config.js`)
+- Base URL: `VITE_API_BASE_URL` (defaults to `/api`)
+
+## Routes
+
+- `/` — browse events and recommendations
+- `/events/:id` — event details
+- `/events/:id/checkout/tickets` — ticket selection
+- `/checkout/:orderNumber/payment` — payment
+- `/checkout/:orderNumber/confirmation` — confirmation
+- `/orders` — orders stub

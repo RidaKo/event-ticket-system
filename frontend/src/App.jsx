@@ -22,6 +22,7 @@ import {
   Title,
 } from "@mantine/core";
 import ticketLogo from "./assets/ticket_small.png";
+import EventDetailsPage from "./pages/EventDetailsPage.jsx";
 import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
@@ -54,6 +55,11 @@ function readRoute() {
     return { name: "tickets", eventId: Number(tickets[1]) };
   }
 
+  const eventDetails = path.match(/^\/events\/(\d+)$/);
+  if (eventDetails) {
+    return { name: "eventDetails", eventId: Number(eventDetails[1]) };
+  }
+
   if (path === "/orders") {
     return { name: "orders" };
   }
@@ -62,7 +68,9 @@ function readRoute() {
 }
 
 function routeToTab(routeName) {
-  return routeName === "browse" ? "browse" : "orders";
+  return routeName === "browse" || routeName === "eventDetails" || routeName === "tickets"
+    ? "browse"
+    : "orders";
 }
 
 function TicketLogo() {
@@ -111,9 +119,26 @@ function ProfileIcon() {
   );
 }
 
-function EventCard({ event }) {
+function handleCardKeyDown(event, open) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    open();
+  }
+}
+
+function EventCard({ event, navigate }) {
+  const open = () => navigate(`/events/${event.id}`);
   return (
-    <Card className="event-card" radius="md" padding="md" withBorder>
+    <Card
+      className="event-card event-link-card"
+      radius="md"
+      padding="md"
+      withBorder
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(keyEvent) => handleCardKeyDown(keyEvent, open)}
+    >
       <Card.Section inheritPadding pt="md">
         <AspectRatio ratio={16 / 9}>
           <Box className="media-placeholder">
@@ -134,6 +159,7 @@ function EventCard({ event }) {
             color="brand"
             radius="xl"
             aria-label={`Bookmark ${event.title}`}
+            onClick={(clickEvent) => clickEvent.stopPropagation()}
           >
             <BookmarkIcon />
           </ActionIcon>
@@ -161,9 +187,19 @@ function EventCard({ event }) {
   );
 }
 
-function BrowseCard({ event }) {
+function BrowseCard({ event, navigate }) {
+  const open = () => navigate(`/events/${event.id}`);
   return (
-    <Paper className="browse-card" radius="md" p="sm" withBorder>
+    <Paper
+      className="browse-card event-link-card"
+      radius="md"
+      p="sm"
+      withBorder
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(keyEvent) => handleCardKeyDown(keyEvent, open)}
+    >
       <Grid gutter="md" align="center">
         <Grid.Col span={{ base: 12, xs: 4, sm: 3 }}>
           <AspectRatio ratio={4 / 3}>
@@ -193,6 +229,7 @@ function BrowseCard({ event }) {
                 color="brand"
                 radius="xl"
                 aria-label={`Bookmark ${event.title}`}
+                onClick={(clickEvent) => clickEvent.stopPropagation()}
               >
                 <BookmarkIcon />
               </ActionIcon>
@@ -351,7 +388,7 @@ function FilterPanel({ draft, onDraftChange, onApply, onReset, catalog, catalogL
   );
 }
 
-function BrowsePage() {
+function BrowsePage({ navigate }) {
   const [draftFilters, setDraftFilters] = useState(createEmptyFilters);
   const [appliedFilters, setAppliedFilters] = useState(createEmptyFilters);
   const [catalog, setCatalog] = useState({ categories: [], tags: [] });
@@ -492,7 +529,7 @@ function BrowsePage() {
             {!recommendationsLoading && !recommendationsError && recommendedItems.length > 0 && (
               <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
                 {recommendedItems.map((item) => (
-                  <EventCard key={item.id} event={item} />
+                  <EventCard key={item.id} event={item} navigate={navigate} />
                 ))}
               </SimpleGrid>
             )}
@@ -525,7 +562,9 @@ function BrowsePage() {
 
                 {!recommendationsLoading &&
                   !recommendationsError &&
-                  browseItems.map((item) => <BrowseCard key={item.id} event={item} />)}
+                  browseItems.map((item) => (
+                    <BrowseCard key={item.id} event={item} navigate={navigate} />
+                  ))}
               </Stack>
             )}
           </section>
@@ -644,8 +683,11 @@ export default function App() {
 
         <Box component="main">
           <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
-            {route.name === "browse" && <BrowsePage />}
+            {route.name === "browse" && <BrowsePage navigate={navigate} />}
             {route.name === "orders" && <OrdersPage navigate={navigate} />}
+            {route.name === "eventDetails" && (
+              <EventDetailsPage eventId={route.eventId} navigate={navigate} />
+            )}
             {route.name === "tickets" && (
               <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
             )}

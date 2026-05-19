@@ -17,7 +17,7 @@ class CatalogControllerIntegrationTest {
     void categoriesEndpointReturnsFrontendReadyOptions() {
         var categories = catalogController.categories();
 
-        assertEquals(5, categories.size());
+        assertEquals(6, categories.size());
         assertEquals("ARTS", categories.getFirst().value());
         assertEquals("Arts", categories.getFirst().label());
     }

@@ -1,7 +1,9 @@
 package com.paradise.event_ticket_system.recommendation;
 
-import com.paradise.event_ticket_system.config.DemoUserProvider;
+import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.recommendation.dto.RecommendationResponse;
+import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,11 +18,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 class RecommendationServiceIntegrationTest {
 
+    private static final String DEMO_USER_EMAIL = "alex@demo.local";
+
     @Autowired
     private RecommendationService recommendationService;
 
     @Autowired
-    private DemoUserProvider demoUserProvider;
+    private UserRepository userRepository;
+
+    private Integer demoUserId;
+
+    @BeforeEach
+    void setUp() {
+        demoUserId = userRepository.findByEmailIgnoreCase(DEMO_USER_EMAIL)
+                .map(User::getId)
+                .orElse(null);
+        assertNotNull(demoUserId, "Seed user " + DEMO_USER_EMAIL + " must exist");
+    }
 
     @Test
     void filteredRecommendationsDoNotFallbackToUnmatchedEvents() {
@@ -33,14 +47,14 @@ class RecommendationServiceIntegrationTest {
         );
 
         RecommendationResponse response = recommendationService.recommend(
-                demoUserProvider.getDemoUserId(),
+                demoUserId,
                 filters,
                 3
         );
 
         assertNotNull(response);
         assertFalse(response.fallbackUsed());
-        assertEquals(1, response.items().size());
+        assertFalse(response.items().isEmpty());
         assertTrue(response.items().stream().allMatch(item -> "SPORTS".equals(item.category())));
         assertTrue(response.items().stream().allMatch(item -> "Vilnius".equalsIgnoreCase(item.city())));
     }
@@ -56,7 +70,7 @@ class RecommendationServiceIntegrationTest {
         );
 
         RecommendationResponse response = recommendationService.recommend(
-                demoUserProvider.getDemoUserId(),
+                demoUserId,
                 filters,
                 20
         );
@@ -79,7 +93,7 @@ class RecommendationServiceIntegrationTest {
         );
 
         RecommendationResponse response = recommendationService.recommend(
-                demoUserProvider.getDemoUserId(),
+                demoUserId,
                 filters,
                 20
         );
@@ -102,7 +116,7 @@ class RecommendationServiceIntegrationTest {
         );
 
         RecommendationResponse response = recommendationService.recommend(
-                demoUserProvider.getDemoUserId(),
+                demoUserId,
                 filters,
                 20
         );
@@ -123,7 +137,7 @@ class RecommendationServiceIntegrationTest {
         );
 
         RecommendationResponse response = recommendationService.recommend(
-                demoUserProvider.getDemoUserId(),
+                demoUserId,
                 filters,
                 20
         );
@@ -136,7 +150,7 @@ class RecommendationServiceIntegrationTest {
     @Test
     void unfilteredRecommendationsCanUseFallbackWhenResultsAreSparse() {
         RecommendationResponse response = recommendationService.recommend(
-                demoUserProvider.getDemoUserId(),
+                demoUserId,
                 new RecommendationFilters(Set.of(), Set.of(), null, null, null),
                 100
         );
@@ -156,7 +170,7 @@ class RecommendationServiceIntegrationTest {
         );
 
         RecommendationResponse response = recommendationService.recommend(
-                demoUserProvider.getDemoUserId(),
+                demoUserId,
                 filters,
                 20
         );

@@ -43,11 +43,3 @@ CREATE TABLE user_preferred_tags (
     CONSTRAINT fk_upt_tag
         FOREIGN KEY (tag_id) REFERENCES tags(id)
 );
-
--- Seed categories used by the recommendation catalog endpoint on first boot.
-INSERT INTO categories (name, slug, created_at, updated_at) VALUES
-    ('Music', 'music', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('Sports', 'sports', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('Arts', 'arts', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('Technology', 'technology', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('Food', 'food', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

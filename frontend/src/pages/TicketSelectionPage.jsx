@@ -1,4 +1,4 @@
-import { Alert, Group, Loader, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Alert, Group, Loader, Paper, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
 import { createOrder, quoteCheckout } from "../api/checkoutApi.js";
 import { getEvent, getTicketTypes } from "../api/eventsApi.js";
@@ -6,18 +6,19 @@ import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
 import DiscountCodeInput from "../components/DiscountCodeInput.jsx";
 import OrderSummary from "../components/OrderSummary.jsx";
 import TicketQuantitySelector from "../components/TicketQuantitySelector.jsx";
-import { useCheckout } from "../state/CheckoutContext.jsx";
+
+const MVP_GUEST_EMAIL = "guest@event-ticket.local";
 
 export default function TicketSelectionPage({ eventId, navigate }) {
-  const { guest, updateGuest } = useCheckout();
   const [event, setEvent] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [quantities, setQuantities] = useState({});
-  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscountCode, setAppliedDiscountCode] = useState("");
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [discountError, setDiscountError] = useState("");
 
   const selectedItems = useMemo(
     () =>
@@ -51,17 +52,21 @@ export default function TicketSelectionPage({ eventId, navigate }) {
   useEffect(() => {
     if (selectedItems.length === 0) {
       setSummary(null);
+      setDiscountError("");
       return;
     }
 
     let active = true;
-    quoteCheckout({ eventId, items: selectedItems, discountCode: discountCode || null })
+    quoteCheckout({ eventId, items: selectedItems, discountCode: appliedDiscountCode || null })
       .then((quotedSummary) => {
         if (!active) {
           return;
         }
         setSummary(quotedSummary);
         setError("");
+        if (appliedDiscountCode) {
+          setDiscountError("");
+        }
       })
       .catch((err) => {
         if (!active) {
@@ -74,19 +79,45 @@ export default function TicketSelectionPage({ eventId, navigate }) {
     return () => {
       active = false;
     };
-  }, [eventId, selectedItems, discountCode]);
+  }, [eventId, selectedItems, appliedDiscountCode]);
 
   function updateQuantity(ticketId, quantity) {
     setQuantities((current) => ({ ...current, [ticketId]: quantity }));
   }
 
+  async function applyDiscountCode(code) {
+    const nextCode = code.trim();
+    setDiscountError("");
+
+    if (selectedItems.length === 0) {
+      setDiscountError("Select at least one ticket before applying a promo code.");
+      return;
+    }
+
+    if (!nextCode) {
+      setAppliedDiscountCode("");
+      return;
+    }
+
+    try {
+      setError("");
+      const quotedSummary = await quoteCheckout({ eventId, items: selectedItems, discountCode: nextCode });
+      setSummary(quotedSummary);
+      setAppliedDiscountCode(quotedSummary.discountCode || nextCode);
+      setError("");
+      setDiscountError("");
+    } catch (err) {
+      if (appliedDiscountCode) {
+        setSummary(null);
+      }
+      setAppliedDiscountCode("");
+      setDiscountError(err.message || "Discount code is invalid");
+    }
+  }
+
   async function continueToPayment() {
     if (!summary || selectedItems.length === 0) {
       setError("Select at least one ticket");
-      return;
-    }
-    if (!guest.guestEmail.trim()) {
-      setError("Email address is required");
       return;
     }
 
@@ -95,9 +126,9 @@ export default function TicketSelectionPage({ eventId, navigate }) {
     try {
       const order = await createOrder({
         eventId,
-        guestName: guest.guestName.trim() || null,
-        guestEmail: guest.guestEmail.trim(),
-        discountCode: summary.discountCode,
+        guestName: null,
+        guestEmail: MVP_GUEST_EMAIL,
+        discountCode: appliedDiscountCode || null,
         items: selectedItems,
       });
       navigate(`/checkout/${order.orderNumber}/payment`);
@@ -118,29 +149,12 @@ export default function TicketSelectionPage({ eventId, navigate }) {
         footer={
           <Stack gap="md">
             <DiscountCodeInput
-              value={discountCode}
-              appliedCode={summary?.discountCode}
-              onApply={setDiscountCode}
+              value={appliedDiscountCode}
+              appliedCode={appliedDiscountCode}
+              error={discountError}
+              onApply={applyDiscountCode}
               disabled={selectedItems.length === 0}
             />
-            <Stack gap="xs">
-              <Text size="xs" fw="bold" c="dimmed" tt="uppercase">
-                Contact
-              </Text>
-              <TextInput
-                value={guest.guestName}
-                onChange={(e) => updateGuest({ ...guest, guestName: e.target.value })}
-                placeholder="John Doe"
-                variant="filled"
-              />
-              <TextInput
-                type="email"
-                value={guest.guestEmail}
-                onChange={(e) => updateGuest({ ...guest, guestEmail: e.target.value })}
-                placeholder="john.doe@email.com"
-                variant="filled"
-              />
-            </Stack>
           </Stack>
         }
       />
