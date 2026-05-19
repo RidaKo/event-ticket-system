@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.auth;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,13 +21,16 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
     private final JwtAuthEntryPoint entryPoint;
     private final RestAccessDeniedHandler deniedHandler;
+    private final boolean devEndpointsEnabled;
 
     public SecurityConfig(JwtAuthenticationFilter jwtFilter,
                           JwtAuthEntryPoint entryPoint,
-                          RestAccessDeniedHandler deniedHandler) {
+                          RestAccessDeniedHandler deniedHandler,
+                          @Value("${app.security.dev-endpoints-enabled:true}") boolean devEndpointsEnabled) {
         this.jwtFilter = jwtFilter;
         this.entryPoint = entryPoint;
         this.deniedHandler = deniedHandler;
+        this.devEndpointsEnabled = devEndpointsEnabled;
     }
 
     @Bean
@@ -49,10 +53,13 @@ public class SecurityConfig {
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(deniedHandler))
                 .headers(h -> h.frameOptions(f -> f.sameOrigin()))
-                .authorizeHttpRequests(reg -> reg
-                        .requestMatchers("/", "/error").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
+                .authorizeHttpRequests(reg -> {
+                    reg.requestMatchers("/", "/error").permitAll();
+                    if (devEndpointsEnabled) {
+                        reg.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll();
+                        reg.requestMatchers("/h2-console/**").permitAll();
+                    }
+                    reg
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/venues/*").permitAll()
@@ -63,7 +70,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/checkout/orders/*/confirmation").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/checkout/orders/*/discount").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/checkout/orders/*/payment").permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().authenticated();
+                })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

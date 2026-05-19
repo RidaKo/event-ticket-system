@@ -33,3 +33,5 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET:dev-secret-change-me-please-32-chars-or-more}
     expiration-minutes: 60
+  security:
+    dev-endpoints-enabled: ${APP_SECURITY_DEV_ENDPOINTS_ENABLED:true}
