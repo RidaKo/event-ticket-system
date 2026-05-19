@@ -1,7 +1,7 @@
 import { Button, Group, Stack, Text, TextInput } from "@mantine/core";
 import { useState } from "react";
 
-export default function DiscountCodeInput({ value, appliedCode, onApply, disabled }) {
+export default function DiscountCodeInput({ value, appliedCode, error, onApply, disabled }) {
   const [code, setCode] = useState(value || "");
 
   return (
@@ -31,6 +31,11 @@ export default function DiscountCodeInput({ value, appliedCode, onApply, disable
         {appliedCode && (
           <Text size="sm" c="brand.7">
             {appliedCode} applied
+          </Text>
+        )}
+        {error && (
+          <Text size="sm" c="red.7">
+            {error}
           </Text>
         )}
       </Stack>

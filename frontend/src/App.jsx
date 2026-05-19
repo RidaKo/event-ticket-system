@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   ActionIcon,
+  Alert,
   AspectRatio,
   Badge,
   Box,
@@ -11,6 +12,7 @@ import {
   Grid,
   Group,
   Image,
+  Loader,
   Paper,
   Pill,
   SimpleGrid,
@@ -22,10 +24,13 @@ import {
   Title,
 } from "@mantine/core";
 import ticketLogo from "./assets/ticket_small.png";
+import { getEvents } from "./api/eventsApi.js";
+import EventDetailsPage from "./pages/EventDetailsPage.jsx";
 import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
+
 import CreateEventPage from "./pages/Organizer/CreateEventPage.jsx";
 import OrganizerTopbar from "./components/OrganizerTopbar";
 import organizerRouteToTab from "./components/OrganizerTabMapper.jsx";
@@ -34,96 +39,13 @@ import OrganizerDashboardPage from "./pages/Organizer/OrganizerDashboardPage";
 import OrganizerEventsPage from "./pages/Organizer/OrganizerEventsPage.jsx";
 import CreateVenuePage from "./pages/Organizer/CreateVenuePage";
 
+import { demoBrowseEvents, demoRecommendedEvents } from "./data/demoEvents.js";
+
+
 const checkoutEventId = 1;
+const useDemoEvents = import.meta.env.VITE_USE_DEMO_EVENTS === "true";
 const categories = ["Music", "Sports", "Arts", "Technology", "Food"];
 const tags = ["Outdoor", "Family", "Networking", "Educational"];
-const recommendedItems = [
-  {
-    id: 1,
-    title: "Riverside Jazz Night",
-    date: "Fri, Jun 12",
-    venue: "Paradise Hall",
-    tag: "Music",
-    category: "Outdoor",
-  },
-  {
-    id: 2,
-    title: "Startup Founders Mixer",
-    date: "Sat, Jun 13",
-    venue: "North Pier Studio",
-    tag: "Networking",
-    category: "Technology",
-  },
-  {
-    id: 3,
-    title: "Family Food Festival",
-    date: "Sun, Jun 14",
-    venue: "Central Park",
-    tag: "Family",
-    category: "Food",
-  },
-  {
-    id: 4,
-    title: "Open Air Cinema",
-    date: "Thu, Jun 18",
-    venue: "Riverfront Lawn",
-    tag: "Outdoor",
-    category: "Arts",
-  },
-  {
-    id: 5,
-    title: "Design Systems Workshop",
-    date: "Fri, Jun 19",
-    venue: "Creative Campus",
-    tag: "Educational",
-    category: "Technology",
-  },
-  {
-    id: 6,
-    title: "City Arena Finals",
-    date: "Sat, Jun 20",
-    venue: "City Arena",
-    tag: "Family",
-    category: "Sports",
-  },
-];
-const browseItems = [
-  {
-    id: 1,
-    title: "Acoustic Sessions",
-    date: "Today",
-    venue: "Old Town Stage",
-    tag: "Music",
-  },
-  {
-    id: 2,
-    title: "Modern Art Walk",
-    date: "Tomorrow",
-    venue: "Gallery District",
-    tag: "Arts",
-  },
-  {
-    id: 3,
-    title: "Junior Football Camp",
-    date: "This weekend",
-    venue: "South Field",
-    tag: "Sports",
-  },
-  {
-    id: 4,
-    title: "Cloud Engineering Forum",
-    date: "Next Tuesday",
-    venue: "Tech Hub",
-    tag: "Technology",
-  },
-  {
-    id: 5,
-    title: "Street Food Showcase",
-    date: "Next Friday",
-    venue: "Market Square",
-    tag: "Food",
-  },
-];
 
 function readRoute() {
   const path = window.location.pathname;
@@ -142,6 +64,11 @@ function readRoute() {
     return { name: "tickets", eventId: Number(tickets[1]) };
   }
 
+  const eventDetails = path.match(/^\/events\/(\d+)$/);
+  if (eventDetails) {
+    return { name: "eventDetails", eventId: Number(eventDetails[1]) };
+  }
+
   if (path === "/orders") {
     return { name: "orders" };
   }
@@ -158,9 +85,11 @@ function readRoute() {
 }
 
 function routeToTab(routeName) {
-  if (routeName === "browse") return "browse";
-  if (routeName === "orders") return "orders";
-  return null;
+
+  return routeName === "browse" || routeName === "eventDetails" || routeName === "tickets"
+    ? "browse"
+    : "orders";
+
 }
 
 function TicketLogo() {
@@ -209,9 +138,61 @@ function ProfileIcon() {
   );
 }
 
-function EventCard({ event }) {
+function handleCardKeyDown(event, open) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    open();
+  }
+}
+
+function formatBrowseDate(value) {
+  if (!value) {
+    return "Date to be announced";
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
+}
+
+function mapApiEvent(event) {
+  return {
+    ...event,
+    date: formatBrowseDate(event.startDatetime),
+    venue: event.venueName || event.venue?.name || "Venue to be announced",
+    tag: event.categoryName || "Event",
+    category: event.city || event.venue?.city || "Featured",
+  };
+}
+
+function sortByPopularity(events) {
+  return [...events].sort((left, right) => {
+    const ratingDiff = Number(right.averageRating || 0) - Number(left.averageRating || 0);
+    if (ratingDiff !== 0) {
+      return ratingDiff;
+    }
+    return Number(right.reviewCount || 0) - Number(left.reviewCount || 0);
+  });
+}
+
+function sortByDate(events) {
+  return [...events].sort((left, right) => new Date(left.startDatetime || 0) - new Date(right.startDatetime || 0));
+}
+
+function EventCard({ event, navigate }) {
+  const open = () => navigate(`/events/${event.id}`);
   return (
-    <Card className="event-card" radius="md" padding="md" withBorder>
+    <Card
+      className="event-card event-link-card"
+      radius="md"
+      padding="md"
+      withBorder
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(keyEvent) => handleCardKeyDown(keyEvent, open)}
+    >
       <Card.Section inheritPadding pt="md">
         <AspectRatio ratio={16 / 9}>
           <Box className="media-placeholder">
@@ -232,6 +213,7 @@ function EventCard({ event }) {
             color="brand"
             radius="xl"
             aria-label={`Bookmark ${event.title}`}
+            onClick={(clickEvent) => clickEvent.stopPropagation()}
           >
             <BookmarkIcon />
           </ActionIcon>
@@ -257,9 +239,19 @@ function EventCard({ event }) {
   );
 }
 
-function BrowseCard({ event }) {
+function BrowseCard({ event, navigate }) {
+  const open = () => navigate(`/events/${event.id}`);
   return (
-    <Paper className="browse-card" radius="md" p="sm" withBorder>
+    <Paper
+      className="browse-card event-link-card"
+      radius="md"
+      p="sm"
+      withBorder
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(keyEvent) => handleCardKeyDown(keyEvent, open)}
+    >
       <Grid gutter="md" align="center">
         <Grid.Col span={{ base: 12, xs: 4, sm: 3 }}>
           <AspectRatio ratio={4 / 3}>
@@ -289,6 +281,7 @@ function BrowseCard({ event }) {
                 color="brand"
                 radius="xl"
                 aria-label={`Bookmark ${event.title}`}
+                onClick={(clickEvent) => clickEvent.stopPropagation()}
               >
                 <BookmarkIcon />
               </ActionIcon>
@@ -371,7 +364,46 @@ function FilterPanel() {
   );
 }
 
-function BrowsePage() {
+function BrowsePage({ navigate }) {
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [eventsError, setEventsError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setLoadingEvents(true);
+    setEventsError("");
+
+    getEvents()
+      .then((data) => {
+        if (!active) {
+          return;
+        }
+        setEvents(Array.isArray(data) ? data.map(mapApiEvent) : []);
+      })
+      .catch((err) => {
+        if (active) {
+          setEvents([]);
+          setEventsError(err.message || "Unable to load events.");
+        }
+      })
+      .finally(() => active && setLoadingEvents(false));
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const hasApiEvents = events.length > 0;
+  const showDemoEvents = useDemoEvents && !loadingEvents && !hasApiEvents;
+  const popularEvents = hasApiEvents ? sortByPopularity(events).slice(0, 6) : showDemoEvents ? demoRecommendedEvents : [];
+  const popularEventIds = new Set(popularEvents.map((event) => event.id));
+  const listedEvents = hasApiEvents
+    ? sortByDate(events).filter((event) => !popularEventIds.has(event.id))
+    : showDemoEvents
+      ? demoBrowseEvents
+      : [];
+
   return (
     <Grid gutter="lg" align="flex-start">
       <Grid.Col span={{ base: 12, md: 4, lg: 3 }}>
@@ -380,21 +412,49 @@ function BrowsePage() {
 
       <Grid.Col span={{ base: 12, md: 8, lg: 9 }}>
         <Stack gap="xl">
+          {eventsError && (
+            <Alert color="red" variant="light">
+              Unable to load events from the API: {eventsError}
+              {showDemoEvents ? " Showing demo events because VITE_USE_DEMO_EVENTS is enabled." : ""}
+            </Alert>
+          )}
+
+          {!eventsError && showDemoEvents && (
+            <Alert color="blue" variant="light">
+              Showing demo events because VITE_USE_DEMO_EVENTS is enabled.
+            </Alert>
+          )}
+
           <section>
             <Group justify="space-between" align="baseline" gap="md" mb="md">
               <Title order={2} c="brand.9">
-                Recommended for you
+                Popular Events
               </Title>
               <Text c="dimmed" size="sm">
-                Based on your preferences
+                Highest rated events
               </Text>
             </Group>
 
+            {loadingEvents && (
+              <Group gap="sm" mb="md">
+                <Loader size="sm" color="brand" />
+                <Text c="dimmed" size="sm">
+                  Loading events...
+                </Text>
+              </Group>
+            )}
+
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-              {recommendedItems.map((item) => (
-                <EventCard key={item.id} event={item} />
+              {popularEvents.map((item) => (
+                <EventCard key={item.id} event={item} navigate={navigate} />
               ))}
             </SimpleGrid>
+
+            {!loadingEvents && popularEvents.length === 0 && (
+              <Text c="dimmed" size="sm" mt="md">
+                No popular events are available.
+              </Text>
+            )}
           </section>
 
           <section>
@@ -405,9 +465,14 @@ function BrowsePage() {
             </Group>
 
             <Stack gap="sm">
-              {browseItems.map((item) => (
-                <BrowseCard key={item.id} event={item} />
+              {listedEvents.map((item) => (
+                <BrowseCard key={item.id} event={item} navigate={navigate} />
               ))}
+              {!loadingEvents && listedEvents.length === 0 && (
+                <Text c="dimmed" size="sm">
+                  No additional events are available.
+                </Text>
+              )}
             </Stack>
           </section>
         </Stack>
@@ -522,6 +587,7 @@ export default function App() {
 
   const isOrganizerRoute = route.organizerId != null;
 
+
   return (
       <CheckoutProvider>
         <Box className="app-frame">
@@ -551,11 +617,18 @@ export default function App() {
               {!isOrganizerRoute && (
                   <>
                     {route.name === "browse" && (
-                        <BrowsePage />
+                        <BrowsePage navigate={navigate} />
                     )}
 
                     {route.name === "orders" && (
                         <OrdersPage navigate={navigate} />
+                    )}
+
+                    {route.name === "eventDetails" && (
+                        <EventDetailsPage
+                            eventId={route.eventId}
+                            navigate={navigate}
+                        />
                     )}
 
                     {route.name === "tickets" && (
@@ -586,7 +659,9 @@ export default function App() {
               {isOrganizerRoute && (
                   <>
                     {route.name === "dashboard" && (
-                        <OrganizerDashboardPage organizerId={route.organizerId} />
+                        <OrganizerDashboardPage
+                            organizerId={route.organizerId}
+                        />
                     )}
 
                     {route.name === "create-event" && (
@@ -603,7 +678,9 @@ export default function App() {
                     )}
 
                     {route.name === "create-venue" && (
-                        <CreateVenuePage organizerId={route.organizerId} />
+                        <CreateVenuePage
+                            organizerId={route.organizerId}
+                        />
                     )}
                   </>
               )}
