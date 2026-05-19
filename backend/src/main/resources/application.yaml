@@ -28,3 +28,8 @@ springdoc:
     enabled: true
   api-docs:
     enabled: true
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:dev-secret-change-me-please-32-chars-or-more}
+    expiration-minutes: 60

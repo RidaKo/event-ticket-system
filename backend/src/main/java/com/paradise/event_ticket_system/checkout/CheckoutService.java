@@ -1,11 +1,13 @@
 package com.paradise.event_ticket_system.checkout;
 
+import com.paradise.event_ticket_system.auth.UserRole;
 import com.paradise.event_ticket_system.discount.DiscountCode;
 import com.paradise.event_ticket_system.discount.DiscountRepository;
 import com.paradise.event_ticket_system.event.CheckoutCatalogRules;
 import com.paradise.event_ticket_system.event.CheckoutEventRepository;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.TicketType;
+import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.model.Venue;
 import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Payment;
@@ -17,6 +19,7 @@ import com.paradise.event_ticket_system.payment.PaymentResult;
 import com.paradise.event_ticket_system.payment.PaymentService;
 import com.paradise.event_ticket_system.payment.PaymentStatus;
 import com.paradise.event_ticket_system.ticket.TicketTypeRepository;
+import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -30,6 +33,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,6 +49,7 @@ public class CheckoutService {
     private final PurchaseOrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
+    private final UserRepository userRepository;
 
     public CheckoutService(
             CheckoutEventRepository eventRepository,
@@ -52,7 +57,8 @@ public class CheckoutService {
             DiscountRepository discountRepository,
             PurchaseOrderRepository orderRepository,
             PaymentRepository paymentRepository,
-            PaymentService paymentService
+            PaymentService paymentService,
+            UserRepository userRepository
     ) {
         this.eventRepository = eventRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -60,6 +66,7 @@ public class CheckoutService {
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
         this.paymentService = paymentService;
+        this.userRepository = userRepository;
     }
 
     @Transactional(readOnly = true)
@@ -69,26 +76,73 @@ public class CheckoutService {
     }
 
     @Transactional
-    public OrderResponse createOrder(CreateOrderRequest request) {
+    public OrderResponse createOrderForUser(CreateOrderRequest request, String userEmail) {
+        User user = userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unknown user"));
         Event event = loadEventForCheckout(request.eventId());
         Map<Integer, Integer> requestedItems = mergeItems(request.items());
         OrderSummaryResponse summary = buildSummary(event, requestedItems, request.discountCode());
 
+        PurchaseOrder order = newOrderShell(event, summary, request.discountCode());
+        order.setUser(user);
+        order.setGuestName(user.getFullName());
+        order.setGuestEmail(user.getEmail());
+        fillItems(order, summary, requestedItems);
+        return toOrderResponse(orderRepository.save(order));
+    }
+
+    @Transactional
+    public OrderResponse createGuestOrder(GuestCreateOrderRequest request) {
+        Event event = loadEventForCheckout(request.eventId());
+        Map<Integer, Integer> requestedItems = mergeItems(request.items());
+        OrderSummaryResponse summary = buildSummary(event, requestedItems, request.discountCode());
+
+        User guest = upsertGuestUser(request.guestEmail(), request.guestName());
+        PurchaseOrder order = newOrderShell(event, summary, request.discountCode());
+        order.setUser(guest);
+        order.setGuestName(guest.getFullName());
+        order.setGuestEmail(guest.getEmail());
+        fillItems(order, summary, requestedItems);
+        return toOrderResponse(orderRepository.save(order));
+    }
+
+    private User upsertGuestUser(String email, String name) {
+        return userRepository.findByEmailIgnoreCase(email)
+                .map(u -> {
+                    if (u.getRole() != UserRole.GUEST) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "An account already exists for this email. Please log in.");
+                    }
+                    u.setFullName(name);
+                    return u;
+                })
+                .orElseGet(() -> {
+                    User u = new User();
+                    u.setEmail(email.toLowerCase());
+                    u.setFullName(name);
+                    u.setIsGuest(true);
+                    u.setRole(UserRole.GUEST);
+                    return userRepository.save(u);
+                });
+    }
+
+    private PurchaseOrder newOrderShell(Event event, OrderSummaryResponse summary, String discountCode) {
         PurchaseOrder order = new PurchaseOrder();
-        order.setOrderNumber("ORD-" + LocalDateTime.now().getYear() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        order.setOrderNumber("ORD-" + LocalDateTime.now().getYear() + "-"
+                + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         order.setEvent(event);
-        order.setGuestName(blankToNull(request.guestName()));
-        order.setGuestEmail(request.guestEmail());
         order.setStatus(OrderStatus.PENDING_PAYMENT);
         order.setSubtotal(summary.subtotal());
         order.setDiscountAmount(summary.discountAmount());
         order.setTotalAmount(summary.total());
-
-        if (hasText(request.discountCode())) {
-            DiscountCode discountCode = loadValidDiscount(event.getId(), request.discountCode());
-            order.setDiscountCode(discountCode);
+        if (hasText(discountCode)) {
+            order.setDiscountCode(loadValidDiscount(event.getId(), discountCode));
         }
+        return order;
+    }
 
+    private void fillItems(PurchaseOrder order, OrderSummaryResponse summary,
+                           Map<Integer, Integer> requestedItems) {
         Map<Integer, TicketType> ticketTypes = loadTicketTypes(requestedItems.keySet()).stream()
                 .collect(Collectors.toMap(TicketType::getId, Function.identity()));
         summary.items().forEach(line -> {
@@ -101,8 +155,6 @@ public class CheckoutService {
             item.setLineTotal(line.lineTotal());
             order.addItem(item);
         });
-
-        return toOrderResponse(orderRepository.save(order));
     }
 
     @Transactional(readOnly = true)
@@ -214,6 +266,27 @@ public class CheckoutService {
                 payment == null ? null : payment.getMethodType(),
                 payment == null ? null : payment.getCardLast4()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public void verifyAccessTo(String orderNumber, Authentication auth) {
+        PurchaseOrder order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+        if (auth != null && auth.isAuthenticated()
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            return;
+        }
+        User owner = order.getUser();
+        if (owner == null) {
+            return;
+        }
+        if (owner.getRole() == UserRole.GUEST) {
+            return;
+        }
+        String email = auth == null ? null : auth.getName();
+        if (email == null || !email.equalsIgnoreCase(owner.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have access to this order");
+        }
     }
 
     private Event loadEventForCheckout(Integer eventId) {
@@ -377,9 +450,5 @@ public class CheckoutService {
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
-    }
-
-    private String blankToNull(String value) {
-        return hasText(value) ? value.trim() : null;
     }
 }

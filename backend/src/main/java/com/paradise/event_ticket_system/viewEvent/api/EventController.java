@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class EventController {
         return ResponseEntity.ok(eventService.getEventById(id));
     }
     @PostMapping
+    @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
     @Operation(summary = "Create an event")
     @ApiResponse(responseCode = "201", description = "Event created successfully")
     @ApiResponse(responseCode = "404", description = "Venue, organizer or category not found")
