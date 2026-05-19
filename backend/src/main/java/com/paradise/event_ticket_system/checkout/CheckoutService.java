@@ -92,7 +92,7 @@ public class CheckoutService {
     }
 
     @Transactional
-    public OrderResponse createGuestOrder(GuestCreateOrderRequest request) {
+    public GuestOrderCreatedResponse createGuestOrder(GuestCreateOrderRequest request) {
         Event event = loadEventForCheckout(request.eventId());
         Map<Integer, Integer> requestedItems = mergeItems(request.items());
         OrderSummaryResponse summary = buildSummary(event, requestedItems, request.discountCode());
@@ -102,8 +102,9 @@ public class CheckoutService {
         order.setUser(guest);
         order.setGuestName(guest.getFullName());
         order.setGuestEmail(guest.getEmail());
+        order.setOrderToken(UUID.randomUUID().toString());
         fillItems(order, summary, requestedItems);
-        return toOrderResponse(orderRepository.save(order));
+        return toGuestOrderCreatedResponse(orderRepository.save(order));
     }
 
     private User upsertGuestUser(String email, String name) {
@@ -272,21 +273,42 @@ public class CheckoutService {
     public void verifyAccessTo(String orderNumber, Authentication auth) {
         PurchaseOrder order = orderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
-        if (auth != null && auth.isAuthenticated()
-                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+        if (isAdmin(auth)) {
             return;
         }
         User owner = order.getUser();
-        if (owner == null) {
-            return;
-        }
-        if (owner.getRole() == UserRole.GUEST) {
+        if (owner == null || owner.getRole() == UserRole.GUEST) {
             return;
         }
         String email = auth == null ? null : auth.getName();
         if (email == null || !email.equalsIgnoreCase(owner.getEmail())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have access to this order");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public void verifyWriteAccessTo(String orderNumber, Authentication auth, String orderToken) {
+        PurchaseOrder order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+        if (isAdmin(auth)) {
+            return;
+        }
+        User owner = order.getUser();
+        if (owner == null || owner.getRole() == UserRole.GUEST) {
+            if (orderToken == null || !orderToken.equals(order.getOrderToken())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid or missing order token");
+            }
+            return;
+        }
+        String email = auth == null ? null : auth.getName();
+        if (email == null || !email.equalsIgnoreCase(owner.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have access to this order");
+        }
+    }
+
+    private boolean isAdmin(Authentication auth) {
+        return auth != null && auth.isAuthenticated()
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }
 
     private Event loadEventForCheckout(Integer eventId) {
@@ -422,6 +444,18 @@ public class CheckoutService {
                 order.getGuestName(),
                 order.getGuestEmail(),
                 toSummary(order)
+        );
+    }
+
+    private GuestOrderCreatedResponse toGuestOrderCreatedResponse(PurchaseOrder order) {
+        return new GuestOrderCreatedResponse(
+                order.getOrderNumber(),
+                order.getStatus(),
+                order.getEvent().getId(),
+                order.getGuestName(),
+                order.getGuestEmail(),
+                toSummary(order),
+                order.getOrderToken()
         );
     }
 

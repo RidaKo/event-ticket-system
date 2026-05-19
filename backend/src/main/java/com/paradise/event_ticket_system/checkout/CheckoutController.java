@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,7 +27,7 @@ public class CheckoutController {
     }
 
     @PostMapping("/orders/guest")
-    public OrderResponse createGuestOrder(@Valid @RequestBody GuestCreateOrderRequest request) {
+    public GuestOrderCreatedResponse createGuestOrder(@Valid @RequestBody GuestCreateOrderRequest request) {
         return checkoutService.createGuestOrder(request);
     }
 
@@ -46,9 +47,10 @@ public class CheckoutController {
     public OrderResponse applyDiscount(
             @PathVariable String orderNumber,
             @RequestBody ApplyDiscountRequest request,
-            Authentication auth
+            Authentication auth,
+            @RequestHeader(value = "X-Order-Token", required = false) String orderToken
     ) {
-        checkoutService.verifyAccessTo(orderNumber, auth);
+        checkoutService.verifyWriteAccessTo(orderNumber, auth, orderToken);
         return checkoutService.applyDiscount(orderNumber, request.discountCode());
     }
 
@@ -56,9 +58,10 @@ public class CheckoutController {
     public PaymentResponse submitPayment(
             @PathVariable String orderNumber,
             @Valid @RequestBody PaymentRequest request,
-            Authentication auth
+            Authentication auth,
+            @RequestHeader(value = "X-Order-Token", required = false) String orderToken
     ) {
-        checkoutService.verifyAccessTo(orderNumber, auth);
+        checkoutService.verifyWriteAccessTo(orderNumber, auth, orderToken);
         return checkoutService.submitPayment(orderNumber, request);
     }
 

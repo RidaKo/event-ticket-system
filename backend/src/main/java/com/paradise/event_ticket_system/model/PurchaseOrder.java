@@ -35,6 +35,7 @@ public class PurchaseOrder {
     private Long id;
 
     private String orderNumber;
+    private String orderToken;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Event event;

@@ -38,15 +38,28 @@ class GuestCheckoutIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderNumber").exists())
+                .andExpect(jsonPath("$.orderToken").exists())
                 .andExpect(jsonPath("$.guestEmail").value("guest.tester@example.com"))
                 .andReturn().getResponse().getContentAsString();
 
         JsonNode node = json.readTree(response);
         String orderNumber = node.get("orderNumber").asText();
+        String orderToken = node.get("orderToken").asText();
 
         mvc.perform(get("/api/checkout/orders/" + orderNumber))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderNumber").value(orderNumber));
+
+        mvc.perform(post("/api/checkout/orders/" + orderNumber + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"discountCode\": null}")
+                        .header("X-Order-Token", orderToken))
+                .andExpect(status().isOk());
+
+        mvc.perform(post("/api/checkout/orders/" + orderNumber + "/discount")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"discountCode\": null}"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
