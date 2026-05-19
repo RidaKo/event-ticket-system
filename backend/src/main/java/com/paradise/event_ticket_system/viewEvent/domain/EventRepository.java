@@ -26,4 +26,6 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
         JOIN FETCH e.category
     """)
     List<Event> findAllWithDetails();
+
+    List<Event> findByOrganizerId(Integer organizerId);
 }

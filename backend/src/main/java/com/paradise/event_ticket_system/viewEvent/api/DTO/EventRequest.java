@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.viewEvent.api.DTO;
 
+import com.paradise.event_ticket_system.event.EventStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -24,8 +25,8 @@ public record EventRequest(
 
         String description,
 
-        @NotBlank(message = "Status is required")
-        String status,
+        @NotNull(message = "Status is required")
+        EventStatus status,
 
         @NotNull(message = "Start date is required")
         Instant startDatetime,
