@@ -270,24 +270,7 @@ public class CheckoutService {
     }
 
     @Transactional(readOnly = true)
-    public void verifyAccessTo(String orderNumber, Authentication auth) {
-        PurchaseOrder order = orderRepository.findByOrderNumber(orderNumber)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
-        if (isAdmin(auth)) {
-            return;
-        }
-        User owner = order.getUser();
-        if (owner == null || owner.getRole() == UserRole.GUEST) {
-            return;
-        }
-        String email = auth == null ? null : auth.getName();
-        if (email == null || !email.equalsIgnoreCase(owner.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have access to this order");
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public void verifyWriteAccessTo(String orderNumber, Authentication auth, String orderToken) {
+    public void verifyAccessTo(String orderNumber, Authentication auth, String orderToken) {
         PurchaseOrder order = orderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
         if (isAdmin(auth)) {

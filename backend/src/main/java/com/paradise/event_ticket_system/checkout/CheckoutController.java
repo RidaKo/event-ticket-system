@@ -38,8 +38,12 @@ public class CheckoutController {
     }
 
     @GetMapping("/orders/{orderNumber}")
-    public OrderResponse getOrder(@PathVariable String orderNumber, Authentication auth) {
-        checkoutService.verifyAccessTo(orderNumber, auth);
+    public OrderResponse getOrder(
+            @PathVariable String orderNumber,
+            Authentication auth,
+            @RequestHeader(value = "X-Order-Token", required = false) String orderToken
+    ) {
+        checkoutService.verifyAccessTo(orderNumber, auth, orderToken);
         return checkoutService.getOrder(orderNumber);
     }
 
@@ -50,7 +54,7 @@ public class CheckoutController {
             Authentication auth,
             @RequestHeader(value = "X-Order-Token", required = false) String orderToken
     ) {
-        checkoutService.verifyWriteAccessTo(orderNumber, auth, orderToken);
+        checkoutService.verifyAccessTo(orderNumber, auth, orderToken);
         return checkoutService.applyDiscount(orderNumber, request.discountCode());
     }
 
@@ -61,13 +65,17 @@ public class CheckoutController {
             Authentication auth,
             @RequestHeader(value = "X-Order-Token", required = false) String orderToken
     ) {
-        checkoutService.verifyWriteAccessTo(orderNumber, auth, orderToken);
+        checkoutService.verifyAccessTo(orderNumber, auth, orderToken);
         return checkoutService.submitPayment(orderNumber, request);
     }
 
     @GetMapping("/orders/{orderNumber}/confirmation")
-    public ConfirmationResponse confirmation(@PathVariable String orderNumber, Authentication auth) {
-        checkoutService.verifyAccessTo(orderNumber, auth);
+    public ConfirmationResponse confirmation(
+            @PathVariable String orderNumber,
+            Authentication auth,
+            @RequestHeader(value = "X-Order-Token", required = false) String orderToken
+    ) {
+        checkoutService.verifyAccessTo(orderNumber, auth, orderToken);
         return checkoutService.confirmation(orderNumber);
     }
 }

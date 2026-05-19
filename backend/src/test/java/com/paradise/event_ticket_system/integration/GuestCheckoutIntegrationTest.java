@@ -46,9 +46,13 @@ class GuestCheckoutIntegrationTest {
         String orderNumber = node.get("orderNumber").asText();
         String orderToken = node.get("orderToken").asText();
 
-        mvc.perform(get("/api/checkout/orders/" + orderNumber))
+        mvc.perform(get("/api/checkout/orders/" + orderNumber)
+                        .header("X-Order-Token", orderToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderNumber").value(orderNumber));
+
+        mvc.perform(get("/api/checkout/orders/" + orderNumber))
+                .andExpect(status().isForbidden());
 
         mvc.perform(post("/api/checkout/orders/" + orderNumber + "/discount")
                         .contentType(MediaType.APPLICATION_JSON)
