@@ -74,13 +74,12 @@ class AuthorizationIntegrationTest {
     @Test
     void organizerTokenCanReachVenueCreate() throws Exception {
         String token = tokenFor("organizer@test.com", UserRole.ORGANIZER);
-        int statusCode = mvc.perform(post("/api/venues")
+        // {} is invalid for VenueRequest so Spring returns 400; auth passing means we never see 401/403
+        mvc.perform(post("/api/venues")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andReturn().getResponse().getStatus();
-        org.assertj.core.api.Assertions.assertThat(statusCode).isNotEqualTo(403);
-        org.assertj.core.api.Assertions.assertThat(statusCode).isNotEqualTo(401);
+                .andExpect(status().isBadRequest());
     }
 
     @Test

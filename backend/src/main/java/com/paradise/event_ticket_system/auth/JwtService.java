@@ -7,12 +7,17 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
+    private static final String DEFAULT_SECRET = "dev-secret-change-me-please-32-chars-or-more";
 
     private final SecretKey key;
     private final Duration ttl;
@@ -26,6 +31,9 @@ public class JwtService {
     }
 
     public JwtService(String secret, Duration ttl) {
+        if (DEFAULT_SECRET.equals(secret)) {
+            log.warn("Using default JWT secret. Set APP_JWT_SECRET before deploying to any shared environment.");
+        }
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.ttl = ttl;
     }
