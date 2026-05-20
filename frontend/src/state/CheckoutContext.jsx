@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 const CheckoutContext = createContext(null);
 const checkoutDraftStorageKey = "eventTicket.checkoutDraft";
 const guestStorageKey = "eventTicket.checkoutGuest";
+const orderTokensStorageKey = "eventTicket.orderTokens";
 
 function readStoredValue(key, fallback) {
   if (typeof window === "undefined") {
@@ -32,9 +33,10 @@ function writeStoredValue(key, value) {
 
 export function CheckoutProvider({ children }) {
   const [guest, setGuest] = useState(() =>
-    readStoredValue(guestStorageKey, { guestName: "", guestEmail: "" })
+    readStoredValue(guestStorageKey, { guestName: "", guestEmail: "", guestPhone: "" })
   );
   const [checkoutDraft, setCheckoutDraft] = useState(() => readStoredValue(checkoutDraftStorageKey, null));
+  const [orderTokens, setOrderTokens] = useState(() => readStoredValue(orderTokensStorageKey, {}));
 
   useEffect(() => {
     writeStoredValue(guestStorageKey, guest);
@@ -44,6 +46,25 @@ export function CheckoutProvider({ children }) {
     writeStoredValue(checkoutDraftStorageKey, checkoutDraft);
   }, [checkoutDraft]);
 
+  useEffect(() => {
+    writeStoredValue(orderTokensStorageKey, orderTokens);
+  }, [orderTokens]);
+
+  const rememberOrderToken = useCallback((orderNumber, orderToken) => {
+    if (!orderNumber || !orderToken) {
+      return;
+    }
+    setOrderTokens((current) => ({
+      ...current,
+      [orderNumber]: orderToken,
+    }));
+  }, []);
+
+  const getOrderToken = useCallback(
+    (orderNumber) => orderTokens?.[orderNumber] || null,
+    [orderTokens]
+  );
+
   const value = useMemo(
     () => ({
       guest,
@@ -51,8 +72,10 @@ export function CheckoutProvider({ children }) {
       checkoutDraft,
       setCheckoutDraft,
       clearCheckoutDraft: () => setCheckoutDraft(null),
+      rememberOrderToken,
+      getOrderToken,
     }),
-    [checkoutDraft, guest]
+    [checkoutDraft, getOrderToken, guest, rememberOrderToken]
   );
 
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;

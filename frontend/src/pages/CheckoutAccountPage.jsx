@@ -12,11 +12,12 @@ import {
   ThemeIcon,
   Title,
 } from "@mantine/core";
-import { useState } from "react";
-import { createOrder } from "../api/checkoutApi.js";
+import { useEffect, useState } from "react";
+import { createGuestOrder, createOrder } from "../api/checkoutApi.js";
 import { MailIcon, SignInFormSection, SignInIcon, UserPlusIcon } from "../components/AuthShared.jsx";
 import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
 import OrderSummary from "../components/OrderSummary.jsx";
+import { useAuth } from "../state/AuthContext.jsx";
 import RegistrationForm from "../components/RegistrationForm.jsx";
 import { useCheckout } from "../state/CheckoutContext.jsx";
 
@@ -51,9 +52,11 @@ function AccountChoice({ description, icon, label, onClick, selected }) {
 }
 
 export default function CheckoutAccountPage({ eventId, navigate }) {
-  const { checkoutDraft, guest, updateGuest } = useCheckout();
-  const [mode, setMode] = useState("create");
+  const { login, register, user } = useAuth();
+  const { checkoutDraft, guest, rememberOrderToken, updateGuest } = useCheckout();
+  const [mode, setMode] = useState(user ? "signedIn" : "create");
   const [guestForm, setGuestForm] = useState({
+    guestName: guest.guestName || "",
     email: guest.guestEmail || "",
     phone: guest.guestPhone || "",
     marketing: true,
@@ -68,6 +71,14 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
     checkoutDraft.items.length > 0;
 
   const sidebar = <OrderSummary summary={hasCheckoutDraft ? checkoutDraft.summary : null} />;
+
+  useEffect(() => {
+    if (user) {
+      setMode("signedIn");
+    } else {
+      setMode((current) => (current === "signedIn" ? "create" : current));
+    }
+  }, [user]);
 
   if (!hasCheckoutDraft) {
     return (
@@ -88,23 +99,25 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
     setGuestForm((current) => ({ ...current, [field]: value }));
   }
 
-  async function createPendingOrder(account) {
+  function orderPayload() {
+    return {
+      eventId: checkoutDraft.eventId,
+      discountCode: checkoutDraft.discountCode || null,
+      items: checkoutDraft.items,
+    };
+  }
+
+  async function createAuthenticatedPendingOrder(currentUser = user) {
     setSubmitting(true);
     try {
       updateGuest({
-        guestName: account.guestName || "",
-        guestEmail: account.guestEmail,
-        guestPhone: account.guestPhone || "",
-        accountMode: account.accountMode,
+        guestName: currentUser?.fullName || "",
+        guestEmail: currentUser?.email || "",
+        guestPhone: "",
+        accountMode: "authenticated",
       });
 
-      const order = await createOrder({
-        eventId: checkoutDraft.eventId,
-        guestName: account.guestName || null,
-        guestEmail: account.guestEmail,
-        discountCode: checkoutDraft.discountCode || null,
-        items: checkoutDraft.items,
-      });
+      const order = await createOrder(orderPayload());
 
       navigate(`/checkout/${order.orderNumber}/payment`);
     } finally {
@@ -121,15 +134,30 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
       return;
     }
 
+    if (!guestForm.guestName.trim()) {
+      setGuestError("Full name is required");
+      return;
+    }
+
     try {
-      await createPendingOrder({
-        guestName: "",
+      setSubmitting(true);
+      updateGuest({
+        guestName: guestForm.guestName.trim(),
         guestEmail: guestForm.email.trim(),
         guestPhone: guestForm.phone.trim(),
         accountMode: "guest",
       });
+      const order = await createGuestOrder({
+        ...orderPayload(),
+        guestName: guestForm.guestName.trim(),
+        guestEmail: guestForm.email.trim(),
+      });
+      rememberOrderToken(order.orderNumber, order.orderToken);
+      navigate(`/checkout/${order.orderNumber}/payment`);
     } catch (err) {
       setGuestError(err.message || "Unable to continue as guest");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -137,6 +165,15 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
     <CheckoutStepLayout title="Account" sidebar={sidebar}>
       <Stack gap="md">
         <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
+          {user && (
+            <AccountChoice
+              label="Signed in"
+              description={user.email}
+              icon={<SignInIcon />}
+              selected={mode === "signedIn"}
+              onClick={() => setMode("signedIn")}
+            />
+          )}
           <AccountChoice
             label="Sign in"
             description="Use your existing account"
@@ -173,20 +210,37 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
           </Paper>
         )}
 
+        {mode === "signedIn" && user && (
+          <Paper className="form-section account-form" radius="md" p="lg" withBorder>
+            <Stack gap="md">
+              <Stack gap={2}>
+                <Title order={3} size="h4" c="brand.9">
+                  Continue as {user.fullName || user.email}
+                </Title>
+                <Text size="sm" c="dimmed">
+                  This order will be saved to your account.
+                </Text>
+              </Stack>
+              <Button color="brand" fullWidth loading={submitting} onClick={() => createAuthenticatedPendingOrder(user)}>
+                Continue to Payment
+              </Button>
+            </Stack>
+          </Paper>
+        )}
+
         {mode === "signin" && (
           <SignInFormSection
             title="Sign in to Continue"
             initialValues={{ email: guest.guestEmail || "" }}
             submitLabel="Sign in and Continue"
             successMessage=""
-            onSubmit={(values) =>
-              createPendingOrder({
-                guestName: "",
-                guestEmail: values.email,
-                guestPhone: "",
-                accountMode: "signin",
-              })
-            }
+            onSubmit={async (values) => {
+              const auth = await login({
+                email: values.email,
+                password: values.password,
+              });
+              await createAuthenticatedPendingOrder(auth.user);
+            }}
           />
         )}
 
@@ -195,14 +249,15 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
             initialValues={{ email: guest.guestEmail || "", phone: guest.guestPhone || "" }}
             submitLabel="Create Account and Continue"
             successMessage=""
-            onSubmit={(values) =>
-              createPendingOrder({
-                guestName: values.fullName,
-                guestEmail: values.email,
-                guestPhone: values.phone,
-                accountMode: "created",
-              })
-            }
+            onSubmit={async (values) => {
+              const auth = await register({
+                fullName: values.fullName,
+                email: values.email,
+                phone: values.phone,
+                password: values.password,
+              });
+              await createAuthenticatedPendingOrder(auth.user);
+            }}
           />
         )}
 
@@ -214,6 +269,11 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
                   <Title order={3} size="h4" c="brand.9">
                     Guest Checkout
                   </Title>
+                  <TextInput
+                    label="Full Name"
+                    value={guestForm.guestName}
+                    onChange={(event) => updateGuestForm("guestName", event.target.value)}
+                  />
                   <TextInput
                     label="Email Address"
                     description="Order confirmation will be sent to this email"

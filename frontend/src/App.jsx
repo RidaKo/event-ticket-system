@@ -33,6 +33,7 @@ import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
+import { AuthProvider, useAuth } from "./state/AuthContext.jsx";
 
 import CreateEventPage from "./pages/Organizer/CreateEventPage.jsx";
 import OrganizerTopbar from "./components/OrganizerTopbar";
@@ -543,7 +544,7 @@ function OrdersPage({ navigate }) {
   );
 }
 
-function Topbar({ activeTab, navigate, isAuthRoute }) {
+function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut }) {
   return (
     <Box component="header" className="topbar">
       <Container size="xl" px={{ base: "md", sm: "xl" }} py="sm">
@@ -573,13 +574,24 @@ function Topbar({ activeTab, navigate, isAuthRoute }) {
           </Tabs>
 
           <Group gap="sm" wrap="wrap">
-            <Button
-              variant={isAuthRoute ? "filled" : "default"}
-              color={isAuthRoute ? "brand" : "gray"}
-              onClick={() => navigate("/signin")}
-            >
-              Sign in
-            </Button>
+            {currentUser ? (
+              <>
+                <Text size="sm" fw="bold" c="brand.9">
+                  {currentUser.fullName || currentUser.email}
+                </Text>
+                <Button variant="default" color="gray" onClick={onSignOut}>
+                  Sign out
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant={isAuthRoute ? "filled" : "default"}
+                color={isAuthRoute ? "brand" : "gray"}
+                onClick={() => navigate("/signin")}
+              >
+                Sign in
+              </Button>
+            )}
             <ActionIcon size="lg" radius="xl" variant="filled" color="brand" aria-label="Profile">
               <ProfileIcon />
             </ActionIcon>
@@ -590,8 +602,9 @@ function Topbar({ activeTab, navigate, isAuthRoute }) {
   );
 }
 
-export default function App() {
+function AppContent() {
   const [route, setRoute] = useState(readRoute);
+  const { logout, user } = useAuth();
 
   useEffect(() => {
     const onPopState = () => setRoute(readRoute());
@@ -610,6 +623,11 @@ export default function App() {
   const isOrganizerRoute = route.organizerId != null;
   const isAuthRoute = ["signin", "signup"].includes(route.name);
 
+  function signOut() {
+    logout();
+    navigate("/");
+  }
+
   return (
     <CheckoutProvider>
       <Box className="app-frame">
@@ -622,8 +640,10 @@ export default function App() {
         ) : (
           <Topbar
             activeTab={routeToTab(route.name)}
+            currentUser={user}
             navigate={navigate}
             isAuthRoute={isAuthRoute}
+            onSignOut={signOut}
           />
         )}
 
@@ -673,5 +693,13 @@ export default function App() {
         </Box>
       </Box>
     </CheckoutProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

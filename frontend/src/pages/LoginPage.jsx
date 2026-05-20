@@ -6,8 +6,11 @@ import {
   SignInIcon,
   UserPlusIcon,
 } from "../components/AuthShared.jsx";
+import { useAuth } from "../state/AuthContext.jsx";
 
 export default function LoginPage({ navigate }) {
+  const { login } = useAuth();
+
   return (
     <Grid className="auth-shell" gutter="lg" align="flex-start">
       <Grid.Col span={{ base: 12, md: 7 }}>
@@ -17,7 +20,16 @@ export default function LoginPage({ navigate }) {
             title="Sign in"
             description="Use your account to manage orders and events."
           />
-          <SignInFormSection />
+          <SignInFormSection
+            successMessage=""
+            onSubmit={async (values) => {
+              await login({
+                email: values.email,
+                password: values.password,
+              });
+              navigate("/orders");
+            }}
+          />
         </Stack>
       </Grid.Col>
 

@@ -1,8 +1,11 @@
 import { Grid, Stack } from "@mantine/core";
 import { AuthHeader, AuthSwitchCard, SignInIcon, UserPlusIcon } from "../components/AuthShared.jsx";
 import RegistrationForm from "../components/RegistrationForm.jsx";
+import { useAuth } from "../state/AuthContext.jsx";
 
 export default function SignUpPage({ navigate }) {
+  const { register } = useAuth();
+
   return (
     <Grid className="auth-shell" gutter="lg" align="flex-start">
       <Grid.Col span={{ base: 12, md: 7 }}>
@@ -13,7 +16,18 @@ export default function SignUpPage({ navigate }) {
             description="Save your info for faster checkout and event updates."
           />
 
-          <RegistrationForm />
+          <RegistrationForm
+            successMessage=""
+            onSubmit={async (values) => {
+              await register({
+                fullName: values.fullName,
+                email: values.email,
+                phone: values.phone,
+                password: values.password,
+              });
+              navigate("/orders");
+            }}
+          />
         </Stack>
       </Grid.Col>
 
