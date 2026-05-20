@@ -23,8 +23,7 @@ VALUES ('Music', 'music', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('Sports', 'sports', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('Arts', 'arts', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('Technology', 'technology', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('Food', 'food', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('Family', 'family', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+       ('Food', 'food', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO venues (organizer_id, name, address_line1, city, country, rating, created_at, updated_at)
 VALUES (1, 'Grand Hall', 'Gedimino pr. 1', 'Vilnius', 'LT', 4.50, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -57,7 +56,7 @@ VALUES (1, 1, 1, 'Summer Fest', 'summer-fest', 'The biggest summer festival in V
        (1, 10, 2, 'Junior Football Camp', 'junior-football-camp', 'A weekend skills camp for young players with coaches, drills, and friendly matches.', 'PUBLISHED', '2026-06-27 09:00:00', '2026-06-27 15:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 11, 4, 'Cloud Engineering Forum', 'cloud-engineering-forum', 'Talks and panels covering platform engineering, observability, security, and cloud cost control.', 'PUBLISHED', '2026-06-30 09:30:00', '2026-06-30 17:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 12, 5, 'Street Food Showcase', 'street-food-showcase', 'A tasting event featuring food trucks, chefs, local drinks, and market specials.', 'PUBLISHED', '2026-07-03 12:00:00', '2026-07-03 20:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 13, 6, 'Garden Family Picnic', 'garden-family-picnic', 'A relaxed family day with music, garden games, workshops, and picnic baskets.', 'PUBLISHED', '2026-07-05 10:00:00', '2026-07-05 16:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 13, 5, 'Garden Family Picnic', 'garden-family-picnic', 'A relaxed family day with music, garden games, workshops, and picnic baskets.', 'PUBLISHED', '2026-07-05 10:00:00', '2026-07-05 16:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 14, 3, 'Indie Film Premiere', 'indie-film-premiere', 'A local film premiere with director Q&A, terrace seating, and after-screening discussion.', 'PUBLISHED', '2026-07-10 19:00:00', '2026-07-10 22:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 15, 1, 'Lakeside Electronic Live', 'lakeside-electronic-live', 'A lakeside electronic music show with live synths, visuals, and sunset sets.', 'PUBLISHED', '2026-07-18 18:00:00', '2026-07-18 23:45:00', 'Europe/Vilnius', 18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 16, 5, 'Night Market Live', 'night-market-live', 'An evening market with live DJs, small plates, dessert stands, and late-night shopping.', 'PUBLISHED', '2026-07-24 18:00:00', '2026-07-24 23:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
