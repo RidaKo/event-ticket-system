@@ -57,7 +57,7 @@ class AuthorizationIntegrationTest {
               "categoryId": 1,
               "title": "Test Event",
               "slug": "test-event-auth",
-              "status": "ACTIVE",
+              "status": "PUBLISHED",
               "startDatetime": "2026-12-01T10:00:00Z",
               "endDatetime": "2026-12-01T12:00:00Z",
               "timezone": "Europe/Vilnius"
