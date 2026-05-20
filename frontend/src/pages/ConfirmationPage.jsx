@@ -61,7 +61,7 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
             Order Confirmed
           </Title>
           <Text c="dimmed" ta="center">
-            Confirmation for {confirmation.guestEmail}
+            Your purchase is confirmed.
           </Text>
         </Stack>
       </Paper>
@@ -69,7 +69,7 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
         <DetailBlock label="Order Number" value={confirmation.orderNumber} />
         <DetailBlock label="Order Date" value={formatDateTime(confirmation.confirmedAt)} />
-        <DetailBlock label="Email" value={confirmation.guestEmail} />
+        <DetailBlock label="Status" value={confirmation.status} />
       </SimpleGrid>
 
       <Paper className="detail-section" radius="md" p="lg" withBorder>
