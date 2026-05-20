@@ -7,6 +7,8 @@ import com.paradise.event_ticket_system.notification.confirmation.domain.Purchas
 import com.paradise.event_ticket_system.order.OrderStatus;
 import com.paradise.event_ticket_system.order.PurchaseOrderRepository;
 import com.paradise.event_ticket_system.payment.PaymentStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PurchaseConfirmationService {
+
+	private static final Logger log = LoggerFactory.getLogger(PurchaseConfirmationService.class);
 
 	private final PurchaseOrderRepository orderRepository;
 	private final PurchaseConfirmationDeliveryRepository deliveryRepository;
@@ -53,6 +57,11 @@ public class PurchaseConfirmationService {
 			deliveryRepository.saveAndFlush(delivery);
 		}
 		catch (DataIntegrityViolationException ex) {
+			log.warn(
+				"Could not insert purchase confirmation delivery for order {}: {}",
+				order.getId(),
+				ex.getMessage()
+			);
 			PurchaseConfirmationDelivery duplicateDelivery = deliveryRepository.findByOrderId(order.getId())
 				.orElseThrow(() -> ex);
 			return PurchaseConfirmationDispatchResult.alreadyProcessed(duplicateDelivery);

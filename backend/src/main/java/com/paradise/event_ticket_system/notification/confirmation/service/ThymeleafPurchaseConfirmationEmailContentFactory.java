@@ -1,7 +1,9 @@
 package com.paradise.event_ticket_system.notification.confirmation.service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
@@ -24,49 +26,9 @@ public class ThymeleafPurchaseConfirmationEmailContentFactory {
 	}
 
 	public PurchaseConfirmationEmailMessage createMessage(PurchaseConfirmationDelivery delivery) {
-		Context context = new Context(Locale.ENGLISH);
-		context.setVariable("eventTitle", delivery.getEventTitle());
-		context.setVariable("eventDateTime", DATE_TIME_FORMATTER.format(delivery.getEventDateTime()));
-		context.setVariable("eventLocation", delivery.getEventLocation());
-		context.setVariable("ticketLines", delivery.getTicketLines());
-		context.setVariable("totalQuantity", delivery.getTotalQuantity());
-		context.setVariable("orderReference", delivery.getOrderReference());
-		context.setVariable("orderAccessUrl", delivery.getOrderAccessUrl());
-		context.setVariable("qrCodeImageUrl", delivery.getQrCodeImageUrl());
-		context.setVariable("hasOrderAccessUrl", StringUtils.hasText(delivery.getOrderAccessUrl()));
-		context.setVariable("hasQrCodeImageUrl", StringUtils.hasText(delivery.getQrCodeImageUrl()));
-		context.setVariable(
-			"hasAccessDetails",
-			StringUtils.hasText(delivery.getOrderAccessUrl()) || StringUtils.hasText(delivery.getQrCodeImageUrl())
-		);
-
+		Context context = createContext(delivery);
 		String htmlBody = templateEngine.process("email/purchase-confirmation", context);
-		String textBody = """
-			Hello,
-			
-			Your purchase is confirmed.
-			
-			Event: %s
-			Date and time: %s
-			Location: %s
-			Tickets:
-			%s
-			Total quantity: %d
-			Order reference: %s
-			
-			Ticket access: %s
-			
-			Thanks,
-			Event Ticket System
-			""".formatted(
-			delivery.getEventTitle(),
-			DATE_TIME_FORMATTER.format(delivery.getEventDateTime()),
-			delivery.getEventLocation(),
-			formatTicketLines(delivery.getTicketLines()),
-			delivery.getTotalQuantity(),
-			delivery.getOrderReference(),
-			resolveTicketAccessSummary(delivery)
-		);
+		String textBody = templateEngine.process("email/purchase-confirmation-text", context);
 
 		String subject = "Your tickets for %s (%s)".formatted(
 			delivery.getEventTitle(),
@@ -81,13 +43,34 @@ public class ThymeleafPurchaseConfirmationEmailContentFactory {
 		);
 	}
 
-	private String formatTicketLines(java.util.List<PurchaseConfirmationTicketLine> ticketLines) {
-		return StringUtils.collectionToDelimitedString(
-			ticketLines.stream()
-				.map(ticketLine -> "- %s x %d".formatted(ticketLine.ticketType(), ticketLine.quantity()))
-				.collect(Collectors.toList()),
-			"\n"
+	private Context createContext(PurchaseConfirmationDelivery delivery) {
+		Map<String, Object> variables = new LinkedHashMap<>();
+		variables.put("eventTitle", delivery.getEventTitle());
+		variables.put("eventDateTime", DATE_TIME_FORMATTER.format(delivery.getEventDateTime()));
+		variables.put("eventLocation", delivery.getEventLocation());
+		variables.put("ticketLines", delivery.getTicketLines());
+		variables.put("formattedTicketLines", formatTicketLines(delivery.getTicketLines()));
+		variables.put("totalQuantity", delivery.getTotalQuantity());
+		variables.put("orderReference", delivery.getOrderReference());
+		variables.put("orderAccessUrl", delivery.getOrderAccessUrl());
+		variables.put("qrCodeImageUrl", delivery.getQrCodeImageUrl());
+		variables.put("ticketAccessSummary", resolveTicketAccessSummary(delivery));
+		variables.put("hasOrderAccessUrl", StringUtils.hasText(delivery.getOrderAccessUrl()));
+		variables.put("hasQrCodeImageUrl", StringUtils.hasText(delivery.getQrCodeImageUrl()));
+		variables.put(
+			"hasAccessDetails",
+			StringUtils.hasText(delivery.getOrderAccessUrl()) || StringUtils.hasText(delivery.getQrCodeImageUrl())
 		);
+
+		Context context = new Context(Locale.ENGLISH);
+		context.setVariables(variables);
+		return context;
+	}
+
+	private String formatTicketLines(java.util.List<PurchaseConfirmationTicketLine> ticketLines) {
+		return ticketLines.stream()
+			.map(ticketLine -> "- %s x %d".formatted(ticketLine.ticketType(), ticketLine.quantity()))
+			.collect(Collectors.joining("\n"));
 	}
 
 	private String resolveTicketAccessSummary(PurchaseConfirmationDelivery delivery) {
