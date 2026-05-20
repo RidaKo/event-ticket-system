@@ -33,7 +33,17 @@ import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
+
+import CreateEventPage from "./pages/Organizer/CreateEventPage.jsx";
+import OrganizerTopbar from "./components/OrganizerTopbar";
+import organizerRouteToTab from "./components/OrganizerTabMapper.jsx";
+
+import OrganizerDashboardPage from "./pages/Organizer/OrganizerDashboardPage";
+import OrganizerEventsPage from "./pages/Organizer/OrganizerEventsPage.jsx";
+import CreateVenuePage from "./pages/Organizer/CreateVenuePage";
+
 import { demoBrowseEvents, demoRecommendedEvents } from "./data/demoEvents.js";
+
 
 const checkoutEventId = 1;
 const useDemoEvents = import.meta.env.VITE_USE_DEMO_EVENTS === "true";
@@ -69,6 +79,14 @@ function readRoute() {
 
   if (path === "/orders") {
     return { name: "orders" };
+  }
+  if (path.startsWith("/organizer/")) {
+    const parts = path.split("/");
+
+    return {
+      organizerId: parts[2],
+      name: parts[3] || "dashboard",
+    };
   }
 
   if (path === "/signin") {
@@ -562,7 +580,6 @@ function Topbar({ activeTab, navigate, isAuthRoute }) {
             >
               Sign in
             </Button>
-            <Button color="brand">Create event</Button>
             <ActionIcon size="lg" radius="xl" variant="filled" color="brand" aria-label="Profile">
               <ProfileIcon />
             </ActionIcon>
@@ -578,8 +595,11 @@ export default function App() {
 
   useEffect(() => {
     const onPopState = () => setRoute(readRoute());
+
     window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+
+    return () =>
+        window.removeEventListener("popstate", onPopState);
   }, []);
 
   function navigate(path) {
@@ -587,35 +607,67 @@ export default function App() {
     setRoute(readRoute());
   }
 
+  const isOrganizerRoute = route.organizerId != null;
+  const isAuthRoute = ["signin", "signup"].includes(route.name);
+
   return (
     <CheckoutProvider>
       <Box className="app-frame">
-        <Topbar
-          activeTab={routeToTab(route.name)}
-          navigate={navigate}
-          isAuthRoute={["signin", "signup"].includes(route.name)}
-        />
+        {isOrganizerRoute ? (
+          <OrganizerTopbar
+            activeTab={organizerRouteToTab(route.name)}
+            navigate={navigate}
+            organizerId={route.organizerId}
+          />
+        ) : (
+          <Topbar
+            activeTab={routeToTab(route.name)}
+            navigate={navigate}
+            isAuthRoute={isAuthRoute}
+          />
+        )}
 
         <Box component="main">
           <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
-            {route.name === "browse" && <BrowsePage navigate={navigate} />}
-            {route.name === "orders" && <OrdersPage navigate={navigate} />}
-            {route.name === "signin" && <LoginPage navigate={navigate} />}
-            {route.name === "signup" && <SignUpPage navigate={navigate} />}
-            {route.name === "eventDetails" && (
-              <EventDetailsPage eventId={route.eventId} navigate={navigate} />
+            {!isOrganizerRoute && (
+              <>
+                {route.name === "browse" && <BrowsePage navigate={navigate} />}
+                {route.name === "orders" && <OrdersPage navigate={navigate} />}
+                {route.name === "signin" && <LoginPage navigate={navigate} />}
+                {route.name === "signup" && <SignUpPage navigate={navigate} />}
+                {route.name === "eventDetails" && (
+                  <EventDetailsPage eventId={route.eventId} navigate={navigate} />
+                )}
+                {route.name === "tickets" && (
+                  <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
+                )}
+                {route.name === "account" && (
+                  <CheckoutAccountPage eventId={route.eventId} navigate={navigate} />
+                )}
+                {route.name === "payment" && (
+                  <PaymentPage orderNumber={route.orderNumber} navigate={navigate} />
+                )}
+                {route.name === "confirmation" && (
+                  <ConfirmationPage orderNumber={route.orderNumber} navigate={navigate} />
+                )}
+              </>
             )}
-            {route.name === "tickets" && (
-              <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
-            )}
-            {route.name === "account" && (
-              <CheckoutAccountPage eventId={route.eventId} navigate={navigate} />
-            )}
-            {route.name === "payment" && (
-              <PaymentPage orderNumber={route.orderNumber} navigate={navigate} />
-            )}
-            {route.name === "confirmation" && (
-              <ConfirmationPage orderNumber={route.orderNumber} navigate={navigate} />
+
+            {isOrganizerRoute && (
+              <>
+                {route.name === "dashboard" && (
+                  <OrganizerDashboardPage organizerId={route.organizerId} />
+                )}
+                {route.name === "create-event" && (
+                  <CreateEventPage organizerId={route.organizerId} navigate={navigate} />
+                )}
+                {route.name === "events" && (
+                  <OrganizerEventsPage organizerId={route.organizerId} />
+                )}
+                {route.name === "create-venue" && (
+                  <CreateVenuePage organizerId={route.organizerId} />
+                )}
+              </>
             )}
           </Container>
         </Box>

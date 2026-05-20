@@ -1,10 +1,11 @@
-INSERT INTO users (email, password_hash, full_name, phone, is_guest, created_at, updated_at)
-VALUES ('organizer@test.com', 'hash', 'John Organizer', '+37061234567', FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('sarah@example.com', 'hash', 'Sarah Vilnius', '+37060000001', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('john@example.com', 'hash', 'John Dubai', '+37060000002', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('milda@example.com', 'hash', 'Milda Petrauskaite', '+37060000003', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('tomas@example.com', 'hash', 'Tomas Kazlauskas', '+37060000004', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('eva@example.com', 'hash', 'Eva Jensen', '+37060000005', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO users (email, password_hash, full_name, phone, is_guest, role, created_at, updated_at)
+VALUES ('organizer@test.com', 'placeholder', 'John Organizer', '+37061234567', FALSE, 'ORGANIZER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('admin@test.com', 'placeholder', 'Site Admin', '+37061234500', FALSE, 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('sarah@example.com', 'hash', 'Sarah Vilnius', '+37060000001', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('john@example.com', 'hash', 'John Dubai', '+37060000002', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('milda@example.com', 'hash', 'Milda Petrauskaite', '+37060000003', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('tomas@example.com', 'hash', 'Tomas Kazlauskas', '+37060000004', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('eva@example.com', 'hash', 'Eva Jensen', '+37060000005', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO organizers (user_id, business_name, description, verified, created_at, updated_at)
 VALUES (1, 'Paradise Events', 'Top event organizer in Vilnius', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
@@ -36,22 +37,22 @@ VALUES (1, 'Grand Hall', 'Gedimino pr. 1', 'Vilnius', 'LT', 4.50, CURRENT_TIMEST
        (1, 'Night Market Yard', 'Pylimo g. 58', 'Vilnius', 'LT', 4.45, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO events (organizer_id, venue_id, category_id, title, slug, description, status, start_datetime, end_datetime, timezone, min_age, created_at, updated_at)
-VALUES (1, 1, 1, 'Summer Fest', 'summer-fest', 'The biggest summer festival in Vilnius with live bands, food stalls, and late evening performances.', 'ACTIVE', '2026-07-01 18:00:00', '2026-07-01 23:00:00', 'Europe/Vilnius', 18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 2, 1, 'Riverside Jazz Night', 'riverside-jazz-night', 'A warm evening of modern jazz, classic standards, and riverside cocktails.', 'ACTIVE', '2026-06-12 19:00:00', '2026-06-12 22:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 3, 4, 'Startup Founders Mixer', 'startup-founders-mixer', 'A focused networking night for founders, operators, investors, and builders.', 'ACTIVE', '2026-06-13 18:30:00', '2026-06-13 21:30:00', 'Europe/Vilnius', 18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 4, 5, 'Family Food Festival', 'family-food-festival', 'Street food, local producers, cooking demos, and activities for families.', 'ACTIVE', '2026-06-14 11:00:00', '2026-06-14 18:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 5, 3, 'Open Air Cinema', 'open-air-cinema', 'An outdoor film night with reserved lawn seating and local snacks.', 'ACTIVE', '2026-06-18 20:30:00', '2026-06-18 23:30:00', 'Europe/Vilnius', 12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 6, 4, 'Design Systems Workshop', 'design-systems-workshop', 'A practical workshop on tokens, components, governance, and product design operations.', 'ACTIVE', '2026-06-19 10:00:00', '2026-06-19 16:00:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 7, 2, 'City Arena Finals', 'city-arena-finals', 'The season finals with courtside seats, fan zones, and half-time entertainment.', 'ACTIVE', '2026-06-20 17:00:00', '2026-06-20 21:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 8, 1, 'Acoustic Sessions', 'acoustic-sessions', 'An intimate lineup of singer-songwriters performing stripped-back sets in the old town.', 'ACTIVE', '2026-06-21 19:30:00', '2026-06-21 22:00:00', 'Europe/Vilnius', 14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 9, 3, 'Modern Art Walk', 'modern-art-walk', 'A guided evening through installations, galleries, artist talks, and pop-up exhibitions.', 'ACTIVE', '2026-06-22 18:00:00', '2026-06-22 21:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 10, 2, 'Junior Football Camp', 'junior-football-camp', 'A weekend skills camp for young players with coaches, drills, and friendly matches.', 'ACTIVE', '2026-06-27 09:00:00', '2026-06-27 15:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 11, 4, 'Cloud Engineering Forum', 'cloud-engineering-forum', 'Talks and panels covering platform engineering, observability, security, and cloud cost control.', 'ACTIVE', '2026-06-30 09:30:00', '2026-06-30 17:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 12, 5, 'Street Food Showcase', 'street-food-showcase', 'A tasting event featuring food trucks, chefs, local drinks, and market specials.', 'ACTIVE', '2026-07-03 12:00:00', '2026-07-03 20:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 13, 6, 'Garden Family Picnic', 'garden-family-picnic', 'A relaxed family day with music, garden games, workshops, and picnic baskets.', 'ACTIVE', '2026-07-05 10:00:00', '2026-07-05 16:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 14, 3, 'Indie Film Premiere', 'indie-film-premiere', 'A local film premiere with director Q&A, terrace seating, and after-screening discussion.', 'ACTIVE', '2026-07-10 19:00:00', '2026-07-10 22:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 15, 1, 'Lakeside Electronic Live', 'lakeside-electronic-live', 'A lakeside electronic music show with live synths, visuals, and sunset sets.', 'ACTIVE', '2026-07-18 18:00:00', '2026-07-18 23:45:00', 'Europe/Vilnius', 18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 16, 5, 'Night Market Live', 'night-market-live', 'An evening market with live DJs, small plates, dessert stands, and late-night shopping.', 'ACTIVE', '2026-07-24 18:00:00', '2026-07-24 23:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+VALUES (1, 1, 1, 'Summer Fest', 'summer-fest', 'The biggest summer festival in Vilnius with live bands, food stalls, and late evening performances.', 'PUBLISHED', '2026-07-01 18:00:00', '2026-07-01 23:00:00', 'Europe/Vilnius', 18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 2, 1, 'Riverside Jazz Night', 'riverside-jazz-night', 'A warm evening of modern jazz, classic standards, and riverside cocktails.', 'PUBLISHED', '2026-06-12 19:00:00', '2026-06-12 22:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 3, 4, 'Startup Founders Mixer', 'startup-founders-mixer', 'A focused networking night for founders, operators, investors, and builders.', 'PUBLISHED', '2026-06-13 18:30:00', '2026-06-13 21:30:00', 'Europe/Vilnius', 18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 4, 5, 'Family Food Festival', 'family-food-festival', 'Street food, local producers, cooking demos, and activities for families.', 'PUBLISHED', '2026-06-14 11:00:00', '2026-06-14 18:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 5, 3, 'Open Air Cinema', 'open-air-cinema', 'An outdoor film night with reserved lawn seating and local snacks.', 'PUBLISHED', '2026-06-18 20:30:00', '2026-06-18 23:30:00', 'Europe/Vilnius', 12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 6, 4, 'Design Systems Workshop', 'design-systems-workshop', 'A practical workshop on tokens, components, governance, and product design operations.', 'PUBLISHED', '2026-06-19 10:00:00', '2026-06-19 16:00:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 7, 2, 'City Arena Finals', 'city-arena-finals', 'The season finals with courtside seats, fan zones, and half-time entertainment.', 'PUBLISHED', '2026-06-20 17:00:00', '2026-06-20 21:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 8, 1, 'Acoustic Sessions', 'acoustic-sessions', 'An intimate lineup of singer-songwriters performing stripped-back sets in the old town.', 'PUBLISHED', '2026-06-21 19:30:00', '2026-06-21 22:00:00', 'Europe/Vilnius', 14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 9, 3, 'Modern Art Walk', 'modern-art-walk', 'A guided evening through installations, galleries, artist talks, and pop-up exhibitions.', 'PUBLISHED', '2026-06-22 18:00:00', '2026-06-22 21:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 10, 2, 'Junior Football Camp', 'junior-football-camp', 'A weekend skills camp for young players with coaches, drills, and friendly matches.', 'PUBLISHED', '2026-06-27 09:00:00', '2026-06-27 15:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 11, 4, 'Cloud Engineering Forum', 'cloud-engineering-forum', 'Talks and panels covering platform engineering, observability, security, and cloud cost control.', 'PUBLISHED', '2026-06-30 09:30:00', '2026-06-30 17:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 12, 5, 'Street Food Showcase', 'street-food-showcase', 'A tasting event featuring food trucks, chefs, local drinks, and market specials.', 'PUBLISHED', '2026-07-03 12:00:00', '2026-07-03 20:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 13, 6, 'Garden Family Picnic', 'garden-family-picnic', 'A relaxed family day with music, garden games, workshops, and picnic baskets.', 'PUBLISHED', '2026-07-05 10:00:00', '2026-07-05 16:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 14, 3, 'Indie Film Premiere', 'indie-film-premiere', 'A local film premiere with director Q&A, terrace seating, and after-screening discussion.', 'PUBLISHED', '2026-07-10 19:00:00', '2026-07-10 22:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 15, 1, 'Lakeside Electronic Live', 'lakeside-electronic-live', 'A lakeside electronic music show with live synths, visuals, and sunset sets.', 'PUBLISHED', '2026-07-18 18:00:00', '2026-07-18 23:45:00', 'Europe/Vilnius', 18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 16, 5, 'Night Market Live', 'night-market-live', 'An evening market with live DJs, small plates, dessert stands, and late-night shopping.', 'PUBLISHED', '2026-07-24 18:00:00', '2026-07-24 23:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
 VALUES (1, 'General Admission', 'Access to the main festival area.', 39.00, 'USD', 250, 0, NULL, NULL, 10, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -122,23 +123,23 @@ VALUES (1, 'SAVE10', 'PERCENT', 10.00, TRUE, 100, 0, NULL),
        (16, 'MARKET10', 'PERCENT', 10.00, TRUE, 140, 0, NULL);
 
 INSERT INTO reviews (user_id, event_id, venue_id, rating, comment, created_at, updated_at)
-VALUES (2, 1, 1, 4.50, 'Amazing event!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 1, 1, 5.00, 'Best night of my life!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 2, 2, 4.80, 'Beautiful venue and excellent sound.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 2, 2, 4.60, 'Really smooth evening with great performers.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (6, 3, 3, 4.70, 'Useful conversations and a strong founder crowd.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (2, 4, 4, 4.40, 'Plenty of food choices and easy with kids.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 5, 5, 4.30, 'Relaxed setup and comfortable outdoor screening.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 6, 6, 4.90, 'Practical workshop with clear examples.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 7, 7, 4.60, 'Great atmosphere from start to finish.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (6, 8, 8, 4.50, 'Intimate and very well curated.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (2, 9, 9, 4.20, 'Nice route and friendly gallery hosts.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 10, 10, 4.30, 'The coaches kept the kids engaged all day.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 11, 11, 4.80, 'Strong talks and useful technical detail.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 12, 12, 4.40, 'Good variety and fast entry.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (6, 13, 13, 4.70, 'Perfect location for a family day.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (2, 14, 14, 4.50, 'Great Q&A after the screening.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 15, 15, 4.90, 'The lakeside setting made the show memorable.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 15, 15, 4.80, 'Visuals and sound were excellent.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 16, 16, 4.50, 'Fun food selection and good late-night energy.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (6, 16, 16, 4.40, 'Easygoing crowd and quick service at the stands.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+VALUES (3, 1, 1, 4.50, 'Amazing event!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 1, 1, 5.00, 'Best night of my life!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 2, 2, 4.80, 'Beautiful venue and excellent sound.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (6, 2, 2, 4.60, 'Really smooth evening with great performers.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (7, 3, 3, 4.70, 'Useful conversations and a strong founder crowd.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (3, 4, 4, 4.40, 'Plenty of food choices and easy with kids.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 5, 5, 4.30, 'Relaxed setup and comfortable outdoor screening.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 6, 6, 4.90, 'Practical workshop with clear examples.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (6, 7, 7, 4.60, 'Great atmosphere from start to finish.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (7, 8, 8, 4.50, 'Intimate and very well curated.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (3, 9, 9, 4.20, 'Nice route and friendly gallery hosts.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 10, 10, 4.30, 'The coaches kept the kids engaged all day.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 11, 11, 4.80, 'Strong talks and useful technical detail.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (6, 12, 12, 4.40, 'Good variety and fast entry.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (7, 13, 13, 4.70, 'Perfect location for a family day.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (3, 14, 14, 4.50, 'Great Q&A after the screening.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 15, 15, 4.90, 'The lakeside setting made the show memorable.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 15, 15, 4.80, 'Visuals and sound were excellent.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (6, 16, 16, 4.50, 'Fun food selection and good late-night energy.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (7, 16, 16, 4.40, 'Easygoing crowd and quick service at the stands.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
