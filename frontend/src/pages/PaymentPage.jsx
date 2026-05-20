@@ -4,11 +4,8 @@ import { getOrder, submitPayment } from "../api/checkoutApi.js";
 import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
 import OrderSummary from "../components/OrderSummary.jsx";
 import PaymentMethodSelector from "../components/PaymentMethodSelector.jsx";
-import { useCheckout } from "../state/CheckoutContext.jsx";
 
 export default function PaymentPage({ orderNumber, navigate }) {
-  const { getOrderToken } = useCheckout();
-  const orderToken = getOrderToken(orderNumber);
   const [order, setOrder] = useState(null);
   const [methodType, setMethodType] = useState("CARD");
   const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
@@ -24,7 +21,7 @@ export default function PaymentPage({ orderNumber, navigate }) {
     setLoading(true);
     setError("");
 
-    getOrder(orderNumber, orderToken)
+    getOrder(orderNumber)
       .then((data) => {
         if (!active) {
           return;
@@ -38,7 +35,7 @@ export default function PaymentPage({ orderNumber, navigate }) {
     return () => {
       active = false;
     };
-  }, [orderNumber, orderToken]);
+  }, [orderNumber]);
 
   async function payNow(event) {
     event.preventDefault();
@@ -50,14 +47,10 @@ export default function PaymentPage({ orderNumber, navigate }) {
     setSubmitting(true);
     setError("");
     try {
-      const result = await submitPayment(
-        orderNumber,
-        {
-          methodType,
-          cardNumber: methodType === "CARD" ? cardNumber : "5555 5555 5555 4444",
-        },
-        orderToken
-      );
+      const result = await submitPayment(orderNumber, {
+        methodType,
+        cardNumber: methodType === "CARD" ? cardNumber : "5555 5555 5555 4444",
+      });
       if (result.orderStatus === "CONFIRMED") {
         navigate(`/checkout/${orderNumber}/confirmation`);
         return;

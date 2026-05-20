@@ -14,12 +14,9 @@ import {
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { getConfirmation } from "../api/checkoutApi.js";
-import { useCheckout } from "../state/CheckoutContext.jsx";
 import { formatDateTime, formatMoney } from "../utils.js";
 
 export default function ConfirmationPage({ orderNumber, navigate }) {
-  const { getOrderToken } = useCheckout();
-  const orderToken = getOrderToken(orderNumber);
   const [confirmation, setConfirmation] = useState(null);
   const [error, setError] = useState("");
 
@@ -27,14 +24,14 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
     let active = true;
     setError("");
 
-    getConfirmation(orderNumber, orderToken)
+    getConfirmation(orderNumber)
       .then((data) => active && setConfirmation(data))
       .catch((err) => active && setError(err.message));
 
     return () => {
       active = false;
     };
-  }, [orderNumber, orderToken]);
+  }, [orderNumber]);
 
   if (error) {
     return (

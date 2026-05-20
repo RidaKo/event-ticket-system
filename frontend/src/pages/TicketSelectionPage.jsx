@@ -1,21 +1,22 @@
 import { Alert, Group, Loader, Paper, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
-import { quoteCheckout } from "../api/checkoutApi.js";
+import { createOrder, quoteCheckout } from "../api/checkoutApi.js";
 import { getEvent, getTicketTypes } from "../api/eventsApi.js";
 import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
 import DiscountCodeInput from "../components/DiscountCodeInput.jsx";
 import OrderSummary from "../components/OrderSummary.jsx";
 import TicketQuantitySelector from "../components/TicketQuantitySelector.jsx";
-import { useCheckout } from "../state/CheckoutContext.jsx";
+
+const MVP_GUEST_EMAIL = "guest@event-ticket.local";
 
 export default function TicketSelectionPage({ eventId, navigate }) {
-  const { setCheckoutDraft } = useCheckout();
   const [event, setEvent] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [appliedDiscountCode, setAppliedDiscountCode] = useState("");
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [discountError, setDiscountError] = useState("");
 
@@ -114,30 +115,37 @@ export default function TicketSelectionPage({ eventId, navigate }) {
     }
   }
 
-  function continueToAccount() {
+  async function continueToPayment() {
     if (!summary || selectedItems.length === 0) {
       setError("Select at least one ticket");
       return;
     }
 
+    setSubmitting(true);
     setError("");
-    setCheckoutDraft({
-      eventId,
-      event,
-      items: selectedItems,
-      discountCode: appliedDiscountCode || null,
-      summary,
-    });
-    navigate(`/events/${eventId}/checkout/account`);
+    try {
+      const order = await createOrder({
+        eventId,
+        guestName: null,
+        guestEmail: MVP_GUEST_EMAIL,
+        discountCode: appliedDiscountCode || null,
+        items: selectedItems,
+      });
+      navigate(`/checkout/${order.orderNumber}/payment`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const sidebar = (
     <Stack gap="md">
       <OrderSummary
         summary={summary}
-        actionLabel="Continue to Account"
-        onAction={continueToAccount}
-        actionDisabled={!summary || selectedItems.length === 0}
+        actionLabel="Continue to Payment"
+        onAction={continueToPayment}
+        actionDisabled={submitting || !summary || selectedItems.length === 0}
         footer={
           <Stack gap="md">
             <DiscountCodeInput
