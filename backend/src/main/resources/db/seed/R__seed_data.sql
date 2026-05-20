@@ -6,13 +6,14 @@ INSERT INTO tags (slug, label) VALUES
     ('educational', 'Educational');
 
 -- Checkout flow sample data (event id 1 is referenced by the frontend checkout demo)
-INSERT INTO users (email, password_hash, full_name, phone, is_guest, created_at, updated_at)
-VALUES ('organizer@test.com', 'hash', 'John Organizer', '+37061234567', FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('sarah@example.com', 'hash', 'Sarah Vilnius', '+37060000001', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('john@example.com', 'hash', 'John Dubai', '+37060000002', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('milda@example.com', 'hash', 'Milda Petrauskaite', '+37060000003', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('tomas@example.com', 'hash', 'Tomas Kazlauskas', '+37060000004', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('eva@example.com', 'hash', 'Eva Jensen', '+37060000005', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO users (email, password_hash, full_name, phone, is_guest, role, created_at, updated_at)
+VALUES ('organizer@test.com', 'placeholder', 'John Organizer', '+37061234567', FALSE, 'ORGANIZER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('admin@test.com', 'placeholder', 'Site Admin', '+37061234500', FALSE, 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('sarah@example.com', 'hash', 'Sarah Vilnius', '+37060000001', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('john@example.com', 'hash', 'John Dubai', '+37060000002', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('milda@example.com', 'hash', 'Milda Petrauskaite', '+37060000003', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('tomas@example.com', 'hash', 'Tomas Kazlauskas', '+37060000004', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('eva@example.com', 'hash', 'Eva Jensen', '+37060000005', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO organizers (user_id, business_name, description, verified, created_at, updated_at)
 VALUES (1, 'Paradise Events', 'Top event organizer in Vilnius', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
@@ -130,33 +131,33 @@ VALUES (1, 'SAVE10', 'PERCENT', 10.00, TRUE, 100, 0, NULL),
        (16, 'MARKET10', 'PERCENT', 10.00, TRUE, 140, 0, NULL);
 
 INSERT INTO reviews (user_id, event_id, venue_id, rating, comment, created_at, updated_at)
-VALUES (2, 1, 1, 4.50, 'Amazing event!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 1, 1, 5.00, 'Best night of my life!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 2, 2, 4.80, 'Beautiful venue and excellent sound.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 2, 2, 4.60, 'Really smooth evening with great performers.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (6, 3, 3, 4.70, 'Useful conversations and a strong founder crowd.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (2, 4, 4, 4.40, 'Plenty of food choices and easy with kids.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 5, 5, 4.30, 'Relaxed setup and comfortable outdoor screening.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 6, 6, 4.90, 'Practical workshop with clear examples.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 7, 7, 4.60, 'Great atmosphere from start to finish.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (6, 8, 8, 4.50, 'Intimate and very well curated.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (2, 9, 9, 4.20, 'Nice route and friendly gallery hosts.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 10, 10, 4.30, 'The coaches kept the kids engaged all day.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 11, 11, 4.80, 'Strong talks and useful technical detail.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 12, 12, 4.40, 'Good variety and fast entry.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (6, 13, 13, 4.70, 'Perfect location for a family day.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (2, 14, 14, 4.50, 'Great Q&A after the screening.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 15, 15, 4.90, 'The lakeside setting made the show memorable.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 15, 15, 4.80, 'Visuals and sound were excellent.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 16, 16, 4.50, 'Fun food selection and good late-night energy.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (6, 16, 16, 4.40, 'Easygoing crowd and quick service at the stands.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+VALUES (3, 1, 1, 4.50, 'Amazing event!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 1, 1, 5.00, 'Best night of my life!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 2, 2, 4.80, 'Beautiful venue and excellent sound.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (6, 2, 2, 4.60, 'Really smooth evening with great performers.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (7, 3, 3, 4.70, 'Useful conversations and a strong founder crowd.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (3, 4, 4, 4.40, 'Plenty of food choices and easy with kids.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 5, 5, 4.30, 'Relaxed setup and comfortable outdoor screening.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 6, 6, 4.90, 'Practical workshop with clear examples.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (6, 7, 7, 4.60, 'Great atmosphere from start to finish.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (7, 8, 8, 4.50, 'Intimate and very well curated.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (3, 9, 9, 4.20, 'Nice route and friendly gallery hosts.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 10, 10, 4.30, 'The coaches kept the kids engaged all day.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 11, 11, 4.80, 'Strong talks and useful technical detail.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (6, 12, 12, 4.40, 'Good variety and fast entry.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (7, 13, 13, 4.70, 'Perfect location for a family day.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (3, 14, 14, 4.50, 'Great Q&A after the screening.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 15, 15, 4.90, 'The lakeside setting made the show memorable.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 15, 15, 4.80, 'Visuals and sound were excellent.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (6, 16, 16, 4.50, 'Fun food selection and good late-night energy.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (7, 16, 16, 4.40, 'Easygoing crowd and quick service at the stands.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Recommendations demo user, venues, published events, and preferences
-INSERT INTO users (email, password_hash, full_name, phone, is_guest, created_at, updated_at)
-VALUES ('alex@demo.local', 'hash', 'Alex Demo', NULL, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO users (email, password_hash, full_name, phone, is_guest, role, created_at, updated_at)
+VALUES ('alex@demo.local', 'hash', 'Alex Demo', NULL, FALSE, 'USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO organizers (user_id, business_name, description, verified, created_at, updated_at)
-VALUES (7, 'Paradise Events', 'Demo organizer for recommendations', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+VALUES (8, 'Paradise Events', 'Demo organizer for recommendations', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO venues (organizer_id, name, address_line1, city, country, created_at, updated_at) VALUES
     (2, 'Loftas', 'Loftas', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -277,16 +278,16 @@ JOIN tags t ON t.slug = 'networking'
 WHERE e.slug = 'wine-tasting-evening';
 
 INSERT INTO user_preferences (user_id, home_city, created_at, updated_at)
-VALUES (7, 'Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+VALUES (8, 'Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO user_preferred_categories (preferences_id, category_id)
 SELECT p.id, c.id
 FROM user_preferences p
 JOIN categories c ON c.slug IN ('music', 'technology')
-WHERE p.user_id = 7;
+WHERE p.user_id = 8;
 
 INSERT INTO user_preferred_tags (preferences_id, tag_id)
 SELECT p.id, t.id
 FROM user_preferences p
 JOIN tags t ON t.slug IN ('outdoor', 'networking')
-WHERE p.user_id = 7;
+WHERE p.user_id = 8;

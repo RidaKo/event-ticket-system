@@ -55,3 +55,8 @@ frontend-vite.err.log
 .env
 .env.*
 !.env.example
+
+# =========================
+# Docs (local notes, specs, plans)
+# =========================
+docs/

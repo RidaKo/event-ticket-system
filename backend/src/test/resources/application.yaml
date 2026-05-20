@@ -1,3 +1,10 @@
 spring:
   profiles:
     active: seed
+
+app:
+  jwt:
+    secret: test-secret-test-secret-test-secret-32-chars
+    expiration-minutes: 60
+  security:
+    dev-endpoints-enabled: true
