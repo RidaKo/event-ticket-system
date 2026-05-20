@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.viewEvent.api;
 
+import com.paradise.event_ticket_system.viewEvent.api.DTO.EventResponse;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.VenueRequest;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.VenueResponse;
 import com.paradise.event_ticket_system.viewEvent.service.VenueService;
@@ -10,7 +11,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/venues")
@@ -21,6 +25,7 @@ public class VenueController {
     private final VenueService venueService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
     @Operation(summary = "Create a venue")
     @ApiResponse(responseCode = "201", description = "Venue created successfully")
     public ResponseEntity<VenueResponse> createVenue(@RequestBody @Valid VenueRequest request) {
@@ -33,5 +38,12 @@ public class VenueController {
     @ApiResponse(responseCode = "404", description = "Venue not found")
     public ResponseEntity<VenueResponse> getVenueById(@PathVariable Integer id) {
         return ResponseEntity.ok(venueService.getVenueById(id));
+    }
+
+    @GetMapping
+    @Operation(summary = "Get all Venues", description = "Returns a list of all Venues with")
+    @ApiResponse(responseCode = "200", description = "Venues retrieved successfully")
+    public ResponseEntity<List<VenueResponse>> getAllVenues() {
+        return ResponseEntity.ok(venueService.getAllVenues());
     }
 }

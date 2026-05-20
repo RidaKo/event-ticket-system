@@ -43,8 +43,11 @@ body {
 .browse-card,
 .filter-card,
 .ticket-card,
+.account-choice,
 .summary-card,
 .form-section,
+.auth-card,
+.auth-secondary-card,
 .detail-section,
 .confirmation-header,
 .event-strip {
@@ -109,6 +112,70 @@ body {
 .filter-body {
   display: grid;
   gap: var(--mantine-spacing-xl);
+}
+
+.account-choice {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 84px;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.account-choice[data-selected] {
+  border-color: var(--mantine-color-brand-7);
+  box-shadow: inset 0 0 0 1px var(--mantine-color-brand-7);
+}
+
+.account-choice-icon {
+  flex: 0 0 auto;
+}
+
+.account-choice-radio {
+  position: relative;
+  flex: 0 0 16px;
+  inline-size: 16px;
+  block-size: 16px;
+  margin-block-start: 2px;
+  border: 1px solid var(--mantine-color-brand-3);
+  border-radius: 50%;
+  background: var(--mantine-color-white);
+}
+
+.account-choice-radio[data-selected] {
+  border-color: var(--mantine-color-brand-8);
+}
+
+.account-choice-radio[data-selected]::after {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--mantine-color-brand-8);
+  content: "";
+}
+
+.account-form {
+  inline-size: 100%;
+}
+
+.auth-shell {
+  max-inline-size: 980px;
+  margin-inline: auto;
+}
+
+.auth-card,
+.auth-secondary-card {
+  inline-size: 100%;
+}
+
+.auth-card-header {
+  min-inline-size: 0;
+}
+
+.auth-icon {
+  flex: 0 0 auto;
 }
 
 .checkout-sidebar {

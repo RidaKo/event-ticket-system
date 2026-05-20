@@ -11,3 +11,34 @@ export function getEvent(eventId) {
 export function getTicketTypes(eventId) {
   return apiFetch(`/events/${eventId}/ticket-types`);
 }
+
+export function createEvent(eventData) {
+  return apiFetch('/events', {
+    method: 'POST',
+    body: JSON.stringify(eventData),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}
+export function getEventsByOrganizerId(
+    organizerId
+) {
+  return apiFetch(
+      `/organizers/${organizerId}/events`
+  );
+}
+
+export function updateEventStatus(
+    organizerId,
+    eventId,
+    status
+) {
+  return apiFetch(
+      `/organizers/${organizerId}/events/${eventId}/status`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }
+  );
+}

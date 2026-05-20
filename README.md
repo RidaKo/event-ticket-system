@@ -22,6 +22,25 @@ Example (from the backend folder):
 ./gradlew bootRun --args='--spring.profiles.active=seed'
 ```
 
+#### Seed accounts (only available with the `seed` profile)
+
+On startup with the `seed` profile, the `SeedAccountInitializer` rewrites the placeholder password hashes for two pre-seeded login accounts:
+
+| Email | Password | Role |
+| --- | --- | --- |
+| `admin@test.com` | `admin123` | `ADMIN` |
+| `organizer@test.com` | `organizer123` | `ORGANIZER` |
+
+Log in via `POST /api/auth/login` (or the Swagger UI at `http://localhost:8080/swagger-ui.html` — click the green **Authorize** button after logging in and paste the returned `token`):
+
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@test.com","password":"admin123"}'
+```
+
+Without the `seed` profile, neither account exists — register a normal user via `POST /api/auth/register` instead (the public registration endpoint always creates `USER`-role accounts).
+
 ### Frontend
 The frontend is a Vite + React application located in the `frontend` folder.
 

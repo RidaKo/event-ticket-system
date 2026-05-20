@@ -28,7 +28,7 @@ public class SmtpPurchaseConfirmationEmailSender implements PurchaseConfirmation
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
 		try {
-			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 			helper.setFrom(emailDeliveryProperties.getFromAddress());
 			helper.setTo(message.to());
 			helper.setSubject(message.subject());

@@ -1,7 +1,10 @@
 package com.paradise.event_ticket_system.model;
 
+import com.paradise.event_ticket_system.auth.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,4 +41,8 @@ public class User extends AuditableEntity {
 
     @Column(name = "pfp_url")
     private String pfpUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private UserRole role = UserRole.USER;
 }

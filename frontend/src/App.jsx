@@ -25,12 +25,26 @@ import {
 } from "@mantine/core";
 import ticketLogo from "./assets/ticket_small.png";
 import { getEvents } from "./api/eventsApi.js";
+import CheckoutAccountPage from "./pages/CheckoutAccountPage.jsx";
 import EventDetailsPage from "./pages/EventDetailsPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import SignUpPage from "./pages/SignUpPage.jsx";
 import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
+import { AuthProvider, useAuth } from "./state/AuthContext.jsx";
+
+import CreateEventPage from "./pages/Organizer/CreateEventPage.jsx";
+import OrganizerTopbar from "./components/OrganizerTopbar";
+import organizerRouteToTab from "./components/OrganizerTabMapper.jsx";
+
+import OrganizerDashboardPage from "./pages/Organizer/OrganizerDashboardPage";
+import OrganizerEventsPage from "./pages/Organizer/OrganizerEventsPage.jsx";
+import CreateVenuePage from "./pages/Organizer/CreateVenuePage";
+
 import { demoBrowseEvents, demoRecommendedEvents } from "./data/demoEvents.js";
+
 
 const checkoutEventId = 1;
 const useDemoEvents = import.meta.env.VITE_USE_DEMO_EVENTS === "true";
@@ -49,6 +63,11 @@ function readRoute() {
     return { name: "confirmation", orderNumber: confirmation[1] };
   }
 
+  const account = path.match(/^\/events\/(\d+)\/checkout\/account$/);
+  if (account) {
+    return { name: "account", eventId: Number(account[1]) };
+  }
+
   const tickets = path.match(/^\/events\/(\d+)\/checkout\/tickets$/);
   if (tickets) {
     return { name: "tickets", eventId: Number(tickets[1]) };
@@ -62,14 +81,34 @@ function readRoute() {
   if (path === "/orders") {
     return { name: "orders" };
   }
+  if (path.startsWith("/organizer/")) {
+    const parts = path.split("/");
+
+    return {
+      organizerId: parts[2],
+      name: parts[3] || "dashboard",
+    };
+  }
+
+  if (path === "/signin") {
+    return { name: "signin" };
+  }
+
+  if (path === "/signup") {
+    return { name: "signup" };
+  }
 
   return { name: "browse" };
 }
 
 function routeToTab(routeName) {
-  return routeName === "browse" || routeName === "eventDetails" || routeName === "tickets"
-    ? "browse"
-    : "orders";
+  if (["browse", "eventDetails", "tickets", "account"].includes(routeName)) {
+    return "browse";
+  }
+  if (["orders", "payment", "confirmation"].includes(routeName)) {
+    return "orders";
+  }
+  return null;
 }
 
 function TicketLogo() {
@@ -505,7 +544,7 @@ function OrdersPage({ navigate }) {
   );
 }
 
-function Topbar({ activeTab, navigate }) {
+function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut }) {
   return (
     <Box component="header" className="topbar">
       <Container size="xl" px={{ base: "md", sm: "xl" }} py="sm">
@@ -535,10 +574,24 @@ function Topbar({ activeTab, navigate }) {
           </Tabs>
 
           <Group gap="sm" wrap="wrap">
-            <Button variant="default" color="gray">
-              Sign in
-            </Button>
-            <Button color="brand">Create event</Button>
+            {currentUser ? (
+              <>
+                <Text size="sm" fw="bold" c="brand.9">
+                  {currentUser.fullName || currentUser.email}
+                </Text>
+                <Button variant="default" color="gray" onClick={onSignOut}>
+                  Sign out
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant={isAuthRoute ? "filled" : "default"}
+                color={isAuthRoute ? "brand" : "gray"}
+                onClick={() => navigate("/signin")}
+              >
+                Sign in
+              </Button>
+            )}
             <ActionIcon size="lg" radius="xl" variant="filled" color="brand" aria-label="Profile">
               <ProfileIcon />
             </ActionIcon>
@@ -549,13 +602,17 @@ function Topbar({ activeTab, navigate }) {
   );
 }
 
-export default function App() {
+function AppContent() {
   const [route, setRoute] = useState(readRoute);
+  const { logout, user } = useAuth();
 
   useEffect(() => {
     const onPopState = () => setRoute(readRoute());
+
     window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
+
+    return () =>
+        window.removeEventListener("popstate", onPopState);
   }, []);
 
   function navigate(path) {
@@ -563,30 +620,86 @@ export default function App() {
     setRoute(readRoute());
   }
 
+  const isOrganizerRoute = route.organizerId != null;
+  const isAuthRoute = ["signin", "signup"].includes(route.name);
+
+  function signOut() {
+    logout();
+    navigate("/");
+  }
+
   return (
     <CheckoutProvider>
       <Box className="app-frame">
-        <Topbar activeTab={routeToTab(route.name)} navigate={navigate} />
+        {isOrganizerRoute ? (
+          <OrganizerTopbar
+            activeTab={organizerRouteToTab(route.name)}
+            navigate={navigate}
+            organizerId={route.organizerId}
+          />
+        ) : (
+          <Topbar
+            activeTab={routeToTab(route.name)}
+            currentUser={user}
+            navigate={navigate}
+            isAuthRoute={isAuthRoute}
+            onSignOut={signOut}
+          />
+        )}
 
         <Box component="main">
           <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
-            {route.name === "browse" && <BrowsePage navigate={navigate} />}
-            {route.name === "orders" && <OrdersPage navigate={navigate} />}
-            {route.name === "eventDetails" && (
-              <EventDetailsPage eventId={route.eventId} navigate={navigate} />
+            {!isOrganizerRoute && (
+              <>
+                {route.name === "browse" && <BrowsePage navigate={navigate} />}
+                {route.name === "orders" && <OrdersPage navigate={navigate} />}
+                {route.name === "signin" && <LoginPage navigate={navigate} />}
+                {route.name === "signup" && <SignUpPage navigate={navigate} />}
+                {route.name === "eventDetails" && (
+                  <EventDetailsPage eventId={route.eventId} navigate={navigate} />
+                )}
+                {route.name === "tickets" && (
+                  <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
+                )}
+                {route.name === "account" && (
+                  <CheckoutAccountPage eventId={route.eventId} navigate={navigate} />
+                )}
+                {route.name === "payment" && (
+                  <PaymentPage orderNumber={route.orderNumber} navigate={navigate} />
+                )}
+                {route.name === "confirmation" && (
+                  <ConfirmationPage orderNumber={route.orderNumber} navigate={navigate} />
+                )}
+              </>
             )}
-            {route.name === "tickets" && (
-              <TicketSelectionPage eventId={route.eventId} navigate={navigate} />
-            )}
-            {route.name === "payment" && (
-              <PaymentPage orderNumber={route.orderNumber} navigate={navigate} />
-            )}
-            {route.name === "confirmation" && (
-              <ConfirmationPage orderNumber={route.orderNumber} navigate={navigate} />
+
+            {isOrganizerRoute && (
+              <>
+                {route.name === "dashboard" && (
+                  <OrganizerDashboardPage organizerId={route.organizerId} />
+                )}
+                {route.name === "create-event" && (
+                  <CreateEventPage organizerId={route.organizerId} navigate={navigate} />
+                )}
+                {route.name === "events" && (
+                  <OrganizerEventsPage organizerId={route.organizerId} />
+                )}
+                {route.name === "create-venue" && (
+                  <CreateVenuePage organizerId={route.organizerId} />
+                )}
+              </>
             )}
           </Container>
         </Box>
       </Box>
     </CheckoutProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

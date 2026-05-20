@@ -7,10 +7,13 @@ import java.util.List;
 
 import com.paradise.event_ticket_system.checkout.CheckoutService;
 import com.paradise.event_ticket_system.checkout.CreateOrderRequest;
+import com.paradise.event_ticket_system.checkout.GuestCreateOrderRequest;
+import com.paradise.event_ticket_system.checkout.GuestOrderCreatedResponse;
 import com.paradise.event_ticket_system.checkout.OrderResponse;
 import com.paradise.event_ticket_system.checkout.PaymentRequest;
 import com.paradise.event_ticket_system.checkout.PaymentResponse;
 import com.paradise.event_ticket_system.checkout.TicketItemRequest;
+import com.paradise.event_ticket_system.event.EventStatus;
 import com.paradise.event_ticket_system.model.Category;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.OrderItem;
@@ -146,10 +149,10 @@ class PurchaseConfirmationServiceIntegrationTest {
 	}
 
 	@Test
-	void checkoutSuccessfulPaymentQueuesPurchaseConfirmation() {
+	void guestCheckoutSuccessfulPaymentQueuesPurchaseConfirmation() {
 		CatalogFixture catalog = createCatalogFixture();
 
-		OrderResponse order = checkoutService.createOrder(new CreateOrderRequest(
+		GuestOrderCreatedResponse order = checkoutService.createGuestOrder(new GuestCreateOrderRequest(
 			catalog.eventId(),
 			"Alex Buyer",
 			"attendee@example.com",
@@ -168,6 +171,29 @@ class PurchaseConfirmationServiceIntegrationTest {
 		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
 		assertThat(deliveryRepository.findAll()).hasSize(1);
 		assertThat(emailSender.messages()).hasSize(1);
+		assertThat(emailSender.messages().getFirst().subject()).contains(order.orderNumber());
+	}
+
+	@Test
+	void authenticatedCheckoutSuccessfulPaymentQueuesPurchaseConfirmation() {
+		CatalogFixture catalog = createCatalogFixture();
+		createRegisteredUser("buyer@example.com", "Logged In Buyer");
+
+		OrderResponse order = checkoutService.createOrderForUser(new CreateOrderRequest(
+			catalog.eventId(),
+			null,
+			List.of(new TicketItemRequest(catalog.generalAdmissionTicketTypeId(), 1))
+		), "buyer@example.com");
+		PaymentResponse payment = checkoutService.submitPayment(
+			order.orderNumber(),
+			new PaymentRequest(PaymentMethodType.CARD, "4242 4242 4242 4242")
+		);
+
+		assertThat(payment.orderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
+		assertThat(deliveryRepository.findAll()).hasSize(1);
+		assertThat(emailSender.messages()).hasSize(1);
+		assertThat(emailSender.messages().getFirst().to()).isEqualTo("buyer@example.com");
 		assertThat(emailSender.messages().getFirst().subject()).contains(order.orderNumber());
 	}
 
@@ -213,6 +239,17 @@ class PurchaseConfirmationServiceIntegrationTest {
 		return transactionTemplate.execute(status -> createCatalogFixtureInCurrentTransaction());
 	}
 
+	private void createRegisteredUser(String email, String fullName) {
+		transactionTemplate.executeWithoutResult(status -> {
+			User user = new User();
+			user.setEmail(email);
+			user.setFullName(fullName);
+			user.setPasswordHash("registered-user-hash");
+			user.setIsGuest(false);
+			entityManager.persist(user);
+		});
+	}
+
 	private CatalogFixture createCatalogFixtureInCurrentTransaction() {
 		User organizerUser = new User();
 		organizerUser.setEmail("organizer@example.com");
@@ -244,7 +281,7 @@ class PurchaseConfirmationServiceIntegrationTest {
 		event.setCategory(category);
 		event.setTitle("Spring Music Festival");
 		event.setSlug("spring-music-festival");
-		event.setStatus("PUBLISHED");
+		event.setStatus(EventStatus.PUBLISHED);
 		event.setStartDatetime(Instant.parse("2026-06-20T23:00:00Z"));
 		event.setEndDatetime(Instant.parse("2026-06-21T03:00:00Z"));
 		event.setTimezone("America/New_York");

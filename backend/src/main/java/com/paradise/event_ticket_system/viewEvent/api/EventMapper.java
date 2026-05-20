@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.viewEvent.api;
 
+import com.paradise.event_ticket_system.event.EventStatus;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.Review;
 import com.paradise.event_ticket_system.model.Venue;
@@ -89,7 +90,7 @@ public class EventMapper {
         event.setTitle(request.title());
         event.setSlug(request.slug());
         event.setDescription(request.description());
-        event.setStatus(request.status());
+        event.setStatus(EventStatus.valueOf(String.valueOf(request.status())));
         event.setStartDatetime(request.startDatetime());
         event.setEndDatetime(request.endDatetime());
         event.setTimezone(request.timezone());

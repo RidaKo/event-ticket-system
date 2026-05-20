@@ -1,6 +1,8 @@
 spring:
   application:
     name: event-ticket-system
+  config:
+    import: optional:classpath:application-local.yaml
   datasource:
     url: jdbc:h2:mem:mydb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -25,8 +27,8 @@ spring:
 
 event-ticket:
   email:
-    sender: log
-    from-address: no-reply@event-ticket.local
+    sender: ${EMAIL_SENDER:log}
+    from-address: ${MAIL_FROM:no-reply@event-ticket.local}
   seed:
     enabled: true
 
@@ -35,3 +37,10 @@ springdoc:
     enabled: true
   api-docs:
     enabled: true
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:dev-secret-change-me-please-32-chars-or-more}
+    expiration-minutes: 60
+  security:
+    dev-endpoints-enabled: ${APP_SECURITY_DEV_ENDPOINTS_ENABLED:true}
