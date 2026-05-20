@@ -14,24 +14,34 @@ export function createOrder(payload) {
   });
 }
 
-export function getOrder(orderNumber) {
-  return apiFetch(`/checkout/orders/${orderNumber}`);
-}
-
-export function applyDiscount(orderNumber, discountCode) {
-  return apiFetch(`/checkout/orders/${orderNumber}/discount`, {
+export function createGuestOrder(payload) {
+  return apiFetch('/checkout/orders/guest', {
     method: 'POST',
-    body: JSON.stringify({ discountCode })
-  });
-}
-
-export function submitPayment(orderNumber, payload) {
-  return apiFetch(`/checkout/orders/${orderNumber}/payment`, {
-    method: 'POST',
+    skipAuth: true,
     body: JSON.stringify(payload)
   });
 }
 
-export function getConfirmation(orderNumber) {
-  return apiFetch(`/checkout/orders/${orderNumber}/confirmation`);
+export function getOrder(orderNumber, orderToken) {
+  return apiFetch(`/checkout/orders/${orderNumber}`, { orderToken });
+}
+
+export function applyDiscount(orderNumber, discountCode, orderToken) {
+  return apiFetch(`/checkout/orders/${orderNumber}/discount`, {
+    method: 'POST',
+    orderToken,
+    body: JSON.stringify({ discountCode })
+  });
+}
+
+export function submitPayment(orderNumber, payload, orderToken) {
+  return apiFetch(`/checkout/orders/${orderNumber}/payment`, {
+    method: 'POST',
+    orderToken,
+    body: JSON.stringify(payload)
+  });
+}
+
+export function getConfirmation(orderNumber, orderToken) {
+  return apiFetch(`/checkout/orders/${orderNumber}/confirmation`, { orderToken });
 }
