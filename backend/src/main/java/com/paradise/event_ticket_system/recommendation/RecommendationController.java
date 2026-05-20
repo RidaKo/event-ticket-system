@@ -4,6 +4,7 @@ import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.recommendation.dto.RecommendationResponse;
 import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/events")
 public class RecommendationController {
 
+    /** Seeded demo user for preference-based scoring when the client is not authenticated. */
     private static final String DEMO_USER_EMAIL = "alex@demo.local";
 
     private final RecommendationService recommendationService;
@@ -39,7 +41,8 @@ public class RecommendationController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) Integer limit
+            @RequestParam(required = false) Integer limit,
+            Authentication authentication
     ) {
         Set<String> categorySlugs = parseToLowerSlugs(categories);
         Set<String> tagSlugs = parseToLowerSlugs(tags);
@@ -52,10 +55,20 @@ public class RecommendationController {
                 location
         );
 
-        Integer userId = userRepository.findByEmailIgnoreCase(DEMO_USER_EMAIL)
+        Integer userId = resolveUserId(authentication);
+        return recommendationService.recommend(userId, filters, limit);
+    }
+
+    /** Authenticated user when present; otherwise seeded demo user for local browse. */
+    private Integer resolveUserId(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            return userRepository.findByEmailIgnoreCase(authentication.getName())
+                    .map(User::getId)
+                    .orElse(null);
+        }
+        return userRepository.findByEmailIgnoreCase(DEMO_USER_EMAIL)
                 .map(User::getId)
                 .orElse(null);
-        return recommendationService.recommend(userId, filters, limit);
     }
 
     private Set<String> parseToLowerSlugs(List<String> raw) {
