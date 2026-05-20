@@ -1,6 +1,6 @@
 INSERT INTO users (email, password_hash, full_name, phone, is_guest, role, created_at, updated_at)
-VALUES ('organizer@test.com', 'placeholder', 'John Organizer', '+37061234567', FALSE, 'ORGANIZER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('admin@test.com', 'placeholder', 'Site Admin', '+37061234500', FALSE, 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+VALUES ('organizer@test.com', '$2a$10$53HKqqQwkF1Vzc5FvrAYJ.oWJh01Yr98YgM.z0Rl0HqDk4sS.uYja', 'John Organizer', '+37061234567', FALSE, 'ORGANIZER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       ('admin@test.com', '$2a$10$BGZoiLhiJom/dHI7ZZKhqekxuTYHuSMplPSWjYIzn36ciL5EMLBUS', 'Site Admin', '+37061234500', FALSE, 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('sarah@example.com', 'hash', 'Sarah Vilnius', '+37060000001', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('john@example.com', 'hash', 'John Dubai', '+37060000002', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('milda@example.com', 'hash', 'Milda Petrauskaite', '+37060000003', TRUE, 'GUEST', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),

@@ -1,6 +1,8 @@
 spring:
   application:
     name: event-ticket-system
+  config:
+    import: optional:classpath:application-local.yaml
   datasource:
     url: jdbc:h2:mem:mydb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -22,6 +24,13 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+event-ticket:
+  email:
+    sender: ${EMAIL_SENDER:log}
+    from-address: ${MAIL_FROM:no-reply@event-ticket.local}
+  seed:
+    enabled: true
 
 springdoc:
   swagger-ui:
