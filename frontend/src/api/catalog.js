@@ -1,11 +1,11 @@
 import { apiFetch } from "./client.js";
 
 export async function getCategories() {
-  return apiFetch("/categories");
+  return apiFetch("/catalog/categories");
 }
 
 export async function getTags() {
-  return apiFetch("/tags");
+  return apiFetch("/catalog/tags");
 }
 
 export async function getCatalog() {

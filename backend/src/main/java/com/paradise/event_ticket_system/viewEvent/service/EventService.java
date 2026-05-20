@@ -1,10 +1,13 @@
 package com.paradise.event_ticket_system.viewEvent.service;
 
+import com.paradise.event_ticket_system.category.CategoryRepository;
+import com.paradise.event_ticket_system.event.EventStatus;
 import com.paradise.event_ticket_system.model.*;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventRequest;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventResponse;
 import com.paradise.event_ticket_system.viewEvent.api.EventMapper;
 import com.paradise.event_ticket_system.viewEvent.domain.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -57,5 +60,46 @@ public class EventService {
         Event event = eventMapper.toEventEntity(request, organizer, venue, category);
         Event saved = eventRepository.save(event);
         return eventMapper.toEventResponse(saved, List.of());
+    }
+    @Transactional(readOnly = true)
+    public List<EventResponse> getEventsByOrganizerId(
+            Integer organizerId
+    ) {
+
+        return eventRepository.findByOrganizerId(organizerId)
+                .stream()
+                .map(event -> {
+
+                    List<Review> reviews =
+                            reviewRepository.findByEventIdWithUser(
+                                    event.getId()
+                            );
+
+                    return eventMapper.toEventResponse(
+                            event,
+                            reviews
+                    );
+                })
+                .toList();
+    }
+    @Transactional
+    public void updateStatus(
+            Integer organizerId,
+            Integer eventId,
+            EventStatus status
+    ) {
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Event not found")
+                );
+
+        if (!event.getOrganizer().getId().equals(organizerId)) {
+            throw new IllegalArgumentException(
+                    "Organizer does not own this event"
+            );
+        }
+
+        event.setStatus(status);
     }
 }

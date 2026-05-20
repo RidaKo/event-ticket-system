@@ -28,13 +28,15 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     """)
     List<Event> findAllWithDetails();
 
+    List<Event> findByOrganizerId(Integer organizerId);
+
     @Query("""
            SELECT DISTINCT e
            FROM Event e
            LEFT JOIN FETCH e.tags
            JOIN FETCH e.venue v
            JOIN FETCH e.category c
-           WHERE UPPER(e.status) NOT IN :closedStatuses
+           WHERE UPPER(CAST(e.status AS string)) NOT IN :closedStatuses
              AND e.startDatetime > :now
            """)
     List<Event> findUpcomingDiscoverable(@Param("now") Instant now,

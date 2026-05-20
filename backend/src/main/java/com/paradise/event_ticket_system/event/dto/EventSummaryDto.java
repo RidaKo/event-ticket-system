@@ -16,7 +16,7 @@ public record EventSummaryDto(
         return new EventSummaryDto(
                 event.getId(),
                 event.getTitle(),
-                event.getStatus(),
+                event.getStatus() != null ? event.getStatus().name() : null,
                 event.getSlug(),
                 event.getCategory() != null ? event.getCategory().getSlug() : null,
                 event.getVenue() != null ? event.getVenue().getName() : null,

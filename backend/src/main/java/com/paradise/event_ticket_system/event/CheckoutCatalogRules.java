@@ -8,7 +8,7 @@ import java.util.Set;
 
 public final class CheckoutCatalogRules {
 
-    private static final Set<String> CLOSED_EVENT_STATUSES = Set.of("DRAFT", "CANCELLED", "CANCELED", "ARCHIVED");
+    private static final Set<String> CLOSED_EVENT_STATUSES = Set.of("DRAFT", "CANCELED");
 
     private CheckoutCatalogRules() {
     }
@@ -18,7 +18,7 @@ public final class CheckoutCatalogRules {
     }
 
     public static boolean isEventSalesEnabled(Event event) {
-        String status = event.getStatus();
+        String status = String.valueOf(event.getStatus());
         return status != null && !CLOSED_EVENT_STATUSES.contains(status.toUpperCase());
     }
 

@@ -2,7 +2,7 @@ package com.paradise.event_ticket_system.event;
 
 import com.paradise.event_ticket_system.event.dto.CategoryOptionDto;
 import com.paradise.event_ticket_system.event.dto.TagOptionDto;
-import com.paradise.event_ticket_system.viewEvent.domain.CategoryRepository;
+import com.paradise.event_ticket_system.category.CategoryRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,7 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/catalog")
 public class CatalogController {
 
     private final TagRepository tagRepository;
