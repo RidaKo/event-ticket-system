@@ -12,6 +12,8 @@ import com.paradise.event_ticket_system.model.Venue;
 import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Payment;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
+import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
+import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationService;
 import com.paradise.event_ticket_system.order.OrderStatus;
 import com.paradise.event_ticket_system.order.PurchaseOrderRepository;
 import com.paradise.event_ticket_system.payment.PaymentRepository;
@@ -50,6 +52,7 @@ public class CheckoutService {
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
     private final UserRepository userRepository;
+    private final PurchaseConfirmationService purchaseConfirmationService;
 
     public CheckoutService(
             CheckoutEventRepository eventRepository,
@@ -58,7 +61,8 @@ public class CheckoutService {
             PurchaseOrderRepository orderRepository,
             PaymentRepository paymentRepository,
             PaymentService paymentService,
-            UserRepository userRepository
+            UserRepository userRepository,
+            PurchaseConfirmationService purchaseConfirmationService
     ) {
         this.eventRepository = eventRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -67,6 +71,7 @@ public class CheckoutService {
         this.paymentRepository = paymentRepository;
         this.paymentService = paymentService;
         this.userRepository = userRepository;
+        this.purchaseConfirmationService = purchaseConfirmationService;
     }
 
     @Transactional(readOnly = true)
@@ -232,6 +237,7 @@ public class CheckoutService {
         order.setConfirmedAt(LocalDateTime.now());
         order.setPayment(payment);
         paymentRepository.save(payment);
+        purchaseConfirmationService.handle(new PurchaseConfirmationRequest(order.getOrderNumber()));
 
         return new PaymentResponse(order.getOrderNumber(), order.getStatus(), payment.getStatus());
     }
