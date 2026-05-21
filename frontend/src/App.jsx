@@ -37,6 +37,7 @@ import { dateRangeToFilters, filtersToDateRange } from "./lib/dateFilters.js";
 import { mapRecommendedEvent } from "./lib/recommendations.js";
 import { DatePickerInput } from "@mantine/dates";
 import { AuthProvider, useAuth } from "./state/AuthContext.jsx";
+import UserPreferencesModal from "./components/UserPreferencesModal.jsx";
 
 import CreateEventPage from "./pages/Organizer/CreateEventPage.jsx";
 import OrganizerTopbar from "./components/OrganizerTopbar";
@@ -426,7 +427,7 @@ function FilterPanel({ draft, onDraftChange, onApply, onReset, catalog, catalogL
   );
 }
 
-function BrowsePage({ navigate }) {
+function BrowsePage({ navigate, preferencesVersion }) {
   const [draftFilters, setDraftFilters] = useState(createEmptyFilters);
   const [appliedFilters, setAppliedFilters] = useState(createEmptyFilters);
   const [catalog, setCatalog] = useState({ categories: [], tags: [] });
@@ -504,7 +505,7 @@ function BrowsePage({ navigate }) {
     return () => {
       cancelled = true;
     };
-  }, [appliedFilters]);
+  }, [appliedFilters, preferencesVersion]);
 
   function handleApplyFilters() {
     const normalized = normalizeFilters(draftFilters);
@@ -656,7 +657,7 @@ function OrdersPage({ navigate }) {
   );
 }
 
-function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut }) {
+function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut, onProfileClick }) {
   return (
     <Box component="header" className="topbar">
       <Container size="xl" px={{ base: "md", sm: "xl" }} py="sm">
@@ -704,7 +705,14 @@ function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut }) {
                 Sign in
               </Button>
             )}
-            <ActionIcon size="lg" radius="xl" variant="filled" color="brand" aria-label="Profile">
+            <ActionIcon
+              size="lg"
+              radius="xl"
+              variant="filled"
+              color="brand"
+              aria-label={currentUser ? "Edit recommendation preferences" : "Sign in"}
+              onClick={onProfileClick}
+            >
               <ProfileIcon />
             </ActionIcon>
           </Group>
@@ -716,6 +724,8 @@ function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut }) {
 
 function AppContent() {
   const [route, setRoute] = useState(readRoute);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [preferencesVersion, setPreferencesVersion] = useState(0);
   const { logout, user } = useAuth();
 
   useEffect(() => {
@@ -740,6 +750,18 @@ function AppContent() {
     navigate("/");
   }
 
+  function handleProfileClick() {
+    if (user) {
+      setPreferencesOpen(true);
+      return;
+    }
+    navigate("/signin");
+  }
+
+  function handlePreferencesSaved() {
+    setPreferencesVersion((current) => current + 1);
+  }
+
   return (
     <CheckoutProvider>
       <Box className="app-frame">
@@ -756,14 +778,23 @@ function AppContent() {
             navigate={navigate}
             isAuthRoute={isAuthRoute}
             onSignOut={signOut}
+            onProfileClick={handleProfileClick}
           />
         )}
+
+        <UserPreferencesModal
+          opened={preferencesOpen}
+          onClose={() => setPreferencesOpen(false)}
+          onSaved={handlePreferencesSaved}
+        />
 
         <Box component="main">
           <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
             {!isOrganizerRoute && (
               <>
-                {route.name === "browse" && <BrowsePage navigate={navigate} />}
+                {route.name === "browse" && (
+                  <BrowsePage navigate={navigate} preferencesVersion={preferencesVersion} />
+                )}
                 {route.name === "orders" && <OrdersPage navigate={navigate} />}
                 {route.name === "signin" && <LoginPage navigate={navigate} />}
                 {route.name === "signup" && <SignUpPage navigate={navigate} />}
