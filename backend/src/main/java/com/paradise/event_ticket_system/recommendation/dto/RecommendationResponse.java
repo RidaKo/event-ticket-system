@@ -4,6 +4,8 @@ import java.util.List;
 
 public record RecommendationResponse(
         List<RecommendedEventDto> items,
-        boolean fallbackUsed
+        boolean fallbackUsed,
+        /** True when results use a logged-in user's saved preferences (show "Recommended for you"). */
+        boolean personalized
 ) {
 }

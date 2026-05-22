@@ -55,10 +55,41 @@ class RecommendationServiceIntegrationTest {
         );
 
         assertNotNull(response);
+        assertTrue(response.personalized());
         assertFalse(response.fallbackUsed());
         assertFalse(response.items().isEmpty());
         assertTrue(response.items().stream().allMatch(item -> "SPORTS".equals(item.category())));
         assertTrue(response.items().stream().allMatch(item -> "Vilnius".equalsIgnoreCase(item.city())));
+    }
+
+    @Test
+    void anonymousUserIsNotPersonalized() {
+        RecommendationResponse response = recommendationService.recommend(
+                null,
+                new RecommendationFilters(Set.of(), Set.of(), null, null, null),
+                20
+        );
+
+        assertFalse(response.personalized());
+        assertFalse(response.fallbackUsed());
+        assertFalse(response.items().isEmpty());
+    }
+
+    @Test
+    void authenticatedUserWithoutPreferencesIsNotPersonalized() {
+        Integer organizerId = userRepository.findByEmailIgnoreCase("organizer@test.com")
+                .map(User::getId)
+                .orElse(null);
+        assertNotNull(organizerId);
+
+        RecommendationResponse response = recommendationService.recommend(
+                organizerId,
+                new RecommendationFilters(Set.of(), Set.of(), null, null, null),
+                20
+        );
+
+        assertFalse(response.personalized());
+        assertFalse(response.items().isEmpty());
     }
 
     @Test
@@ -108,9 +139,9 @@ class RecommendationServiceIntegrationTest {
     }
 
     @Test
-    void filteredRecommendationsEmptyWhenMultipleCategoriesSelected() {
+    void filteredRecommendationsMatchAnySelectedCategory() {
         RecommendationFilters filters = new RecommendationFilters(
-                Set.of("arts", "food"),
+                Set.of("music", "food"),
                 Set.of(),
                 null,
                 null,
@@ -125,7 +156,9 @@ class RecommendationServiceIntegrationTest {
 
         assertNotNull(response);
         assertFalse(response.fallbackUsed());
-        assertTrue(response.items().isEmpty());
+        assertFalse(response.items().isEmpty());
+        assertTrue(response.items().stream().allMatch(item ->
+                "MUSIC".equals(item.category()) || "FOOD".equals(item.category())));
     }
 
     @Test

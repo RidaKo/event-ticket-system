@@ -22,9 +22,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/events")
 public class RecommendationController {
 
-    /** Seeded demo user for preference-based scoring when the client is not authenticated. */
-    private static final String DEMO_USER_EMAIL = "alex@demo.local";
-
     private final RecommendationService recommendationService;
     private final UserRepository userRepository;
 
@@ -59,16 +56,14 @@ public class RecommendationController {
         return recommendationService.recommend(userId, filters, limit);
     }
 
-    /** Authenticated user when present; otherwise seeded demo user for local browse. */
+    /** Logged-in user only; anonymous callers get null (no demo-user fallback). */
     private Integer resolveUserId(Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             return userRepository.findByEmailIgnoreCase(authentication.getName())
                     .map(User::getId)
                     .orElse(null);
         }
-        return userRepository.findByEmailIgnoreCase(DEMO_USER_EMAIL)
-                .map(User::getId)
-                .orElse(null);
+        return null;
     }
 
     private Set<String> parseToLowerSlugs(List<String> raw) {

@@ -427,7 +427,7 @@ function FilterPanel({ draft, onDraftChange, onApply, onReset, catalog, catalogL
   );
 }
 
-function BrowsePage({ navigate, preferencesVersion }) {
+function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPreferences }) {
   const [draftFilters, setDraftFilters] = useState(createEmptyFilters);
   const [appliedFilters, setAppliedFilters] = useState(createEmptyFilters);
   const [catalog, setCatalog] = useState({ categories: [], tags: [] });
@@ -437,14 +437,19 @@ function BrowsePage({ navigate, preferencesVersion }) {
   const [recommendationsLoading, setRecommendationsLoading] = useState(true);
   const [recommendationsError, setRecommendationsError] = useState(false);
   const [fallbackUsed, setFallbackUsed] = useState(false);
+  const [personalized, setPersonalized] = useState(false);
 
-  const recommendedItems = eventItems.slice(0, RECOMMENDED_LIMIT);
-  const browseItems = eventItems.slice(RECOMMENDED_LIMIT);
+  const showRecommendations = personalized;
+  const recommendedItems = showRecommendations ? eventItems.slice(0, RECOMMENDED_LIMIT) : [];
+  const browseItems = showRecommendations ? eventItems.slice(RECOMMENDED_LIMIT) : eventItems;
   const showBrowseAllAboveHint =
+    showRecommendations &&
     !recommendationsLoading &&
     !recommendationsError &&
     browseItems.length === 0 &&
     recommendedItems.length > 0;
+  const showPreferencesPrompt =
+    isAuthenticated && !personalized && !recommendationsLoading && !recommendationsError;
 
   useEffect(() => {
     let cancelled = false;
@@ -488,6 +493,7 @@ function BrowsePage({ navigate, preferencesVersion }) {
         if (!cancelled) {
           setEventItems((response.items ?? []).map(mapRecommendedEvent));
           setFallbackUsed(Boolean(response.fallbackUsed));
+          setPersonalized(Boolean(response.personalized));
         }
       } catch {
         if (!cancelled) {
@@ -535,44 +541,63 @@ function BrowsePage({ navigate, preferencesVersion }) {
 
       <Grid.Col span={{ base: 12, md: 8, lg: 9 }}>
         <Stack gap="xl">
-          <section>
-            <Group justify="space-between" align="baseline" gap="md" mb="md">
-              <Title order={2} c="brand.9">
-                Recommended for you
-              </Title>
-              {!hasActiveFilters(appliedFilters) && (
+          {showPreferencesPrompt && (
+            <Paper radius="md" p="md" withBorder>
+              <Stack gap="sm">
+                <Text size="sm" c="brand.9" fw={600}>
+                  Personalize your recommendations
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Choose your favorite categories, tags, and home city using the profile icon in the header
+                  to see a Recommended for you section.
+                </Text>
+                <Button variant="light" color="brand" onClick={onSetPreferences} w="fit-content">
+                  Set preferences
+                </Button>
+              </Stack>
+            </Paper>
+          )}
+
+          {showRecommendations && (
+            <section>
+              <Group justify="space-between" align="baseline" gap="md" mb="md">
+                <Title order={2} c="brand.9">
+                  Recommended for you
+                </Title>
+                {!hasActiveFilters(appliedFilters) && (
+                  <Text c="dimmed" size="sm">
+                    {fallbackUsed ? "Showing popular upcoming events" : "Based on your preferences"}
+                  </Text>
+                )}
+              </Group>
+
+              {recommendationsLoading && (
                 <Text c="dimmed" size="sm">
-                  {fallbackUsed ? "Showing popular upcoming events" : "Based on your preferences"}
+                  Loading recommendations...
                 </Text>
               )}
-            </Group>
 
-            {recommendationsLoading && (
-              <Text c="dimmed" size="sm">
-                Loading recommendations...
-              </Text>
-            )}
+              {recommendationsError && !recommendationsLoading && (
+                <Text c="red" size="sm">
+                  Could not load recommendations. Please try again.
+                </Text>
+              )}
 
-            {recommendationsError && !recommendationsLoading && (
-              <Text c="red" size="sm">
-                Could not load recommendations. Please try again.
-              </Text>
-            )}
+              {!recommendationsLoading && !recommendationsError && recommendedItems.length === 0 && (
+                <Text c="dimmed" size="sm">
+                  No matches for the selected filters.
+                </Text>
+              )}
 
-            {!recommendationsLoading && !recommendationsError && recommendedItems.length === 0 && (
-              <Text c="dimmed" size="sm">
-                No matches for the selected filters.
-              </Text>
-            )}
-
-            {!recommendationsLoading && !recommendationsError && recommendedItems.length > 0 && (
-              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-                {recommendedItems.map((item) => (
-                  <EventCard key={item.id} event={item} navigate={navigate} />
-                ))}
-              </SimpleGrid>
-            )}
-          </section>
+              {!recommendationsLoading && !recommendationsError && recommendedItems.length > 0 && (
+                <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+                  {recommendedItems.map((item) => (
+                    <EventCard key={item.id} event={item} navigate={navigate} />
+                  ))}
+                </SimpleGrid>
+              )}
+            </section>
+          )}
 
           <section>
             <Group justify="space-between" align="baseline" gap="md" mb="md">
@@ -595,7 +620,9 @@ function BrowsePage({ navigate, preferencesVersion }) {
 
                 {!recommendationsLoading && !recommendationsError && browseItems.length === 0 && (
                   <Text c="dimmed" size="sm">
-                    No additional events match the selected filters.
+                    {showRecommendations
+                      ? "No additional events match the selected filters."
+                      : "No events match the selected filters."}
                   </Text>
                 )}
 
@@ -793,7 +820,12 @@ function AppContent() {
             {!isOrganizerRoute && (
               <>
                 {route.name === "browse" && (
-                  <BrowsePage navigate={navigate} preferencesVersion={preferencesVersion} />
+                  <BrowsePage
+                    navigate={navigate}
+                    preferencesVersion={preferencesVersion}
+                    isAuthenticated={Boolean(user)}
+                    onSetPreferences={() => setPreferencesOpen(true)}
+                  />
                 )}
                 {route.name === "orders" && <OrdersPage navigate={navigate} />}
                 {route.name === "signin" && <LoginPage navigate={navigate} />}

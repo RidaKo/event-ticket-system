@@ -57,6 +57,7 @@ public class RecommendationService {
         UserPreferences prefs = userId == null
                 ? null
                 : preferencesRepository.findByUserId(userId).orElse(null);
+        boolean personalized = hasSavedPreferences(prefs);
 
         List<Event> upcoming = eventRepository.findUpcomingDiscoverable(now, CheckoutCatalogRules.closedStatusNames());
 
@@ -78,7 +79,7 @@ public class RecommendationService {
 
         boolean fallbackUsed = false;
 
-        if (!hasActiveFilters && picks.size() < effectiveLimit) {
+        if (personalized && !hasActiveFilters && picks.size() < effectiveLimit) {
             fallbackUsed = true;
             Set<Integer> pickedIds = picks.stream().map(Event::getId).collect(Collectors.toSet());
             upcoming.stream()
@@ -92,7 +93,19 @@ public class RecommendationService {
                 .map(RecommendedEventDto::from)
                 .toList();
 
-        return new RecommendationResponse(items, fallbackUsed);
+        return new RecommendationResponse(items, fallbackUsed, personalized);
+    }
+
+    private static boolean hasSavedPreferences(UserPreferences prefs) {
+        if (prefs == null) {
+            return false;
+        }
+        boolean hasCategories = prefs.getPreferredCategories() != null
+                && !prefs.getPreferredCategories().isEmpty();
+        boolean hasTags = prefs.getPreferredTags() != null
+                && !prefs.getPreferredTags().isEmpty();
+        boolean hasCity = prefs.getHomeCity() != null && !prefs.getHomeCity().isBlank();
+        return hasCategories || hasTags || hasCity;
     }
 
     private boolean passesFilters(Event event, RecommendationFilters filters) {
@@ -112,7 +125,7 @@ public class RecommendationService {
         String slug = event.getCategory() == null
                 ? null
                 : event.getCategory().getSlug().toLowerCase(Locale.ROOT);
-        return slug != null && categorySlugs.stream().allMatch(slug::equals);
+        return slug != null && categorySlugs.stream().anyMatch(slug::equals);
     }
 
     private boolean matchesTags(Event event, Set<String> tagSlugs) {
