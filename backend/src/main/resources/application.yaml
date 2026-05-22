@@ -1,6 +1,11 @@
 spring:
   application:
     name: event-ticket-system
+  profiles:
+    default: local
+    group:
+      local:
+        - seed
   config:
     import: optional:classpath:application-local.yaml
   datasource:

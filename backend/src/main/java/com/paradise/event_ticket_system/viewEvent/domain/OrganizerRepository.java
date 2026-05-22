@@ -3,4 +3,8 @@ package com.paradise.event_ticket_system.viewEvent.domain;
 import com.paradise.event_ticket_system.model.Organizer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface OrganizerRepository extends JpaRepository<Organizer, Integer> {}
+import java.util.Optional;
+
+public interface OrganizerRepository extends JpaRepository<Organizer, Integer> {
+    Optional<Organizer> findByUser_Id(Integer userId);
+}

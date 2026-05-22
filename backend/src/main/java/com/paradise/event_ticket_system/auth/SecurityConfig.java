@@ -62,6 +62,7 @@ public class SecurityConfig {
                     reg
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/catalog/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/venues/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events/*/ticket-types").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/checkout/quote").permitAll()

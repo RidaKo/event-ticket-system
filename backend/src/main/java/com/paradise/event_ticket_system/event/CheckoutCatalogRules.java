@@ -3,6 +3,7 @@ package com.paradise.event_ticket_system.event;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.TicketType;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 
 public final class CheckoutCatalogRules {
@@ -10,6 +11,10 @@ public final class CheckoutCatalogRules {
     private static final Set<String> CLOSED_EVENT_STATUSES = Set.of("DRAFT", "CANCELED");
 
     private CheckoutCatalogRules() {
+    }
+
+    public static List<String> closedStatusNames() {
+        return CLOSED_EVENT_STATUSES.stream().map(String::toUpperCase).toList();
     }
 
     public static boolean isEventSalesEnabled(Event event) {

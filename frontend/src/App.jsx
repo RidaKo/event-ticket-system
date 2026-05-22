@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   ActionIcon,
-  Alert,
   AspectRatio,
   Badge,
   Box,
@@ -12,7 +11,6 @@ import {
   Grid,
   Group,
   Image,
-  Loader,
   Paper,
   Pill,
   SimpleGrid,
@@ -24,7 +22,6 @@ import {
   Title,
 } from "@mantine/core";
 import ticketLogo from "./assets/ticket_small.png";
-import { getEvents } from "./api/eventsApi.js";
 import CheckoutAccountPage from "./pages/CheckoutAccountPage.jsx";
 import EventDetailsPage from "./pages/EventDetailsPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
@@ -32,8 +29,15 @@ import SignUpPage from "./pages/SignUpPage.jsx";
 import TicketSelectionPage from "./pages/TicketSelectionPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
+import { getCatalog } from "./api/catalog.js";
+import { getRecommendedEvents } from "./api/recommendations.js";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
+import { createEmptyFilters, hasActiveFilters, normalizeFilters } from "./lib/catalog.js";
+import { dateRangeToFilters, filtersToDateRange } from "./lib/dateFilters.js";
+import { mapRecommendedEvent } from "./lib/recommendations.js";
+import { DatePickerInput } from "@mantine/dates";
 import { AuthProvider, useAuth } from "./state/AuthContext.jsx";
+import UserPreferencesModal from "./components/UserPreferencesModal.jsx";
 
 import CreateEventPage from "./pages/Organizer/CreateEventPage.jsx";
 import OrganizerTopbar from "./components/OrganizerTopbar";
@@ -43,13 +47,10 @@ import OrganizerDashboardPage from "./pages/Organizer/OrganizerDashboardPage";
 import OrganizerEventsPage from "./pages/Organizer/OrganizerEventsPage.jsx";
 import CreateVenuePage from "./pages/Organizer/CreateVenuePage";
 
-import { demoBrowseEvents, demoRecommendedEvents } from "./data/demoEvents.js";
-
 
 const checkoutEventId = 1;
-const useDemoEvents = import.meta.env.VITE_USE_DEMO_EVENTS === "true";
-const categories = ["Music", "Sports", "Arts", "Technology", "Food"];
-const tags = ["Outdoor", "Family", "Networking", "Educational"];
+const RECOMMENDED_LIMIT = 6;
+const TOTAL_FETCH_LIMIT = 20;
 
 function readRoute() {
   const path = window.location.pathname;
@@ -164,41 +165,6 @@ function handleCardKeyDown(event, open) {
   }
 }
 
-function formatBrowseDate(value) {
-  if (!value) {
-    return "Date to be announced";
-  }
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(new Date(value));
-}
-
-function mapApiEvent(event) {
-  return {
-    ...event,
-    date: formatBrowseDate(event.startDatetime),
-    venue: event.venueName || event.venue?.name || "Venue to be announced",
-    tag: event.categoryName || "Event",
-    category: event.city || event.venue?.city || "Featured",
-  };
-}
-
-function sortByPopularity(events) {
-  return [...events].sort((left, right) => {
-    const ratingDiff = Number(right.averageRating || 0) - Number(left.averageRating || 0);
-    if (ratingDiff !== 0) {
-      return ratingDiff;
-    }
-    return Number(right.reviewCount || 0) - Number(left.reviewCount || 0);
-  });
-}
-
-function sortByDate(events) {
-  return [...events].sort((left, right) => new Date(left.startDatetime || 0) - new Date(right.startDatetime || 0));
-}
-
 function EventCard({ event, navigate }) {
   const open = () => navigate(`/events/${event.id}`);
   return (
@@ -246,9 +212,11 @@ function EventCard({ event, navigate }) {
         </Text>
 
         <Group gap="xs" mt="auto">
-          <Badge radius="sm" variant="light" color="brand">
-            {event.tag}
-          </Badge>
+          {(event.tags?.length ? event.tags : [event.tag]).map((label) => (
+            <Badge key={`${event.id}-${label}`} radius="sm" variant="light" color="brand">
+              {label}
+            </Badge>
+          ))}
           <Badge radius="sm" variant="light" color="gray">
             {event.category}
           </Badge>
@@ -305,10 +273,12 @@ function BrowseCard({ event, navigate }) {
                 <BookmarkIcon />
               </ActionIcon>
             </Group>
-            <Group>
-              <Badge radius="sm" variant="light" color="brand">
-                {event.tag}
-              </Badge>
+            <Group gap="xs">
+              {(event.tags?.length ? event.tags : [event.tag]).map((label) => (
+                <Badge key={`${event.id}-${label}`} radius="sm" variant="light" color="brand">
+                  {label}
+                </Badge>
+              ))}
             </Group>
           </Stack>
         </Grid.Col>
@@ -317,7 +287,21 @@ function BrowseCard({ event, navigate }) {
   );
 }
 
-function FilterPanel() {
+function FilterPanel({ draft, onDraftChange, onApply, onReset, catalog, catalogLoading, catalogError }) {
+  function toggleInArray(key, item) {
+    onDraftChange((current) => {
+      const exists = current[key].includes(item);
+      return {
+        ...current,
+        [key]: exists ? current[key].filter((value) => value !== item) : [...current[key], item],
+      };
+    });
+  }
+
+  function setField(key, value) {
+    onDraftChange((current) => ({ ...current, [key]: value }));
+  }
+
   return (
     <Paper className="filter-card" radius="md" withBorder>
       <Box>
@@ -333,12 +317,28 @@ function FilterPanel() {
               Category
             </Text>
             <Group gap="xs">
-              {categories.map((item) => (
-                <Pill key={item} size="sm">
-                  {item}
+              {(catalog.categories ?? []).map((item) => (
+                <Pill
+                  key={item.value}
+                  size="sm"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => toggleInArray("categories", item.value)}
+                  bg={draft.categories.includes(item.value) ? "var(--mantine-color-brand-1)" : undefined}
+                >
+                  {item.label}
                 </Pill>
               ))}
             </Group>
+            {catalogLoading && (
+              <Text size="xs" c="dimmed">
+                Loading categories...
+              </Text>
+            )}
+            {catalogError && (
+              <Text size="xs" c="red">
+                Could not load categories.
+              </Text>
+            )}
           </Stack>
 
           <Stack gap="xs">
@@ -346,36 +346,80 @@ function FilterPanel() {
               Interest Tags
             </Text>
             <Group gap="xs">
-              {tags.map((item) => (
-                <Pill key={item} size="sm">
-                  {item}
+              {(catalog.tags ?? []).map((item) => (
+                <Pill
+                  key={item.slug}
+                  size="sm"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => toggleInArray("tags", item.slug)}
+                  bg={draft.tags.includes(item.slug) ? "var(--mantine-color-brand-1)" : undefined}
+                >
+                  {item.label}
                 </Pill>
               ))}
             </Group>
+            {catalogLoading && (
+              <Text size="xs" c="dimmed">
+                Loading tags...
+              </Text>
+            )}
+            {catalogError && (
+              <Text size="xs" c="red">
+                Could not load tags.
+              </Text>
+            )}
           </Stack>
 
-          <Stack gap="xs">
-            <Text className="filter-label" size="xs" fw="bold" c="dimmed" tt="uppercase">
-              Date Range
-            </Text>
-            <TextInput placeholder="Start date" variant="filled" />
-            <TextInput placeholder="End date" variant="filled" />
+          <Stack gap="xs" className="filter-date-range">
+            <DatePickerInput
+              type="range"
+              label="Select event date"
+              placeholder="Select event date"
+              value={filtersToDateRange(draft)}
+              onChange={(range) =>
+                onDraftChange((current) => ({
+                  ...current,
+                  ...dateRangeToFilters(range),
+                }))
+              }
+              valueFormat="MMM D, YYYY"
+              numberOfColumns={1}
+              clearable
+              allowSingleDateInRange
+              popoverProps={{ withinPortal: true, classNames: { dropdown: "filter-date-dropdown" } }}
+              classNames={{ input: "filter-date-input" }}
+              styles={{
+                label: {
+                  fontSize: "var(--mantine-font-size-xs)",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  color: "var(--mantine-color-dimmed)",
+                },
+              }}
+            />
           </Stack>
 
           <Stack gap="xs">
             <Text className="filter-label" size="xs" fw="bold" c="dimmed" tt="uppercase">
               Location
             </Text>
-            <TextInput placeholder="City or venue" variant="filled" />
+            <TextInput
+              value={draft.location}
+              onChange={(event) => setField("location", event.currentTarget.value)}
+              placeholder="City or venue"
+              variant="filled"
+            />
           </Stack>
 
           <Divider color="brand.1" />
 
           <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="sm">
-            <Button variant="light" color="gray">
+            <Button variant="light" color="gray" onClick={onReset}>
               Reset
             </Button>
-            <Button color="brand">Apply</Button>
+            <Button color="brand" onClick={onApply}>
+              Apply
+            </Button>
           </SimpleGrid>
         </Box>
       </Box>
@@ -383,98 +427,177 @@ function FilterPanel() {
   );
 }
 
-function BrowsePage({ navigate }) {
-  const [events, setEvents] = useState([]);
-  const [loadingEvents, setLoadingEvents] = useState(true);
-  const [eventsError, setEventsError] = useState("");
+function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPreferences }) {
+  const [draftFilters, setDraftFilters] = useState(createEmptyFilters);
+  const [appliedFilters, setAppliedFilters] = useState(createEmptyFilters);
+  const [catalog, setCatalog] = useState({ categories: [], tags: [] });
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState(false);
+  const [eventItems, setEventItems] = useState([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(true);
+  const [recommendationsError, setRecommendationsError] = useState(false);
+  const [fallbackUsed, setFallbackUsed] = useState(false);
+  const [personalized, setPersonalized] = useState(false);
+
+  const showRecommendations = personalized;
+  const recommendedItems = showRecommendations ? eventItems.slice(0, RECOMMENDED_LIMIT) : [];
+  const browseItems = showRecommendations ? eventItems.slice(RECOMMENDED_LIMIT) : eventItems;
+  const showBrowseAllAboveHint =
+    showRecommendations &&
+    !recommendationsLoading &&
+    !recommendationsError &&
+    browseItems.length === 0 &&
+    recommendedItems.length > 0;
+  const showPreferencesPrompt =
+    isAuthenticated && !personalized && !recommendationsLoading && !recommendationsError;
 
   useEffect(() => {
-    let active = true;
-    setLoadingEvents(true);
-    setEventsError("");
+    let cancelled = false;
 
-    getEvents()
-      .then((data) => {
-        if (!active) {
-          return;
+    async function loadCatalog() {
+      setCatalogLoading(true);
+      setCatalogError(false);
+      try {
+        const data = await getCatalog();
+        if (!cancelled) {
+          setCatalog(data);
         }
-        setEvents(Array.isArray(data) ? data.map(mapApiEvent) : []);
-      })
-      .catch((err) => {
-        if (active) {
-          setEvents([]);
-          setEventsError(err.message || "Unable to load events.");
+      } catch {
+        if (!cancelled) {
+          setCatalogError(true);
         }
-      })
-      .finally(() => active && setLoadingEvents(false));
+      } finally {
+        if (!cancelled) {
+          setCatalogLoading(false);
+        }
+      }
+    }
 
+    loadCatalog();
     return () => {
-      active = false;
+      cancelled = true;
     };
   }, []);
 
-  const hasApiEvents = events.length > 0;
-  const showDemoEvents = useDemoEvents && !loadingEvents && !hasApiEvents;
-  const popularEvents = hasApiEvents ? sortByPopularity(events).slice(0, 6) : showDemoEvents ? demoRecommendedEvents : [];
-  const popularEventIds = new Set(popularEvents.map((event) => event.id));
-  const listedEvents = hasApiEvents
-    ? sortByDate(events).filter((event) => !popularEventIds.has(event.id))
-    : showDemoEvents
-      ? demoBrowseEvents
-      : [];
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRecommendations() {
+      setRecommendationsLoading(true);
+      setRecommendationsError(false);
+      try {
+        const response = await getRecommendedEvents({
+          ...appliedFilters,
+          limit: TOTAL_FETCH_LIMIT,
+        });
+        if (!cancelled) {
+          setEventItems((response.items ?? []).map(mapRecommendedEvent));
+          setFallbackUsed(Boolean(response.fallbackUsed));
+          setPersonalized(Boolean(response.personalized));
+        }
+      } catch {
+        if (!cancelled) {
+          setRecommendationsError(true);
+          setEventItems([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setRecommendationsLoading(false);
+        }
+      }
+    }
+
+    loadRecommendations();
+    return () => {
+      cancelled = true;
+    };
+  }, [appliedFilters, preferencesVersion]);
+
+  function handleApplyFilters() {
+    const normalized = normalizeFilters(draftFilters);
+    setDraftFilters(normalized);
+    setAppliedFilters(normalized);
+  }
+
+  function handleResetFilters() {
+    const empty = createEmptyFilters();
+    setDraftFilters(empty);
+    setAppliedFilters(empty);
+  }
 
   return (
     <Grid gutter="lg" align="flex-start">
       <Grid.Col span={{ base: 12, md: 4, lg: 3 }}>
-        <FilterPanel />
+        <FilterPanel
+          draft={draftFilters}
+          onDraftChange={setDraftFilters}
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+          catalog={catalog}
+          catalogLoading={catalogLoading}
+          catalogError={catalogError}
+        />
       </Grid.Col>
 
       <Grid.Col span={{ base: 12, md: 8, lg: 9 }}>
         <Stack gap="xl">
-          {eventsError && (
-            <Alert color="red" variant="light">
-              Unable to load events from the API: {eventsError}
-              {showDemoEvents ? " Showing demo events because VITE_USE_DEMO_EVENTS is enabled." : ""}
-            </Alert>
-          )}
-
-          {!eventsError && showDemoEvents && (
-            <Alert color="blue" variant="light">
-              Showing demo events because VITE_USE_DEMO_EVENTS is enabled.
-            </Alert>
-          )}
-
-          <section>
-            <Group justify="space-between" align="baseline" gap="md" mb="md">
-              <Title order={2} c="brand.9">
-                Popular Events
-              </Title>
-              <Text c="dimmed" size="sm">
-                Highest rated events
-              </Text>
-            </Group>
-
-            {loadingEvents && (
-              <Group gap="sm" mb="md">
-                <Loader size="sm" color="brand" />
-                <Text c="dimmed" size="sm">
-                  Loading events...
+          {showPreferencesPrompt && (
+            <Paper radius="md" p="md" withBorder>
+              <Stack gap="sm">
+                <Text size="sm" c="brand.9" fw={600}>
+                  Personalize your recommendations
                 </Text>
+                <Text size="sm" c="dimmed">
+                  Choose your favorite categories, tags, and home city using the profile icon in the header
+                  to see a Recommended for you section.
+                </Text>
+                <Button variant="light" color="brand" onClick={onSetPreferences} w="fit-content">
+                  Set preferences
+                </Button>
+              </Stack>
+            </Paper>
+          )}
+
+          {showRecommendations && (
+            <section>
+              <Group justify="space-between" align="baseline" gap="md" mb="md">
+                <Title order={2} c="brand.9">
+                  Recommended for you
+                </Title>
+                {!hasActiveFilters(appliedFilters) && (
+                  <Text c="dimmed" size="sm">
+                    {fallbackUsed ? "Showing popular upcoming events" : "Based on your preferences"}
+                  </Text>
+                )}
               </Group>
-            )}
 
-            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-              {popularEvents.map((item) => (
-                <EventCard key={item.id} event={item} navigate={navigate} />
-              ))}
-            </SimpleGrid>
+              {recommendationsLoading && (
+                <Text c="dimmed" size="sm">
+                  Loading recommendations...
+                </Text>
+              )}
 
-            {!loadingEvents && popularEvents.length === 0 && (
-              <Text c="dimmed" size="sm" mt="md">
-                No popular events are available.
-              </Text>
-            )}
-          </section>
+              {recommendationsError && !recommendationsLoading && (
+                <Text c="red" size="sm">
+                  Could not load recommendations. Please try again.
+                </Text>
+              )}
+
+              {!recommendationsLoading && !recommendationsError && recommendedItems.length === 0 && (
+                <Text c="dimmed" size="sm">
+                  No matches for the selected filters.
+                </Text>
+              )}
+
+              {!recommendationsLoading && !recommendationsError && recommendedItems.length > 0 && (
+                <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+                  {recommendedItems.map((item) => (
+                    <EventCard key={item.id} event={item} navigate={navigate} />
+                  ))}
+                </SimpleGrid>
+              )}
+            </section>
+          )}
 
           <section>
             <Group justify="space-between" align="baseline" gap="md" mb="md">
@@ -483,16 +606,33 @@ function BrowsePage({ navigate }) {
               </Title>
             </Group>
 
-            <Stack gap="sm">
-              {listedEvents.map((item) => (
-                <BrowseCard key={item.id} event={item} navigate={navigate} />
-              ))}
-              {!loadingEvents && listedEvents.length === 0 && (
-                <Text c="dimmed" size="sm">
-                  No additional events are available.
-                </Text>
-              )}
-            </Stack>
+            {showBrowseAllAboveHint ? (
+              <Text c="dimmed" size="sm" ta="center">
+                All matching events are shown above.
+              </Text>
+            ) : (
+              <Stack gap="sm">
+                {recommendationsLoading && (
+                  <Text c="dimmed" size="sm">
+                    Loading events...
+                  </Text>
+                )}
+
+                {!recommendationsLoading && !recommendationsError && browseItems.length === 0 && (
+                  <Text c="dimmed" size="sm">
+                    {showRecommendations
+                      ? "No additional events match the selected filters."
+                      : "No events match the selected filters."}
+                  </Text>
+                )}
+
+                {!recommendationsLoading &&
+                  !recommendationsError &&
+                  browseItems.map((item) => (
+                    <BrowseCard key={item.id} event={item} navigate={navigate} />
+                  ))}
+              </Stack>
+            )}
           </section>
         </Stack>
       </Grid.Col>
@@ -544,7 +684,7 @@ function OrdersPage({ navigate }) {
   );
 }
 
-function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut }) {
+function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut, onProfileClick }) {
   return (
     <Box component="header" className="topbar">
       <Container size="xl" px={{ base: "md", sm: "xl" }} py="sm">
@@ -592,7 +732,14 @@ function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut }) {
                 Sign in
               </Button>
             )}
-            <ActionIcon size="lg" radius="xl" variant="filled" color="brand" aria-label="Profile">
+            <ActionIcon
+              size="lg"
+              radius="xl"
+              variant="filled"
+              color="brand"
+              aria-label={currentUser ? "Edit recommendation preferences" : "Sign in"}
+              onClick={onProfileClick}
+            >
               <ProfileIcon />
             </ActionIcon>
           </Group>
@@ -604,6 +751,8 @@ function Topbar({ activeTab, currentUser, isAuthRoute, navigate, onSignOut }) {
 
 function AppContent() {
   const [route, setRoute] = useState(readRoute);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [preferencesVersion, setPreferencesVersion] = useState(0);
   const { logout, user } = useAuth();
 
   useEffect(() => {
@@ -628,6 +777,18 @@ function AppContent() {
     navigate("/");
   }
 
+  function handleProfileClick() {
+    if (user) {
+      setPreferencesOpen(true);
+      return;
+    }
+    navigate("/signin");
+  }
+
+  function handlePreferencesSaved() {
+    setPreferencesVersion((current) => current + 1);
+  }
+
   return (
     <CheckoutProvider>
       <Box className="app-frame">
@@ -644,14 +805,28 @@ function AppContent() {
             navigate={navigate}
             isAuthRoute={isAuthRoute}
             onSignOut={signOut}
+            onProfileClick={handleProfileClick}
           />
         )}
+
+        <UserPreferencesModal
+          opened={preferencesOpen}
+          onClose={() => setPreferencesOpen(false)}
+          onSaved={handlePreferencesSaved}
+        />
 
         <Box component="main">
           <Container size="xl" px={{ base: "md", sm: "xl" }} py={{ base: "lg", sm: "xl" }}>
             {!isOrganizerRoute && (
               <>
-                {route.name === "browse" && <BrowsePage navigate={navigate} />}
+                {route.name === "browse" && (
+                  <BrowsePage
+                    navigate={navigate}
+                    preferencesVersion={preferencesVersion}
+                    isAuthenticated={Boolean(user)}
+                    onSetPreferences={() => setPreferencesOpen(true)}
+                  />
+                )}
                 {route.name === "orders" && <OrdersPage navigate={navigate} />}
                 {route.name === "signin" && <LoginPage navigate={navigate} />}
                 {route.name === "signup" && <SignUpPage navigate={navigate} />}

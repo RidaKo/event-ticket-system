@@ -114,6 +114,29 @@ body {
   gap: var(--mantine-spacing-xl);
 }
 
+.filter-date-range .filter-date-input {
+  min-block-size: 2.75rem;
+  font-weight: 500;
+}
+
+.filter-date-dropdown {
+  border-color: var(--mantine-color-brand-2);
+  box-shadow: var(--mantine-shadow-md);
+}
+
+.filter-date-dropdown .mantine-DatePicker-calendarHeader {
+  margin-block-end: var(--mantine-spacing-xs);
+}
+
+.filter-date-dropdown .mantine-DatePicker-day[data-selected] {
+  background: var(--mantine-color-brand-7);
+}
+
+.filter-date-dropdown .mantine-DatePicker-day[data-in-range] {
+  background: var(--mantine-color-brand-1);
+  color: var(--mantine-color-brand-9);
+}
+
 .account-choice {
   display: block;
   inline-size: 100%;

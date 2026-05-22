@@ -14,17 +14,19 @@ The backend runs on `http://localhost:8080`. It serves APIs under `/api`. A quic
 http://localhost:8080/api/events/1
 ```
 
-#### Optional seed data
+#### Seed data (local default)
 
-By default, only the core schema migrations run. To load sample data, start the backend with the `seed` profile so Flyway also runs the optional seed scripts.
+Local runs use the `local` profile group, which includes `seed` and loads demo data from `db/seed/R__seed_data.sql` (checkout sample, recommendation tags/events, demo user).
 
-Example from the backend folder:
+To start **without** demo data (schema only), set:
 
 ```bash
-./gradlew bootRun --args='--spring.profiles.active=seed'
+SPRING_PROFILES_ACTIVE=
 ```
 
-#### Seed accounts
+or pass `--spring.profiles.active=` to Gradle.
+
+#### Seed accounts (with the `seed` profile)
 
 With the `seed` profile, the SQL seed script creates two pre-seeded login accounts:
 

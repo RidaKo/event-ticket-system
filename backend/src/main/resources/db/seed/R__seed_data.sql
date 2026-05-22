@@ -1,3 +1,11 @@
+-- Interest tags for recommendations and catalog
+INSERT INTO tags (slug, label) VALUES
+    ('outdoor', 'Outdoor'),
+    ('family', 'Family'),
+    ('networking', 'Networking'),
+    ('educational', 'Educational');
+
+-- Checkout flow sample data (event id 1 is referenced by the frontend checkout demo)
 INSERT INTO users (email, password_hash, full_name, phone, is_guest, role, created_at, updated_at)
 VALUES ('organizer@test.com', '$2a$10$53HKqqQwkF1Vzc5FvrAYJ.oWJh01Yr98YgM.z0Rl0HqDk4sS.uYja', 'John Organizer', '+37061234567', FALSE, 'ORGANIZER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('admin@test.com', '$2a$10$BGZoiLhiJom/dHI7ZZKhqekxuTYHuSMplPSWjYIzn36ciL5EMLBUS', 'Site Admin', '+37061234500', FALSE, 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -15,8 +23,7 @@ VALUES ('Music', 'music', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('Sports', 'sports', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('Arts', 'arts', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        ('Technology', 'technology', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('Food', 'food', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       ('Family', 'family', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+       ('Food', 'food', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO venues (organizer_id, name, address_line1, city, country, rating, created_at, updated_at)
 VALUES (1, 'Grand Hall', 'Gedimino pr. 1', 'Vilnius', 'LT', 4.50, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -49,7 +56,7 @@ VALUES (1, 1, 1, 'Summer Fest', 'summer-fest', 'The biggest summer festival in V
        (1, 10, 2, 'Junior Football Camp', 'junior-football-camp', 'A weekend skills camp for young players with coaches, drills, and friendly matches.', 'PUBLISHED', '2026-06-27 09:00:00', '2026-06-27 15:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 11, 4, 'Cloud Engineering Forum', 'cloud-engineering-forum', 'Talks and panels covering platform engineering, observability, security, and cloud cost control.', 'PUBLISHED', '2026-06-30 09:30:00', '2026-06-30 17:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 12, 5, 'Street Food Showcase', 'street-food-showcase', 'A tasting event featuring food trucks, chefs, local drinks, and market specials.', 'PUBLISHED', '2026-07-03 12:00:00', '2026-07-03 20:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 13, 6, 'Garden Family Picnic', 'garden-family-picnic', 'A relaxed family day with music, garden games, workshops, and picnic baskets.', 'PUBLISHED', '2026-07-05 10:00:00', '2026-07-05 16:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 13, 5, 'Garden Family Picnic', 'garden-family-picnic', 'A relaxed family day with music, garden games, workshops, and picnic baskets.', 'PUBLISHED', '2026-07-05 10:00:00', '2026-07-05 16:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 14, 3, 'Indie Film Premiere', 'indie-film-premiere', 'A local film premiere with director Q&A, terrace seating, and after-screening discussion.', 'PUBLISHED', '2026-07-10 19:00:00', '2026-07-10 22:30:00', 'Europe/Vilnius', 16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 15, 1, 'Lakeside Electronic Live', 'lakeside-electronic-live', 'A lakeside electronic music show with live synths, visuals, and sunset sets.', 'PUBLISHED', '2026-07-18 18:00:00', '2026-07-18 23:45:00', 'Europe/Vilnius', 18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (1, 16, 5, 'Night Market Live', 'night-market-live', 'An evening market with live DJs, small plates, dessert stands, and late-night shopping.', 'PUBLISHED', '2026-07-24 18:00:00', '2026-07-24 23:00:00', 'Europe/Vilnius', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
@@ -143,3 +150,143 @@ VALUES (3, 1, 1, 4.50, 'Amazing event!', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (5, 15, 15, 4.80, 'Visuals and sound were excellent.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (6, 16, 16, 4.50, 'Fun food selection and good late-night energy.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
        (7, 16, 16, 4.40, 'Easygoing crowd and quick service at the stands.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Recommendations demo user, venues, published events, and preferences
+INSERT INTO users (email, password_hash, full_name, phone, is_guest, role, created_at, updated_at)
+VALUES ('alex@demo.local', 'hash', 'Alex Demo', NULL, FALSE, 'USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO organizers (user_id, business_name, description, verified, created_at, updated_at)
+VALUES (8, 'Paradise Events', 'Demo organizer for recommendations', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO venues (organizer_id, name, address_line1, city, country, created_at, updated_at) VALUES
+    (2, 'Loftas', 'Loftas', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Santaka Park', 'Santaka Park', 'Kaunas', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Philharmonic Hall', 'Philharmonic Hall', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'City Centre', 'City Centre', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Zalgirio Arena', 'Zalgirio Arena', 'Kaunas', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Trakai Forest', 'Trakai Forest', 'Trakai', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'MO Museum', 'MO Museum', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Uzupis District', 'Uzupis District', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Craft House', 'Craft House', 'Kaunas', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Tech Park', 'Tech Park', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Radisson Blu', 'Radisson Blu', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'KTU Startup Space', 'KTU Startup Space', 'Kaunas', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Cathedral Square', 'Cathedral Square', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Culinary Studio', 'Culinary Studio', 'Vilnius', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 'Old Cellar', 'Old Cellar', 'Klaipeda', 'LT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO events (organizer_id, venue_id, category_id, title, slug, description, status, start_datetime, end_datetime, timezone, created_at, updated_at) VALUES
+    (2, 17, (SELECT id FROM categories WHERE slug = 'music'), 'Jazz Night at Loftas', 'jazz-night-at-loftas', 'An intimate evening with local and touring jazz quartets.', 'PUBLISHED', DATEADD('DAY', 3, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 3, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 18, (SELECT id FROM categories WHERE slug = 'music'), 'Open-Air Rock Festival', 'open-air-rock-festival', 'Three stages, a dozen bands, one unforgettable night under the stars.', 'PUBLISHED', DATEADD('DAY', 8, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 8, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 19, (SELECT id FROM categories WHERE slug = 'music'), 'Chamber Music Sunday', 'chamber-music-sunday', 'A cozy afternoon of Bach, Mozart and Ravel performed by the city quartet.', 'PUBLISHED', DATEADD('DAY', 21, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 21, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 20, (SELECT id FROM categories WHERE slug = 'sports'), 'City Marathon 2026', 'city-marathon-2026', 'Join 8,000 runners across the city''s most scenic route.', 'PUBLISHED', DATEADD('DAY', 10, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 10, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 21, (SELECT id FROM categories WHERE slug = 'sports'), 'Basketball Derby Night', 'basketball-derby-night', 'The rivalry continues at full capacity.', 'PUBLISHED', DATEADD('DAY', 5, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 5, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 22, (SELECT id FROM categories WHERE slug = 'sports'), 'Sunrise Trail Run', 'sunrise-trail-run', 'A guided 10k trail run through the forest at dawn.', 'PUBLISHED', DATEADD('DAY', 14, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 14, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 23, (SELECT id FROM categories WHERE slug = 'arts'), 'Contemporary Art Opening', 'contemporary-art-opening', 'Opening night of the new season''s contemporary art exhibition.', 'PUBLISHED', DATEADD('DAY', 2, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 2, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 24, (SELECT id FROM categories WHERE slug = 'arts'), 'Street Art Walking Tour', 'street-art-walking-tour', 'A guided stroll through the city''s most striking murals and installations.', 'PUBLISHED', DATEADD('DAY', 12, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 12, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 25, (SELECT id FROM categories WHERE slug = 'arts'), 'Pottery Workshop for Beginners', 'pottery-workshop-for-beginners', 'Hands-on introduction to the wheel.', 'PUBLISHED', DATEADD('DAY', 18, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 18, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 26, (SELECT id FROM categories WHERE slug = 'technology'), 'AI Builders Meetup', 'ai-builders-meetup', 'Lightning talks and demos from local AI engineers.', 'PUBLISHED', DATEADD('DAY', 4, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 4, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 27, (SELECT id FROM categories WHERE slug = 'technology'), 'DevOps Summit 2026', 'devops-summit-2026', 'A full day of talks on platform engineering, SRE and observability.', 'PUBLISHED', DATEADD('DAY', 25, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 25, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 28, (SELECT id FROM categories WHERE slug = 'technology'), 'Startup Pitch Night', 'startup-pitch-night', 'Ten early-stage startups pitch to a panel of local investors.', 'PUBLISHED', DATEADD('DAY', 9, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 9, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 29, (SELECT id FROM categories WHERE slug = 'food'), 'Street Food Festival', 'street-food-festival', 'Food trucks, craft beer and live music in the old town square.', 'PUBLISHED', DATEADD('DAY', 6, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 6, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 30, (SELECT id FROM categories WHERE slug = 'food'), 'Pasta Masterclass', 'pasta-masterclass', 'Learn to make three classic handmade pastas from scratch.', 'PUBLISHED', DATEADD('DAY', 15, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 15, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    (2, 31, (SELECT id FROM categories WHERE slug = 'food'), 'Wine Tasting Evening', 'wine-tasting-evening', 'A sommelier-led tasting across six regions of Italy.', 'PUBLISHED', DATEADD('DAY', 20, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 20, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug = 'networking'
+WHERE e.slug = 'jazz-night-at-loftas';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('outdoor', 'family')
+WHERE e.slug = 'open-air-rock-festival';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug = 'family'
+WHERE e.slug = 'chamber-music-sunday';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('outdoor', 'family')
+WHERE e.slug = 'city-marathon-2026';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug = 'outdoor'
+WHERE e.slug = 'sunrise-trail-run';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('networking', 'educational')
+WHERE e.slug = 'contemporary-art-opening';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('outdoor', 'educational')
+WHERE e.slug = 'street-art-walking-tour';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('family', 'educational')
+WHERE e.slug = 'pottery-workshop-for-beginners';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('networking', 'educational')
+WHERE e.slug = 'ai-builders-meetup';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('networking', 'educational')
+WHERE e.slug = 'devops-summit-2026';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug = 'networking'
+WHERE e.slug = 'startup-pitch-night';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('outdoor', 'family')
+WHERE e.slug = 'street-food-festival';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug IN ('educational', 'family')
+WHERE e.slug = 'pasta-masterclass';
+
+INSERT INTO event_tags (event_id, tag_id)
+SELECT e.id, t.id
+FROM events e
+JOIN tags t ON t.slug = 'networking'
+WHERE e.slug = 'wine-tasting-evening';
+
+INSERT INTO user_preferences (user_id, home_city, created_at, updated_at)
+VALUES (8, 'Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO user_preferred_categories (preferences_id, category_id)
+SELECT p.id, c.id
+FROM user_preferences p
+JOIN categories c ON c.slug IN ('music', 'technology')
+WHERE p.user_id = 8;
+
+INSERT INTO user_preferred_tags (preferences_id, tag_id)
+SELECT p.id, t.id
+FROM user_preferences p
+JOIN tags t ON t.slug IN ('outdoor', 'networking')
+WHERE p.user_id = 8;
