@@ -12,6 +12,9 @@ import com.paradise.event_ticket_system.model.Venue;
 import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Payment;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
+import com.paradise.event_ticket_system.admission.TicketIssuanceService;
+import com.paradise.event_ticket_system.admission.TicketRepository;
+import com.paradise.event_ticket_system.model.Ticket;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
 import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationService;
 import com.paradise.event_ticket_system.order.OrderStatus;
@@ -53,6 +56,8 @@ public class CheckoutService {
     private final PaymentService paymentService;
     private final UserRepository userRepository;
     private final PurchaseConfirmationService purchaseConfirmationService;
+    private final TicketIssuanceService ticketIssuanceService;
+    private final TicketRepository ticketRepository;
 
     public CheckoutService(
             CheckoutEventRepository eventRepository,
@@ -62,7 +67,9 @@ public class CheckoutService {
             PaymentRepository paymentRepository,
             PaymentService paymentService,
             UserRepository userRepository,
-            PurchaseConfirmationService purchaseConfirmationService
+            PurchaseConfirmationService purchaseConfirmationService,
+            TicketIssuanceService ticketIssuanceService,
+            TicketRepository ticketRepository
     ) {
         this.eventRepository = eventRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -72,6 +79,8 @@ public class CheckoutService {
         this.paymentService = paymentService;
         this.userRepository = userRepository;
         this.purchaseConfirmationService = purchaseConfirmationService;
+        this.ticketIssuanceService = ticketIssuanceService;
+        this.ticketRepository = ticketRepository;
     }
 
     @Transactional(readOnly = true)
@@ -237,6 +246,7 @@ public class CheckoutService {
         order.setConfirmedAt(LocalDateTime.now());
         order.setPayment(payment);
         paymentRepository.save(payment);
+        ticketIssuanceService.issueForOrder(order);
         purchaseConfirmationService.handle(new PurchaseConfirmationRequest(order.getOrderNumber()));
 
         return new PaymentResponse(order.getOrderNumber(), order.getStatus(), payment.getStatus());
@@ -252,6 +262,9 @@ public class CheckoutService {
         Event event = order.getEvent();
         Venue venue = event.getVenue();
         Payment payment = order.getPayment();
+        List<IssuedTicketResponse> tickets = ticketRepository.findByPurchaseOrderIdOrderByIdAsc(order.getId()).stream()
+                .map(this::toIssuedTicketResponse)
+                .toList();
         return new ConfirmationResponse(
                 order.getOrderNumber(),
                 order.getStatus(),
@@ -271,7 +284,8 @@ public class CheckoutService {
                 ),
                 toSummary(order),
                 payment == null ? null : payment.getMethodType(),
-                payment == null ? null : payment.getCardLast4()
+                payment == null ? null : payment.getCardLast4(),
+                tickets
         );
     }
 
@@ -473,5 +487,15 @@ public class CheckoutService {
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private IssuedTicketResponse toIssuedTicketResponse(Ticket ticket) {
+        return new IssuedTicketResponse(
+                ticket.getId(),
+                ticket.getTicketCode(),
+                ticket.getTicketType().getName(),
+                ticket.getQrCodeUrl(),
+                ticket.getStatus()
+        );
     }
 }

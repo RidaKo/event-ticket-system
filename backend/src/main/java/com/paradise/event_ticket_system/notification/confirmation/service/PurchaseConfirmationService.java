@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.notification.confirmation.service;
 
+import com.paradise.event_ticket_system.admission.TicketIssuanceService;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
@@ -23,17 +24,20 @@ public class PurchaseConfirmationService {
 	private final PurchaseConfirmationDeliveryRepository deliveryRepository;
 	private final PurchaseConfirmationDeliveryFactory deliveryFactory;
 	private final ApplicationEventPublisher eventPublisher;
+	private final TicketIssuanceService ticketIssuanceService;
 
 	public PurchaseConfirmationService(
 		PurchaseOrderRepository orderRepository,
 		PurchaseConfirmationDeliveryRepository deliveryRepository,
 		PurchaseConfirmationDeliveryFactory deliveryFactory,
-		ApplicationEventPublisher eventPublisher
+		ApplicationEventPublisher eventPublisher,
+		TicketIssuanceService ticketIssuanceService
 	) {
 		this.orderRepository = orderRepository;
 		this.deliveryRepository = deliveryRepository;
 		this.deliveryFactory = deliveryFactory;
 		this.eventPublisher = eventPublisher;
+		this.ticketIssuanceService = ticketIssuanceService;
 	}
 
 	@Transactional
@@ -51,6 +55,7 @@ public class PurchaseConfirmationService {
 			return PurchaseConfirmationDispatchResult.skipped(order.getId(), order.getOrderNumber());
 		}
 
+		ticketIssuanceService.issueForOrder(order);
 		PurchaseConfirmationDelivery delivery = deliveryFactory.createPending(order);
 
 		try {

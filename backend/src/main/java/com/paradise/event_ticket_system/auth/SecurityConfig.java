@@ -71,6 +71,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/checkout/orders/*/confirmation").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/checkout/orders/*/discount").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/checkout/orders/*/payment").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tickets/*/qr").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/tickets/verify/*").permitAll()
                         .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

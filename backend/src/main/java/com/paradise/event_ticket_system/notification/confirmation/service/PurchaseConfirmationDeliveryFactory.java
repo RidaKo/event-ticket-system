@@ -7,16 +7,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.paradise.event_ticket_system.admission.TicketRepository;
+import com.paradise.event_ticket_system.admission.TicketUrlBuilder;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.model.PurchaseConfirmationTicketLine;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
+import com.paradise.event_ticket_system.model.Ticket;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
 public class PurchaseConfirmationDeliveryFactory {
+
+	private final TicketRepository ticketRepository;
+	private final TicketUrlBuilder ticketUrlBuilder;
+
+	public PurchaseConfirmationDeliveryFactory(TicketRepository ticketRepository, TicketUrlBuilder ticketUrlBuilder) {
+		this.ticketRepository = ticketRepository;
+		this.ticketUrlBuilder = ticketUrlBuilder;
+	}
 
 	public PurchaseConfirmationDelivery createPending(PurchaseOrder order) {
 		if (order.getId() == null) {
@@ -29,6 +40,13 @@ public class PurchaseConfirmationDeliveryFactory {
 		Event event = order.getEvent();
 		List<PurchaseConfirmationTicketLine> ticketLines = summarizeTicketLines(order.getItems());
 
+		String orderAccessUrl = ticketUrlBuilder.orderConfirmationUrl(order);
+		String qrCodeImageUrl = ticketRepository.findByPurchaseOrderIdOrderByIdAsc(order.getId()).stream()
+			.map(Ticket::getQrCodeUrl)
+			.filter(StringUtils::hasText)
+			.findFirst()
+			.orElse(null);
+
 		return PurchaseConfirmationDelivery.pending(
 			order.getId(),
 			order.getOrderNumber(),
@@ -38,8 +56,8 @@ public class PurchaseConfirmationDeliveryFactory {
 			resolveEventLocation(event),
 			totalQuantity(order.getItems()),
 			ticketLines,
-			null,
-			null
+			orderAccessUrl,
+			qrCodeImageUrl
 		);
 	}
 

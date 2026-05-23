@@ -95,6 +95,48 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
         </Stack>
       </Paper>
 
+      {confirmation.tickets?.length > 0 && (
+        <Paper className="detail-section" radius="md" p="lg" withBorder>
+          <Stack gap="md">
+            <Title order={3} size="h4" c="brand.9">
+              Your tickets
+            </Title>
+            <Text size="sm" c="dimmed">
+              Show these QR codes at the venue entrance.
+            </Text>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              {confirmation.tickets.map((ticket) => (
+                <Paper key={ticket.id} radius="md" p="md" withBorder>
+                  <Stack gap="xs" align="center">
+                    <Text size="sm" fw="bold" c="brand.9">
+                      {ticket.ticketTypeName}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {ticket.ticketCode}
+                    </Text>
+                    {ticket.qrImageUrl ? (
+                      <Box
+                        component="img"
+                        src={ticket.qrImageUrl}
+                        alt={`QR code for ${ticket.ticketCode}`}
+                        style={{
+                          width: 220,
+                          height: 220,
+                          border: "1px solid var(--mantine-color-brand-2)",
+                          borderRadius: 8,
+                          padding: 8,
+                          background: "#fff",
+                        }}
+                      />
+                    ) : null}
+                  </Stack>
+                </Paper>
+              ))}
+            </SimpleGrid>
+          </Stack>
+        </Paper>
+      )}
+
       <Paper className="detail-section" radius="md" p="lg" withBorder>
         <Stack gap="md">
           <Title order={3} size="h4" c="brand.9">
