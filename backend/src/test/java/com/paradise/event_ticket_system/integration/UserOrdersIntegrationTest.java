@@ -1,0 +1,97 @@
+package com.paradise.event_ticket_system.integration;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("seed")
+class UserOrdersIntegrationTest {
+
+    @Autowired MockMvc mvc;
+    final ObjectMapper json = new ObjectMapper();
+
+    @Test
+    void authenticatedUserCanListCompletedOrdersAndOpenReceiptDetails() throws Exception {
+        String token = register("orders-user@example.com", "Orders User");
+        String otherToken = register("orders-other@example.com", "Orders Other");
+
+        String confirmedOrderNumber = createOrder(token);
+        payOrder(token, confirmedOrderNumber);
+        createOrder(token);
+
+        mvc.perform(get("/api/checkout/orders"))
+                .andExpect(status().isUnauthorized());
+
+        mvc.perform(get("/api/checkout/orders")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].orderNumber").value(confirmedOrderNumber))
+                .andExpect(jsonPath("$.items[0].status").value("CONFIRMED"))
+                .andExpect(jsonPath("$.items[0].event.title").value("Summer Fest"))
+                .andExpect(jsonPath("$.items[0].summary.items[0].quantity").value(2));
+
+        mvc.perform(get("/api/checkout/orders")
+                        .header("Authorization", "Bearer " + otherToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0));
+
+        mvc.perform(get("/api/checkout/orders/" + confirmedOrderNumber + "/confirmation")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderNumber").value(confirmedOrderNumber))
+                .andExpect(jsonPath("$.status").value("CONFIRMED"))
+                .andExpect(jsonPath("$.event.title").value("Summer Fest"))
+                .andExpect(jsonPath("$.summary.items[0].name").value("General Admission"))
+                .andExpect(jsonPath("$.paymentMethod").value("CARD"))
+                .andExpect(jsonPath("$.cardLast4").value("4242"));
+    }
+
+    private String register(String email, String fullName) throws Exception {
+        String response = mvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            { "fullName": "%s", "email": "%s", "password": "password1" }
+                            """.formatted(fullName, email)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        return json.readTree(response).get("token").asText();
+    }
+
+    private String createOrder(String token) throws Exception {
+        String response = mvc.perform(post("/api/checkout/orders")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            { "eventId": 1, "items": [{ "ticketTypeId": 1, "quantity": 2 }] }
+                            """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        return json.readTree(response).get("orderNumber").asText();
+    }
+
+    private void payOrder(String token, String orderNumber) throws Exception {
+        mvc.perform(post("/api/checkout/orders/" + orderNumber + "/payment")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            { "methodType": "CARD", "cardNumber": "4242 4242 4242 4242" }
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderStatus").value("CONFIRMED"));
+    }
+}

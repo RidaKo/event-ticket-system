@@ -37,6 +37,12 @@ public class CheckoutController {
         return checkoutService.createOrderForUser(request, auth.getName());
     }
 
+    @GetMapping("/orders")
+    @PreAuthorize("hasAnyRole('USER','ORGANIZER','ADMIN')")
+    public UserOrdersResponse userOrders(Authentication auth) {
+        return checkoutService.getConfirmedOrdersForUser(auth.getName());
+    }
+
     @GetMapping("/orders/{orderNumber}")
     public OrderResponse getOrder(
             @PathVariable String orderNumber,

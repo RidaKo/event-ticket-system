@@ -170,6 +170,20 @@ public class CheckoutService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
     }
 
+    @Transactional(readOnly = true)
+    public UserOrdersResponse getConfirmedOrdersForUser(String userEmail) {
+        List<UserOrderListItemResponse> items = orderRepository
+                .findByUser_EmailIgnoreCaseAndStatusOrderByConfirmedAtDescCreatedAtDesc(
+                        userEmail,
+                        OrderStatus.CONFIRMED
+                )
+                .stream()
+                .map(this::toUserOrderListItemResponse)
+                .toList();
+
+        return new UserOrdersResponse(items);
+    }
+
     @Transactional
     public OrderResponse applyDiscount(String orderNumber, String discountCode) {
         PurchaseOrder order = loadOrderForUpdate(orderNumber);
@@ -249,30 +263,7 @@ public class CheckoutService {
         if (order.getStatus() != OrderStatus.CONFIRMED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Order is not confirmed");
         }
-        Event event = order.getEvent();
-        Venue venue = event.getVenue();
-        Payment payment = order.getPayment();
-        return new ConfirmationResponse(
-                order.getOrderNumber(),
-                order.getStatus(),
-                order.getGuestName(),
-                order.getGuestEmail(),
-                order.getConfirmedAt(),
-                new EventSummaryResponse(
-                        event.getId(),
-                        event.getTitle(),
-                        event.getDescription(),
-                        event.getStartDatetime(),
-                        event.getEndDatetime(),
-                        venue.getName(),
-                        venue.getAddressLine1(),
-                        venue.getCity(),
-                        venue.getCountry()
-                ),
-                toSummary(order),
-                payment == null ? null : payment.getMethodType(),
-                payment == null ? null : payment.getCardLast4()
-        );
+        return toConfirmationResponse(order);
     }
 
     @Transactional(readOnly = true)
@@ -445,6 +436,49 @@ public class CheckoutService {
                 order.getGuestEmail(),
                 toSummary(order),
                 order.getOrderToken()
+        );
+    }
+
+    private UserOrderListItemResponse toUserOrderListItemResponse(PurchaseOrder order) {
+        Payment payment = order.getPayment();
+        return new UserOrderListItemResponse(
+                order.getOrderNumber(),
+                order.getStatus(),
+                order.getConfirmedAt(),
+                toEventSummary(order.getEvent()),
+                toSummary(order),
+                payment == null ? null : payment.getMethodType(),
+                payment == null ? null : payment.getCardLast4()
+        );
+    }
+
+    private ConfirmationResponse toConfirmationResponse(PurchaseOrder order) {
+        Payment payment = order.getPayment();
+        return new ConfirmationResponse(
+                order.getOrderNumber(),
+                order.getStatus(),
+                order.getGuestName(),
+                order.getGuestEmail(),
+                order.getConfirmedAt(),
+                toEventSummary(order.getEvent()),
+                toSummary(order),
+                payment == null ? null : payment.getMethodType(),
+                payment == null ? null : payment.getCardLast4()
+        );
+    }
+
+    private EventSummaryResponse toEventSummary(Event event) {
+        Venue venue = event.getVenue();
+        return new EventSummaryResponse(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getStartDatetime(),
+                event.getEndDatetime(),
+                venue.getName(),
+                venue.getAddressLine1(),
+                venue.getCity(),
+                venue.getCountry()
         );
     }
 
