@@ -114,7 +114,8 @@ class PurchaseConfirmationServiceIntegrationTest {
 		assertThat(message.textBody()).contains("- VIP Ticket x 2");
 		assertThat(message.textBody()).contains("Total quantity: 3");
 		assertThat(delivery.getOrderAccessUrl()).contains(fixture.orderNumber());
-		assertThat(delivery.getQrCodeImageUrl()).isNotBlank();
+		assertThat(message.inlineImages()).hasSize(3);
+		assertThat(message.htmlBody()).contains("cid:ticket-");
 		assertThat(message.htmlBody()).contains("TKT-");
 	}
 

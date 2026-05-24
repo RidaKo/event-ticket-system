@@ -4,6 +4,7 @@ import com.paradise.event_ticket_system.notification.confirmation.config.EmailDe
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,9 @@ public class SmtpPurchaseConfirmationEmailSender implements PurchaseConfirmation
 			helper.setTo(message.to());
 			helper.setSubject(message.subject());
 			helper.setText(message.textBody(), message.htmlBody());
+			for (EmailInlineImage inlineImage : message.inlineImages()) {
+				helper.addInline(inlineImage.contentId(), new ByteArrayResource(inlineImage.pngBytes()), "image/png");
+			}
 			mailSender.send(mimeMessage);
 		}
 		catch (MessagingException ex) {

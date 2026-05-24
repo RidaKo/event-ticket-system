@@ -4,7 +4,7 @@ public record IssuedTicketResponse(
     Integer id,
     String ticketCode,
     String ticketTypeName,
-    String qrImageUrl,
+    String qrImageBase64,
     String status
 ) {
 }

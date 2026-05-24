@@ -22,4 +22,22 @@ public interface TicketRepository extends JpaRepository<Ticket, Integer> {
         WHERE t.ticketCode = :ticketCode
         """)
     Optional<Ticket> findByTicketCodeWithDetails(@Param("ticketCode") String ticketCode);
+
+    @Query("""
+        SELECT t FROM Ticket t
+        JOIN FETCH t.ticketType
+        JOIN FETCH t.purchaseOrder o
+        LEFT JOIN FETCH o.user
+        WHERE t.ticketCode = :ticketCode
+        """)
+    Optional<Ticket> findByTicketCodeWithOrder(@Param("ticketCode") String ticketCode);
+
+    @Query("""
+        SELECT t FROM Ticket t
+        JOIN FETCH t.ticketType
+        JOIN FETCH t.purchaseOrder
+        WHERE t.purchaseOrder.id = :purchaseOrderId
+        ORDER BY t.id ASC
+        """)
+    List<Ticket> findByPurchaseOrderIdWithDetails(@Param("purchaseOrderId") Long purchaseOrderId);
 }

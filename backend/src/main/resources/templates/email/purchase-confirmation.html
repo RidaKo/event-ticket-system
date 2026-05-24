@@ -70,11 +70,15 @@
                   Open your order
                 </a>
               </div>
-              <div th:if="${hasQrCodeImageUrl}">
+              <div th:if="${hasTicketQrs}">
                 <p style="margin:0 0 12px;font-size:14px;line-height:1.6;">
-                  QR code:
+                  Your ticket QR codes:
                 </p>
-                <img th:src="${qrCodeImageUrl}" alt="Ticket QR code" style="max-width:220px;border:1px solid #dbe3f0;border-radius:8px;padding:8px;background:#ffffff;">
+                <div th:each="ticketQr : ${ticketQrs}" style="margin-bottom:20px;">
+                  <p style="margin:0 0 6px;font-size:14px;font-weight:bold;" th:text="${ticketQr.ticketTypeName()}">Ticket type</p>
+                  <p style="margin:0 0 10px;font-size:13px;color:#5a6b85;" th:text="${ticketQr.ticketCode()}">TKT-CODE</p>
+                  <img th:src="|cid:${ticketQr.contentId()}|" th:alt="|QR code for ${ticketQr.ticketCode()}|" style="max-width:220px;border:1px solid #dbe3f0;border-radius:8px;padding:8px;background:#ffffff;">
+                </div>
               </div>
             </div>
           </td>

@@ -3,7 +3,7 @@ package com.paradise.event_ticket_system.admission;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,7 +39,7 @@ class TicketIssuanceIntegrationTest {
     private String guestOrderToken;
 
     @Test
-    void successfulGuestPaymentIssuesTicketsWithQrEndpoints() throws Exception {
+    void successfulGuestPaymentIssuesTicketsWithProtectedQrEndpoints() throws Exception {
         String orderNumber = createGuestOrderAndPay();
 
         Long orderId = purchaseOrderRepository.findByOrderNumber(orderNumber).orElseThrow().getId();
@@ -48,13 +48,20 @@ class TicketIssuanceIntegrationTest {
 
         Ticket ticket = tickets.getFirst();
         assertThat(ticket.getTicketCode()).startsWith("TKT-");
-        assertThat(ticket.getQrCodeUrl()).contains(ticket.getTicketCode());
 
         mvc.perform(get("/api/tickets/" + ticket.getTicketCode() + "/qr"))
+            .andExpect(status().isForbidden());
+
+        mvc.perform(get("/api/tickets/" + ticket.getTicketCode() + "/qr")
+                .header("X-Order-Token", guestOrderToken))
             .andExpect(status().isOk())
-            .andExpect(header().string("Content-Type", MediaType.IMAGE_PNG_VALUE));
+            .andExpect(content().contentTypeCompatibleWith(MediaType.IMAGE_PNG));
 
         mvc.perform(get("/api/tickets/verify/" + ticket.getTicketCode()))
+            .andExpect(status().isForbidden());
+
+        mvc.perform(get("/api/tickets/verify/" + ticket.getTicketCode())
+                .header("X-Order-Token", guestOrderToken))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.ticketCode").value(ticket.getTicketCode()))
             .andExpect(jsonPath("$.status").value(TicketStatus.VALID));
@@ -63,7 +70,7 @@ class TicketIssuanceIntegrationTest {
                 .header("X-Order-Token", guestOrderToken))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.tickets").isArray())
-            .andExpect(jsonPath("$.tickets[0].qrImageUrl").isNotEmpty());
+            .andExpect(jsonPath("$.tickets[0].qrImageBase64").isNotEmpty());
     }
 
     private String createGuestOrderAndPay() throws Exception {

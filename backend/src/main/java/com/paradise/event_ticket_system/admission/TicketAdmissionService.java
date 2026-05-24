@@ -10,15 +10,18 @@ import org.springframework.web.server.ResponseStatusException;
 public class TicketAdmissionService {
 
     private final TicketRepository ticketRepository;
+    private final TicketAccessService ticketAccessService;
 
-    public TicketAdmissionService(TicketRepository ticketRepository) {
+    public TicketAdmissionService(TicketRepository ticketRepository, TicketAccessService ticketAccessService) {
         this.ticketRepository = ticketRepository;
+        this.ticketAccessService = ticketAccessService;
     }
 
     @Transactional(readOnly = true)
-    public TicketVerifyResponse verify(String ticketCode) {
-        Ticket ticket = ticketRepository.findByTicketCodeWithDetails(ticketCode)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found"));
+    public TicketVerifyResponse verify(String ticketCode, org.springframework.security.core.Authentication auth,
+                                       String orderToken) {
+        Ticket ticket = loadTicketWithOrder(ticketCode);
+        ticketAccessService.verifyAccess(ticket, auth, orderToken);
         return new TicketVerifyResponse(
             ticket.getTicketCode(),
             ticket.getStatus(),
@@ -30,8 +33,15 @@ public class TicketAdmissionService {
     }
 
     @Transactional(readOnly = true)
-    public Ticket loadByCode(String ticketCode) {
-        return ticketRepository.findByTicketCode(ticketCode)
+    public Ticket loadByCode(String ticketCode, org.springframework.security.core.Authentication auth,
+                            String orderToken) {
+        Ticket ticket = loadTicketWithOrder(ticketCode);
+        ticketAccessService.verifyAccess(ticket, auth, orderToken);
+        return ticket;
+    }
+
+    private Ticket loadTicketWithOrder(String ticketCode) {
+        return ticketRepository.findByTicketCodeWithOrder(ticketCode)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found"));
     }
 }

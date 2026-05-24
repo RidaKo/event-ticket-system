@@ -14,12 +14,22 @@ public class TicketUrlBuilder {
         this.properties = properties;
     }
 
-    public String verifyUrl(String ticketCode) {
-        return apiBase() + "/api/tickets/verify/" + ticketCode;
+    public String verifyUrl(String ticketCode, String orderToken) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+            .fromUriString(apiBase() + "/api/tickets/verify/" + ticketCode);
+        if (StringUtils.hasText(orderToken)) {
+            builder.queryParam("orderToken", orderToken);
+        }
+        return builder.build().toUriString();
     }
 
-    public String qrImageUrl(String ticketCode) {
-        return apiBase() + "/api/tickets/" + ticketCode + "/qr";
+    public String qrImageUrl(String ticketCode, String orderToken) {
+        UriComponentsBuilder builder = UriComponentsBuilder
+            .fromUriString(apiBase() + "/api/tickets/" + ticketCode + "/qr");
+        if (StringUtils.hasText(orderToken)) {
+            builder.queryParam("orderToken", orderToken);
+        }
+        return builder.build().toUriString();
     }
 
     public String orderConfirmationUrl(PurchaseOrder order) {

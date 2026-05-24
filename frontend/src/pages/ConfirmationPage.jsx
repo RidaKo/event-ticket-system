@@ -17,24 +17,40 @@ import { getConfirmation } from "../api/checkoutApi.js";
 import { useCheckout } from "../state/CheckoutContext.jsx";
 import { formatDateTime, formatMoney } from "../utils.js";
 
+function readTokenFromUrl() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return new URLSearchParams(window.location.search).get("token");
+}
+
 export default function ConfirmationPage({ orderNumber, navigate }) {
-  const { getOrderToken } = useCheckout();
-  const orderToken = getOrderToken(orderNumber);
+  const { getOrderToken, rememberOrderToken } = useCheckout();
+  const [orderToken, setOrderToken] = useState(() => getOrderToken(orderNumber) || readTokenFromUrl());
   const [confirmation, setConfirmation] = useState(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const tokenFromUrl = readTokenFromUrl();
+    if (tokenFromUrl) {
+      rememberOrderToken(orderNumber, tokenFromUrl);
+      setOrderToken(tokenFromUrl);
+    }
+  }, [orderNumber, rememberOrderToken]);
 
   useEffect(() => {
     let active = true;
     setError("");
 
-    getConfirmation(orderNumber, orderToken)
+    const token = orderToken || getOrderToken(orderNumber);
+    getConfirmation(orderNumber, token)
       .then((data) => active && setConfirmation(data))
       .catch((err) => active && setError(err.message));
 
     return () => {
       active = false;
     };
-  }, [orderNumber, orderToken]);
+  }, [orderNumber, orderToken, getOrderToken]);
 
   if (error) {
     return (
@@ -114,10 +130,10 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
                     <Text size="xs" c="dimmed">
                       {ticket.ticketCode}
                     </Text>
-                    {ticket.qrImageUrl ? (
+                    {ticket.qrImageBase64 ? (
                       <Box
                         component="img"
-                        src={ticket.qrImageUrl}
+                        src={`data:image/png;base64,${ticket.qrImageBase64}`}
                         alt={`QR code for ${ticket.ticketCode}`}
                         style={{
                           width: 220,

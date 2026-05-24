@@ -14,17 +14,16 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class TicketIssuanceService {
 
     private final TicketRepository ticketRepository;
-    private final TicketUrlBuilder ticketUrlBuilder;
 
-    public TicketIssuanceService(TicketRepository ticketRepository, TicketUrlBuilder ticketUrlBuilder) {
+    public TicketIssuanceService(TicketRepository ticketRepository) {
         this.ticketRepository = ticketRepository;
-        this.ticketUrlBuilder = ticketUrlBuilder;
     }
 
     @Transactional
@@ -34,6 +33,9 @@ public class TicketIssuanceService {
         }
         if (order.getStatus() != OrderStatus.CONFIRMED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Tickets can only be issued for confirmed orders");
+        }
+        if (!StringUtils.hasText(order.getOrderToken())) {
+            order.setOrderToken(UUID.randomUUID().toString());
         }
         if (ticketRepository.existsByPurchaseOrderId(order.getId())) {
             return ticketRepository.findByPurchaseOrderIdOrderByIdAsc(order.getId());
@@ -56,7 +58,7 @@ public class TicketIssuanceService {
                 ticket.setPricePaid(unitPrice);
                 String ticketCode = generateTicketCode();
                 ticket.setTicketCode(ticketCode);
-                ticket.setQrCodeUrl(ticketUrlBuilder.qrImageUrl(ticketCode));
+                ticket.setQrCodeUrl(null);
                 ticket.setStatus(TicketStatus.VALID);
                 issued.add(ticketRepository.save(ticket));
             }

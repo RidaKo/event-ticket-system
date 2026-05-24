@@ -13,7 +13,10 @@ import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Payment;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.admission.TicketIssuanceService;
+import com.paradise.event_ticket_system.admission.TicketQrCodeGenerator;
 import com.paradise.event_ticket_system.admission.TicketRepository;
+import com.paradise.event_ticket_system.admission.TicketUrlBuilder;
+import java.util.Base64;
 import com.paradise.event_ticket_system.model.Ticket;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
 import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationService;
@@ -58,6 +61,8 @@ public class CheckoutService {
     private final PurchaseConfirmationService purchaseConfirmationService;
     private final TicketIssuanceService ticketIssuanceService;
     private final TicketRepository ticketRepository;
+    private final TicketQrCodeGenerator ticketQrCodeGenerator;
+    private final TicketUrlBuilder ticketUrlBuilder;
 
     public CheckoutService(
             CheckoutEventRepository eventRepository,
@@ -69,7 +74,9 @@ public class CheckoutService {
             UserRepository userRepository,
             PurchaseConfirmationService purchaseConfirmationService,
             TicketIssuanceService ticketIssuanceService,
-            TicketRepository ticketRepository
+            TicketRepository ticketRepository,
+            TicketQrCodeGenerator ticketQrCodeGenerator,
+            TicketUrlBuilder ticketUrlBuilder
     ) {
         this.eventRepository = eventRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -81,6 +88,8 @@ public class CheckoutService {
         this.purchaseConfirmationService = purchaseConfirmationService;
         this.ticketIssuanceService = ticketIssuanceService;
         this.ticketRepository = ticketRepository;
+        this.ticketQrCodeGenerator = ticketQrCodeGenerator;
+        this.ticketUrlBuilder = ticketUrlBuilder;
     }
 
     @Transactional(readOnly = true)
@@ -246,6 +255,7 @@ public class CheckoutService {
         order.setConfirmedAt(LocalDateTime.now());
         order.setPayment(payment);
         paymentRepository.save(payment);
+        ensureOrderAccessToken(order);
         ticketIssuanceService.issueForOrder(order);
         purchaseConfirmationService.handle(new PurchaseConfirmationRequest(order.getOrderNumber()));
 
@@ -262,8 +272,8 @@ public class CheckoutService {
         Event event = order.getEvent();
         Venue venue = event.getVenue();
         Payment payment = order.getPayment();
-        List<IssuedTicketResponse> tickets = ticketRepository.findByPurchaseOrderIdOrderByIdAsc(order.getId()).stream()
-                .map(this::toIssuedTicketResponse)
+        List<IssuedTicketResponse> tickets = ticketRepository.findByPurchaseOrderIdWithDetails(order.getId()).stream()
+                .map(ticket -> toIssuedTicketResponse(ticket, order))
                 .toList();
         return new ConfirmationResponse(
                 order.getOrderNumber(),
@@ -489,12 +499,21 @@ public class CheckoutService {
         return value != null && !value.trim().isEmpty();
     }
 
-    private IssuedTicketResponse toIssuedTicketResponse(Ticket ticket) {
+    private void ensureOrderAccessToken(PurchaseOrder order) {
+        if (!hasText(order.getOrderToken())) {
+            order.setOrderToken(UUID.randomUUID().toString());
+        }
+    }
+
+    private IssuedTicketResponse toIssuedTicketResponse(Ticket ticket, PurchaseOrder order) {
+        String verifyUrl = ticketUrlBuilder.verifyUrl(ticket.getTicketCode(), order.getOrderToken());
+        byte[] png = ticketQrCodeGenerator.generatePng(verifyUrl);
+        String qrImageBase64 = Base64.getEncoder().encodeToString(png);
         return new IssuedTicketResponse(
                 ticket.getId(),
                 ticket.getTicketCode(),
                 ticket.getTicketType().getName(),
-                ticket.getQrCodeUrl(),
+                qrImageBase64,
                 ticket.getStatus()
         );
     }
