@@ -2,8 +2,8 @@ package com.paradise.event_ticket_system.notification.confirmation;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.paradise.event_ticket_system.checkout.CheckoutService;
 import com.paradise.event_ticket_system.checkout.CreateOrderRequest;
@@ -92,10 +92,8 @@ class PurchaseConfirmationServiceIntegrationTest {
 		assertThat(result.orderId()).isEqualTo(fixture.orderId());
 		assertThat(result.orderReference()).isEqualTo(fixture.orderNumber());
 
-		List<PurchaseConfirmationDelivery> deliveries = deliveryRepository.findAll();
-		assertThat(deliveries).hasSize(1);
-
-		PurchaseConfirmationDelivery delivery = deliveries.getFirst();
+		PurchaseConfirmationDelivery delivery = awaitDeliveryStatus(fixture.orderId(), EmailDeliveryStatus.SENT);
+		assertThat(deliveryRepository.findAll()).hasSize(1);
 		assertThat(delivery.getOrderId()).isEqualTo(fixture.orderId());
 		assertThat(delivery.getOrderReference()).isEqualTo(fixture.orderNumber());
 		assertThat(delivery.getStatus()).isEqualTo(EmailDeliveryStatus.SENT);
@@ -105,6 +103,7 @@ class PurchaseConfirmationServiceIntegrationTest {
 			.extracting(ticketLine -> ticketLine.ticketType() + ":" + ticketLine.quantity())
 			.containsExactly("General Admission:1", "VIP Ticket:2");
 
+		awaitEmailMessages(1);
 		assertThat(emailSender.messages()).hasSize(1);
 		PurchaseConfirmationEmailMessage message = emailSender.messages().getFirst();
 		assertThat(message.subject()).contains(fixture.eventTitle(), fixture.orderNumber());
@@ -149,6 +148,7 @@ class PurchaseConfirmationServiceIntegrationTest {
 		assertThat(second.outcome()).isEqualTo(PurchaseConfirmationOutcome.ALREADY_PROCESSED);
 		assertThat(second.alreadyProcessed()).isTrue();
 		assertThat(deliveryRepository.findAll()).hasSize(1);
+		awaitEmailMessages(1);
 		assertThat(emailSender.messages()).hasSize(1);
 	}
 
@@ -174,6 +174,7 @@ class PurchaseConfirmationServiceIntegrationTest {
 		assertThat(payment.orderStatus()).isEqualTo(OrderStatus.CONFIRMED);
 		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
 		assertThat(deliveryRepository.findAll()).hasSize(1);
+		awaitEmailMessages(1);
 		assertThat(emailSender.messages()).hasSize(1);
 		assertThat(emailSender.messages().getFirst().subject()).contains(order.orderNumber());
 	}
@@ -196,9 +197,44 @@ class PurchaseConfirmationServiceIntegrationTest {
 		assertThat(payment.orderStatus()).isEqualTo(OrderStatus.CONFIRMED);
 		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
 		assertThat(deliveryRepository.findAll()).hasSize(1);
+		awaitEmailMessages(1);
 		assertThat(emailSender.messages()).hasSize(1);
 		assertThat(emailSender.messages().getFirst().to()).isEqualTo("buyer@example.com");
 		assertThat(emailSender.messages().getFirst().subject()).contains(order.orderNumber());
+	}
+
+	private PurchaseConfirmationDelivery awaitDeliveryStatus(Long orderId, EmailDeliveryStatus expectedStatus) {
+		PurchaseConfirmationDelivery delivery = null;
+		for (int attempt = 0; attempt < 30; attempt++) {
+			delivery = deliveryRepository.findByOrderId(orderId).orElse(null);
+			if (delivery != null && delivery.getStatus() == expectedStatus) {
+				return delivery;
+			}
+			sleepBriefly();
+		}
+		assertThat(delivery).as("purchase confirmation delivery").isNotNull();
+		assertThat(delivery.getStatus()).isEqualTo(expectedStatus);
+		return delivery;
+	}
+
+	private void awaitEmailMessages(int expectedCount) {
+		for (int attempt = 0; attempt < 30; attempt++) {
+			if (emailSender.messages().size() >= expectedCount) {
+				return;
+			}
+			sleepBriefly();
+		}
+		assertThat(emailSender.messages()).hasSize(expectedCount);
+	}
+
+	private void sleepBriefly() {
+		try {
+			Thread.sleep(100);
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			throw new AssertionError("Interrupted while waiting for async confirmation dispatch", ex);
+		}
 	}
 
 	private OrderFixture createPurchaseOrderFixture(OrderStatus orderStatus, PaymentStatus paymentStatus) {
@@ -368,7 +404,7 @@ class PurchaseConfirmationServiceIntegrationTest {
 
 	static class CapturingPurchaseConfirmationEmailSender implements PurchaseConfirmationEmailSender {
 
-		private final List<PurchaseConfirmationEmailMessage> messages = new ArrayList<>();
+		private final List<PurchaseConfirmationEmailMessage> messages = new CopyOnWriteArrayList<>();
 
 		@Override
 		public void send(PurchaseConfirmationEmailMessage message) {

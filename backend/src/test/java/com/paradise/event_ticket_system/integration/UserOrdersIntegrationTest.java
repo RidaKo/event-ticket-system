@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,8 @@ class UserOrdersIntegrationTest {
                         .header("Authorization", "Bearer " + otherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items.length()").value(0));
+
+        awaitConfirmationEmailSent(token, confirmedOrderNumber);
 
         mvc.perform(get("/api/checkout/orders/" + confirmedOrderNumber + "/confirmation")
                         .header("Authorization", "Bearer " + token))
@@ -135,5 +138,21 @@ class UserOrdersIntegrationTest {
                             """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderStatus").value("CONFIRMED"));
+    }
+
+    private void awaitConfirmationEmailSent(String token, String orderNumber) throws Exception {
+        for (int attempt = 0; attempt < 30; attempt++) {
+            String response = mvc.perform(get("/api/checkout/orders/" + orderNumber + "/confirmation")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString();
+
+            JsonNode confirmationEmail = json.readTree(response).path("confirmationEmail");
+            if ("SENT".equals(confirmationEmail.path("status").asText())) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        throw new AssertionError("Confirmation email was not sent for order " + orderNumber);
     }
 }

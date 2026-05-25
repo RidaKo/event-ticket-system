@@ -1,6 +1,7 @@
 package com.paradise.event_ticket_system.notification.confirmation.service;
 
 import com.paradise.event_ticket_system.admission.TicketIssuanceService;
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
@@ -40,6 +41,7 @@ public class PurchaseConfirmationService {
 		this.ticketIssuanceService = ticketIssuanceService;
 	}
 
+	@AuditedBusinessAction
 	@Transactional
 	public PurchaseConfirmationDispatchResult handle(PurchaseConfirmationRequest request) {
 		PurchaseOrder order = orderRepository.findByOrderNumber(request.orderNumber())

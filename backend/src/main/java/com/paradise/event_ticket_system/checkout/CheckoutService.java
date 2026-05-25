@@ -17,6 +17,7 @@ import com.paradise.event_ticket_system.admission.TicketIssuanceService;
 import com.paradise.event_ticket_system.admission.TicketQrCodeGenerator;
 import com.paradise.event_ticket_system.admission.TicketRepository;
 import com.paradise.event_ticket_system.admission.TicketUrlBuilder;
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import java.util.Base64;
 import com.paradise.event_ticket_system.model.Ticket;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
@@ -106,6 +107,7 @@ public class CheckoutService {
         return buildSummary(event, mergeItems(request.items()), request.discountCode());
     }
 
+    @AuditedBusinessAction
     @Transactional
     public OrderResponse createOrderForUser(CreateOrderRequest request, String userEmail) {
         User user = userRepository.findByEmailIgnoreCase(userEmail)
@@ -122,6 +124,7 @@ public class CheckoutService {
         return toOrderResponse(orderRepository.save(order));
     }
 
+    @AuditedBusinessAction
     @Transactional
     public GuestOrderCreatedResponse createGuestOrder(GuestCreateOrderRequest request) {
         Event event = loadEventForCheckout(request.eventId());
@@ -232,6 +235,7 @@ public class CheckoutService {
         );
     }
 
+    @AuditedBusinessAction
     @Transactional
     public OrderResponse applyDiscount(String orderNumber, String discountCode) {
         PurchaseOrder order = loadOrderForUpdate(orderNumber);
@@ -248,6 +252,7 @@ public class CheckoutService {
         return toOrderResponse(order);
     }
 
+    @AuditedBusinessAction
     @Transactional
     public PaymentResponse submitPayment(String orderNumber, PaymentRequest request) {
         PurchaseOrder order = loadOrderForUpdate(orderNumber);
