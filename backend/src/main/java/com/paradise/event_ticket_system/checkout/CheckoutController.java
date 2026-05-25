@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/checkout")
 public class CheckoutController {
+
+    private static final String DEFAULT_ORDER_PAGE_SIZE = "10";
 
     private final CheckoutService checkoutService;
 
@@ -35,6 +38,16 @@ public class CheckoutController {
     @PreAuthorize("hasAnyRole('USER','ORGANIZER','ADMIN')")
     public OrderResponse createOrder(@Valid @RequestBody CreateOrderRequest request, Authentication auth) {
         return checkoutService.createOrderForUser(request, auth.getName());
+    }
+
+    @GetMapping("/orders")
+    @PreAuthorize("hasAnyRole('USER','ORGANIZER','ADMIN')")
+    public UserOrdersResponse userOrders(
+            Authentication auth,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = DEFAULT_ORDER_PAGE_SIZE) int size
+    ) {
+        return checkoutService.getConfirmedOrdersForUser(auth.getName(), page, size);
     }
 
     @GetMapping("/orders/{orderNumber}")

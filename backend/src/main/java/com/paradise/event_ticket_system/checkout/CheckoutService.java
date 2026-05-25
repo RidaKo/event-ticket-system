@@ -11,6 +11,7 @@ import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.model.Venue;
 import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Payment;
+import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.admission.TicketIssuanceService;
 import com.paradise.event_ticket_system.admission.TicketQrCodeGenerator;
@@ -19,6 +20,7 @@ import com.paradise.event_ticket_system.admission.TicketUrlBuilder;
 import java.util.Base64;
 import com.paradise.event_ticket_system.model.Ticket;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
+import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDeliveryRepository;
 import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationService;
 import com.paradise.event_ticket_system.order.OrderStatus;
 import com.paradise.event_ticket_system.order.PurchaseOrderRepository;
@@ -40,6 +42,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -50,6 +54,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class CheckoutService {
 
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+    public static final int MAX_ORDER_PAGE_SIZE = 50;
 
     private final CheckoutEventRepository eventRepository;
     private final TicketTypeRepository ticketTypeRepository;
@@ -59,6 +64,7 @@ public class CheckoutService {
     private final PaymentService paymentService;
     private final UserRepository userRepository;
     private final PurchaseConfirmationService purchaseConfirmationService;
+    private final PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository;
     private final TicketIssuanceService ticketIssuanceService;
     private final TicketRepository ticketRepository;
     private final TicketQrCodeGenerator ticketQrCodeGenerator;
@@ -73,6 +79,7 @@ public class CheckoutService {
             PaymentService paymentService,
             UserRepository userRepository,
             PurchaseConfirmationService purchaseConfirmationService,
+            PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository,
             TicketIssuanceService ticketIssuanceService,
             TicketRepository ticketRepository,
             TicketQrCodeGenerator ticketQrCodeGenerator,
@@ -86,6 +93,7 @@ public class CheckoutService {
         this.paymentService = paymentService;
         this.userRepository = userRepository;
         this.purchaseConfirmationService = purchaseConfirmationService;
+        this.confirmationDeliveryRepository = confirmationDeliveryRepository;
         this.ticketIssuanceService = ticketIssuanceService;
         this.ticketRepository = ticketRepository;
         this.ticketQrCodeGenerator = ticketQrCodeGenerator;
@@ -188,6 +196,42 @@ public class CheckoutService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
     }
 
+    @Transactional(readOnly = true)
+    public UserOrdersResponse getConfirmedOrdersForUser(String userEmail, int page, int size) {
+        int effectivePage = Math.max(0, page);
+        int effectiveSize = Math.min(Math.max(1, size), MAX_ORDER_PAGE_SIZE);
+        Page<Long> orderIdPage = orderRepository.findOrderListPageIdsByUserEmailIgnoreCaseAndStatus(
+                userEmail,
+                OrderStatus.CONFIRMED,
+                PageRequest.of(effectivePage, effectiveSize)
+        );
+
+        List<UserOrderListItemResponse> items;
+        if (orderIdPage.isEmpty()) {
+            items = List.of();
+        } else {
+            Map<Long, PurchaseOrder> ordersById = orderRepository.findOrderListItemsByIdIn(orderIdPage.getContent())
+                    .stream()
+                    .collect(Collectors.toMap(PurchaseOrder::getId, Function.identity()));
+
+            items = orderIdPage.getContent()
+                    .stream()
+                    .map(ordersById::get)
+                    .map(this::toUserOrderListItemResponse)
+                    .toList();
+        }
+
+        return new UserOrdersResponse(
+                items,
+                orderIdPage.getNumber(),
+                orderIdPage.getSize(),
+                orderIdPage.getTotalElements(),
+                orderIdPage.getTotalPages(),
+                orderIdPage.hasNext(),
+                orderIdPage.hasPrevious()
+        );
+    }
+
     @Transactional
     public OrderResponse applyDiscount(String orderNumber, String discountCode) {
         PurchaseOrder order = loadOrderForUpdate(orderNumber);
@@ -269,34 +313,7 @@ public class CheckoutService {
         if (order.getStatus() != OrderStatus.CONFIRMED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Order is not confirmed");
         }
-        Event event = order.getEvent();
-        Venue venue = event.getVenue();
-        Payment payment = order.getPayment();
-        List<IssuedTicketResponse> tickets = ticketRepository.findByPurchaseOrderIdWithDetails(order.getId()).stream()
-                .map(ticket -> toIssuedTicketResponse(ticket, order))
-                .toList();
-        return new ConfirmationResponse(
-                order.getOrderNumber(),
-                order.getStatus(),
-                order.getGuestName(),
-                order.getGuestEmail(),
-                order.getConfirmedAt(),
-                new EventSummaryResponse(
-                        event.getId(),
-                        event.getTitle(),
-                        event.getDescription(),
-                        event.getStartDatetime(),
-                        event.getEndDatetime(),
-                        venue.getName(),
-                        venue.getAddressLine1(),
-                        venue.getCity(),
-                        venue.getCountry()
-                ),
-                toSummary(order),
-                payment == null ? null : payment.getMethodType(),
-                payment == null ? null : payment.getCardLast4(),
-                tickets
-        );
+        return toConfirmationResponse(order);
     }
 
     @Transactional(readOnly = true)
@@ -469,6 +486,72 @@ public class CheckoutService {
                 order.getGuestEmail(),
                 toSummary(order),
                 order.getOrderToken()
+        );
+    }
+
+    private UserOrderListItemResponse toUserOrderListItemResponse(PurchaseOrder order) {
+        Payment payment = order.getPayment();
+        return new UserOrderListItemResponse(
+                order.getOrderNumber(),
+                order.getStatus(),
+                order.getConfirmedAt(),
+                toEventSummary(order.getEvent()),
+                toSummary(order),
+                payment == null ? null : payment.getMethodType(),
+                payment == null ? null : payment.getCardLast4()
+        );
+    }
+
+    private ConfirmationResponse toConfirmationResponse(PurchaseOrder order) {
+        Payment payment = order.getPayment();
+        return new ConfirmationResponse(
+                order.getOrderNumber(),
+                order.getStatus(),
+                order.getGuestName(),
+                order.getGuestEmail(),
+                order.getConfirmedAt(),
+                toEventSummary(order.getEvent()),
+                toSummary(order),
+                payment == null ? null : payment.getMethodType(),
+                payment == null ? null : payment.getCardLast4(),
+                toConfirmationEmailResponse(order),
+                issuedTicketsForOrder(order)
+        );
+    }
+
+    private List<IssuedTicketResponse> issuedTicketsForOrder(PurchaseOrder order) {
+        return ticketRepository.findByPurchaseOrderIdWithDetails(order.getId()).stream()
+                .map(ticket -> toIssuedTicketResponse(ticket, order))
+                .toList();
+    }
+
+    private ConfirmationEmailResponse toConfirmationEmailResponse(PurchaseOrder order) {
+        return confirmationDeliveryRepository.findByOrderId(order.getId())
+                .map(this::toConfirmationEmailResponse)
+                .orElse(null);
+    }
+
+    private ConfirmationEmailResponse toConfirmationEmailResponse(PurchaseConfirmationDelivery delivery) {
+        return new ConfirmationEmailResponse(
+                delivery.getStatus(),
+                delivery.getAttendeeEmail(),
+                delivery.getSentAt(),
+                delivery.getFailureReason()
+        );
+    }
+
+    private EventSummaryResponse toEventSummary(Event event) {
+        Venue venue = event.getVenue();
+        return new EventSummaryResponse(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getStartDatetime(),
+                event.getEndDatetime(),
+                venue.getName(),
+                venue.getAddressLine1(),
+                venue.getCity(),
+                venue.getCountry()
         );
     }
 

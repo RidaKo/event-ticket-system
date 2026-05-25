@@ -192,6 +192,61 @@ INSERT INTO events (organizer_id, venue_id, category_id, title, slug, descriptio
     (2, 30, (SELECT id FROM categories WHERE slug = 'food'), 'Pasta Masterclass', 'pasta-masterclass', 'Learn to make three classic handmade pastas from scratch.', 'PUBLISHED', DATEADD('DAY', 15, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 15, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     (2, 31, (SELECT id FROM categories WHERE slug = 'food'), 'Wine Tasting Evening', 'wine-tasting-evening', 'A sommelier-led tasting across six regions of Italy.', 'PUBLISHED', DATEADD('DAY', 20, CURRENT_TIMESTAMP), DATEADD('HOUR', 3, DATEADD('DAY', 20, CURRENT_TIMESTAMP)), 'Europe/Vilnius', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Gallery Entry', 'Admission to the contemporary art opening and exhibition preview.', 18.00, 'USD', 120, 0, NULL, NULL, 8, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'contemporary-art-opening';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Artist Talk Pass', 'Gallery entry plus access to the opening artist talk.', 32.00, 'USD', 60, 0, NULL, NULL, 6, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'contemporary-art-opening';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Collector Preview', 'Early access to the exhibition and collector reception.', 58.00, 'USD', 30, 0, NULL, NULL, 4, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'contemporary-art-opening';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Standard Entry', 'General admission to the jazz night.', 24.00, 'USD', 140, 0, NULL, NULL, 8, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'jazz-night-at-loftas';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Table Seat', 'Reserved shared table seating near the stage.', 42.00, 'USD', 48, 0, NULL, NULL, 6, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'jazz-night-at-loftas';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Meetup Pass', 'Admission to lightning talks and demos.', 12.00, 'USD', 180, 0, NULL, NULL, 10, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'ai-builders-meetup';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Builder Seat', 'Reserved seating plus demo showcase access.', 28.00, 'USD', 70, 0, NULL, NULL, 6, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'ai-builders-meetup';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Arena Seat', 'Standard seat for the derby night.', 30.00, 'USD', 420, 0, NULL, NULL, 10, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'basketball-derby-night';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Courtside Seat', 'Premium courtside seating for the rivalry game.', 115.00, 'USD', 32, 0, NULL, NULL, 4, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'basketball-derby-night';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Festival Entry', 'General admission to the street food festival.', 10.00, 'USD', 500, 0, NULL, NULL, 10, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'street-food-festival';
+
+INSERT INTO ticket_types (event_id, name, description, price, currency, quantity_total, quantity_sold, sale_start, sale_end, max_per_order, is_active, created_at, updated_at)
+SELECT e.id, 'Tasting Bundle', 'Entry plus five tasting tokens.', 26.00, 'USD', 260, 0, NULL, NULL, 10, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM events e
+WHERE e.slug = 'street-food-festival';
+
 INSERT INTO event_tags (event_id, tag_id)
 SELECT e.id, t.id
 FROM events e

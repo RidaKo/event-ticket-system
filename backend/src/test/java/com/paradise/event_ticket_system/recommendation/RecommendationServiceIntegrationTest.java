@@ -76,6 +76,30 @@ class RecommendationServiceIntegrationTest {
     }
 
     @Test
+    void anonymousRecommendationsArePaginated() {
+        RecommendationFilters filters = new RecommendationFilters(Set.of(), Set.of(), null, null, null);
+
+        RecommendationResponse firstPage = recommendationService.recommend(null, filters, 0, 2);
+        RecommendationResponse secondPage = recommendationService.recommend(null, filters, 1, 2);
+
+        assertEquals(0, firstPage.page());
+        assertEquals(2, firstPage.size());
+        assertEquals(2, firstPage.items().size());
+        assertTrue(firstPage.totalElements() >= 3);
+        assertTrue(firstPage.totalPages() >= 2);
+        assertTrue(firstPage.hasNext());
+        assertFalse(firstPage.hasPrevious());
+
+        assertEquals(1, secondPage.page());
+        assertEquals(2, secondPage.size());
+        assertFalse(secondPage.items().isEmpty());
+        assertTrue(secondPage.hasPrevious());
+        assertFalse(firstPage.items().stream()
+                .map(item -> item.id())
+                .anyMatch(id -> secondPage.items().stream().anyMatch(item -> item.id().equals(id))));
+    }
+
+    @Test
     void authenticatedUserWithoutPreferencesIsNotPersonalized() {
         Integer organizerId = userRepository.findByEmailIgnoreCase("organizer@test.com")
                 .map(User::getId)

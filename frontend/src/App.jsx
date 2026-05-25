@@ -12,6 +12,7 @@ import {
   Group,
   Image,
   Paper,
+  Pagination,
   Pill,
   SimpleGrid,
   Stack,
@@ -31,10 +32,12 @@ import PaymentPage from "./pages/PaymentPage.jsx";
 import ConfirmationPage from "./pages/ConfirmationPage.jsx";
 import { getCatalog } from "./api/catalog.js";
 import { getRecommendedEvents } from "./api/recommendations.js";
+import { getUserOrders } from "./api/ordersApi.js";
 import { CheckoutProvider } from "./state/CheckoutContext.jsx";
 import { createEmptyFilters, hasActiveFilters, normalizeFilters } from "./lib/catalog.js";
 import { dateRangeToFilters, filtersToDateRange } from "./lib/dateFilters.js";
 import { mapRecommendedEvent } from "./lib/recommendations.js";
+import { formatDateTime, formatMoney } from "./utils.js";
 import { DatePickerInput } from "@mantine/dates";
 import { AuthProvider, useAuth } from "./state/AuthContext.jsx";
 import UserPreferencesModal from "./components/UserPreferencesModal.jsx";
@@ -48,9 +51,9 @@ import OrganizerEventsPage from "./pages/Organizer/OrganizerEventsPage.jsx";
 import CreateVenuePage from "./pages/Organizer/CreateVenuePage";
 
 
-const checkoutEventId = 1;
 const RECOMMENDED_LIMIT = 6;
-const TOTAL_FETCH_LIMIT = 20;
+const EVENTS_PAGE_SIZE = 12;
+const ORDERS_PAGE_SIZE = 6;
 
 function readRoute() {
   const path = window.location.pathname;
@@ -82,6 +85,12 @@ function readRoute() {
   if (path === "/orders") {
     return { name: "orders" };
   }
+
+  const orderDetail = path.match(/^\/orders\/([^/]+)$/);
+  if (orderDetail) {
+    return { name: "orderDetail", orderNumber: decodeURIComponent(orderDetail[1]) };
+  }
+
   if (path.startsWith("/organizer/")) {
     const parts = path.split("/");
 
@@ -106,7 +115,7 @@ function routeToTab(routeName) {
   if (["browse", "eventDetails", "tickets", "account"].includes(routeName)) {
     return "browse";
   }
-  if (["orders", "payment", "confirmation"].includes(routeName)) {
+  if (["orders", "orderDetail", "payment", "confirmation"].includes(routeName)) {
     return "orders";
   }
   return null;
@@ -434,12 +443,17 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState(false);
   const [eventItems, setEventItems] = useState([]);
+  const [eventPage, setEventPage] = useState(1);
+  const [eventPageInfo, setEventPageInfo] = useState({
+    totalElements: 0,
+    totalPages: 0
+  });
   const [recommendationsLoading, setRecommendationsLoading] = useState(true);
   const [recommendationsError, setRecommendationsError] = useState(false);
   const [fallbackUsed, setFallbackUsed] = useState(false);
   const [personalized, setPersonalized] = useState(false);
 
-  const showRecommendations = personalized;
+  const showRecommendations = personalized && eventPage === 1;
   const recommendedItems = showRecommendations ? eventItems.slice(0, RECOMMENDED_LIMIT) : [];
   const browseItems = showRecommendations ? eventItems.slice(RECOMMENDED_LIMIT) : eventItems;
   const showBrowseAllAboveHint =
@@ -488,10 +502,15 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
       try {
         const response = await getRecommendedEvents({
           ...appliedFilters,
-          limit: TOTAL_FETCH_LIMIT,
+          page: eventPage - 1,
+          size: EVENTS_PAGE_SIZE,
         });
         if (!cancelled) {
           setEventItems((response.items ?? []).map(mapRecommendedEvent));
+          setEventPageInfo({
+            totalElements: response.totalElements ?? response.items?.length ?? 0,
+            totalPages: response.totalPages ?? 0
+          });
           setFallbackUsed(Boolean(response.fallbackUsed));
           setPersonalized(Boolean(response.personalized));
         }
@@ -499,6 +518,7 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
         if (!cancelled) {
           setRecommendationsError(true);
           setEventItems([]);
+          setEventPageInfo({ totalElements: 0, totalPages: 0 });
         }
       } finally {
         if (!cancelled) {
@@ -511,17 +531,19 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
     return () => {
       cancelled = true;
     };
-  }, [appliedFilters, preferencesVersion]);
+  }, [appliedFilters, preferencesVersion, eventPage]);
 
   function handleApplyFilters() {
     const normalized = normalizeFilters(draftFilters);
     setDraftFilters(normalized);
+    setEventPage(1);
     setAppliedFilters(normalized);
   }
 
   function handleResetFilters() {
     const empty = createEmptyFilters();
     setDraftFilters(empty);
+    setEventPage(1);
     setAppliedFilters(empty);
   }
 
@@ -631,6 +653,18 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
                   browseItems.map((item) => (
                     <BrowseCard key={item.id} event={item} navigate={navigate} />
                   ))}
+
+                {!recommendationsLoading && !recommendationsError && eventPageInfo.totalPages > 1 && (
+                  <Group justify="center" pt="sm">
+                    <Pagination
+                      value={eventPage}
+                      onChange={setEventPage}
+                      total={eventPageInfo.totalPages}
+                      color="brand"
+                      radius="sm"
+                    />
+                  </Group>
+                )}
               </Stack>
             )}
           </section>
@@ -640,7 +674,68 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
   );
 }
 
-function OrdersPage({ navigate }) {
+function OrdersPage({ navigate, currentUser }) {
+  const [orders, setOrders] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState({
+    totalElements: 0,
+    totalPages: 0
+  });
+  const [loading, setLoading] = useState(Boolean(currentUser));
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setPage(1);
+  }, [currentUser?.email]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setOrders([]);
+      setPage(1);
+      setPageInfo({ totalElements: 0, totalPages: 0 });
+      setLoading(false);
+      setError("");
+      return undefined;
+    }
+
+    let active = true;
+    setLoading(true);
+    setError("");
+
+    getUserOrders({ page: page - 1, size: ORDERS_PAGE_SIZE })
+      .then((data) => {
+        if (active) {
+          setOrders(data.items ?? []);
+          setPageInfo({
+            totalElements: data.totalElements ?? data.items?.length ?? 0,
+            totalPages: data.totalPages ?? 0
+          });
+        }
+      })
+      .catch((err) => active && setError(err.message))
+      .finally(() => active && setLoading(false));
+
+    return () => {
+      active = false;
+    };
+  }, [currentUser, page]);
+
+  if (!currentUser) {
+    return (
+      <Paper className="detail-section" radius="md" p="xl" withBorder>
+        <Stack gap="md" align="flex-start">
+          <Title order={2} c="brand.9">
+            Your Orders
+          </Title>
+          <Text c="dimmed">Sign in to see your completed orders and receipts.</Text>
+          <Button color="brand" onClick={() => navigate("/signin")}>
+            Sign in
+          </Button>
+        </Stack>
+      </Paper>
+    );
+  }
+
   return (
     <Stack gap="lg">
       <Group justify="space-between" align="baseline" gap="md">
@@ -648,39 +743,112 @@ function OrdersPage({ navigate }) {
           Your Orders
         </Title>
         <Text c="dimmed" size="sm">
-          Pending purchase
+          {loading
+            ? "Loading orders..."
+            : `${pageInfo.totalElements} completed order${pageInfo.totalElements === 1 ? "" : "s"}`}
         </Text>
       </Group>
 
-      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-        <Paper className="browse-card" radius="md" p="lg" withBorder>
-          <Stack gap="md">
-            <Group justify="space-between" align="flex-start" gap="md" wrap="nowrap">
-              <Box className="browse-copy">
-                <Title order={3} size="h4" c="brand.9" lineClamp={2}>
-                  Music Festival 2026
-                </Title>
-                <Text size="sm" fw="bold" c="brand.7">
-                  Central Park Amphitheater
-                </Text>
-                <Text size="sm" c="dimmed">
-                  General, VIP, and student tickets
-                </Text>
-              </Box>
-              <Badge radius="sm" variant="light" color="brand">
-                Open
-              </Badge>
-            </Group>
+      {error && (
+        <Paper className="detail-section" radius="md" p="lg" withBorder>
+          <Text c="red" size="sm">
+            {error}
+          </Text>
+        </Paper>
+      )}
 
-            <Group justify="flex-end">
-              <Button color="brand" onClick={() => navigate(`/events/${checkoutEventId}/checkout/tickets`)}>
-                Checkout
-              </Button>
-            </Group>
+      {!error && loading && (
+        <Paper className="detail-section" radius="md" p="lg" withBorder>
+          <Text c="dimmed" size="sm">
+            Loading your orders...
+          </Text>
+        </Paper>
+      )}
+
+      {!error && !loading && orders.length === 0 && (
+        <Paper className="detail-section" radius="md" p="xl" withBorder>
+          <Stack gap="md" align="flex-start">
+            <Text c="dimmed">You do not have any completed orders yet.</Text>
+            <Button color="brand" onClick={() => navigate("/")}>
+              Browse events
+            </Button>
           </Stack>
         </Paper>
-      </SimpleGrid>
+      )}
+
+      {!error && !loading && orders.length > 0 && (
+        <Stack gap="md">
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            {orders.map((order) => (
+              <OrderHistoryCard key={order.orderNumber} order={order} navigate={navigate} />
+            ))}
+          </SimpleGrid>
+
+          {pageInfo.totalPages > 1 && (
+            <Group justify="center">
+              <Pagination
+                value={page}
+                onChange={setPage}
+                total={pageInfo.totalPages}
+                color="brand"
+                radius="sm"
+              />
+            </Group>
+          )}
+        </Stack>
+      )}
     </Stack>
+  );
+}
+
+function OrderHistoryCard({ order, navigate }) {
+  const ticketCount = (order.summary?.items ?? []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+  const open = () => navigate(`/orders/${encodeURIComponent(order.orderNumber)}`);
+
+  return (
+    <Paper
+      className="browse-card event-link-card"
+      radius="md"
+      p="lg"
+      withBorder
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(keyEvent) => handleCardKeyDown(keyEvent, open)}
+    >
+      <Stack gap="md">
+        <Group justify="space-between" align="flex-start" gap="md" wrap="nowrap">
+          <Box className="browse-copy">
+            <Title order={3} size="h4" c="brand.9" lineClamp={2}>
+              {order.event.title}
+            </Title>
+            <Text size="sm" fw="bold" c="brand.7">
+              {formatDateTime(order.event.startsAt)}
+            </Text>
+            <Text size="sm" c="dimmed" lineClamp={1}>
+              {order.event.venueName}
+            </Text>
+          </Box>
+          <Badge radius="sm" variant="light" color="brand">
+            {order.status}
+          </Badge>
+        </Group>
+
+        <Group justify="space-between" gap="md" align="flex-end">
+          <Stack gap={2}>
+            <Text size="xs" c="dimmed">
+              {order.orderNumber}
+            </Text>
+            <Text size="sm" c="dimmed">
+              {ticketCount} ticket{ticketCount === 1 ? "" : "s"}
+            </Text>
+          </Stack>
+          <Text fw="bold" c="brand.9">
+            {formatMoney(order.summary?.total)}
+          </Text>
+        </Group>
+      </Stack>
+    </Paper>
   );
 }
 
@@ -827,7 +995,10 @@ function AppContent() {
                     onSetPreferences={() => setPreferencesOpen(true)}
                   />
                 )}
-                {route.name === "orders" && <OrdersPage navigate={navigate} />}
+                {route.name === "orders" && <OrdersPage navigate={navigate} currentUser={user} />}
+                {route.name === "orderDetail" && (
+                  <ConfirmationPage orderNumber={route.orderNumber} navigate={navigate} />
+                )}
                 {route.name === "signin" && <LoginPage navigate={navigate} />}
                 {route.name === "signup" && <SignUpPage navigate={navigate} />}
                 {route.name === "eventDetails" && (
