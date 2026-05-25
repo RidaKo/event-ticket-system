@@ -49,3 +49,6 @@ app:
     expiration-minutes: 60
   security:
     dev-endpoints-enabled: ${APP_SECURITY_DEV_ENDPOINTS_ENABLED:true}
+  tickets:
+    public-api-base-url: ${APP_TICKETS_PUBLIC_API_BASE_URL:http://localhost:8080}
+    public-frontend-base-url: ${APP_TICKETS_PUBLIC_FRONTEND_BASE_URL:http://127.0.0.1:5173}

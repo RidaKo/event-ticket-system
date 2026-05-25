@@ -1,0 +1,43 @@
+package com.paradise.event_ticket_system.admission;
+
+import com.paradise.event_ticket_system.model.Ticket;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface TicketRepository extends JpaRepository<Ticket, Integer> {
+
+    boolean existsByPurchaseOrderId(Long purchaseOrderId);
+
+    List<Ticket> findByPurchaseOrderIdOrderByIdAsc(Long purchaseOrderId);
+
+    Optional<Ticket> findByTicketCode(String ticketCode);
+
+    @Query("""
+        SELECT t FROM Ticket t
+        JOIN FETCH t.ticketType
+        JOIN FETCH t.event
+        WHERE t.ticketCode = :ticketCode
+        """)
+    Optional<Ticket> findByTicketCodeWithDetails(@Param("ticketCode") String ticketCode);
+
+    @Query("""
+        SELECT t FROM Ticket t
+        JOIN FETCH t.ticketType
+        JOIN FETCH t.purchaseOrder o
+        LEFT JOIN FETCH o.user
+        WHERE t.ticketCode = :ticketCode
+        """)
+    Optional<Ticket> findByTicketCodeWithOrder(@Param("ticketCode") String ticketCode);
+
+    @Query("""
+        SELECT t FROM Ticket t
+        JOIN FETCH t.ticketType
+        JOIN FETCH t.purchaseOrder
+        WHERE t.purchaseOrder.id = :purchaseOrderId
+        ORDER BY t.id ASC
+        """)
+    List<Ticket> findByPurchaseOrderIdWithDetails(@Param("purchaseOrderId") Long purchaseOrderId);
+}

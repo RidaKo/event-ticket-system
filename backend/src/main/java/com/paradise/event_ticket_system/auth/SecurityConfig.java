@@ -71,6 +71,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/checkout/orders/*/confirmation").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/checkout/orders/*/discount").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/checkout/orders/*/payment").permitAll()
+                        // Admission endpoints validate X-Order-Token / JWT in TicketAccessService (like checkout confirmation).
+                        .requestMatchers(HttpMethod.GET, "/api/tickets/**").permitAll()
                         .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

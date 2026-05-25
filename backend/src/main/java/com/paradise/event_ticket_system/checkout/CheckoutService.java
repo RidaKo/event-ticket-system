@@ -13,6 +13,12 @@ import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Payment;
 import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
+import com.paradise.event_ticket_system.admission.TicketIssuanceService;
+import com.paradise.event_ticket_system.admission.TicketQrCodeGenerator;
+import com.paradise.event_ticket_system.admission.TicketRepository;
+import com.paradise.event_ticket_system.admission.TicketUrlBuilder;
+import java.util.Base64;
+import com.paradise.event_ticket_system.model.Ticket;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
 import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDeliveryRepository;
 import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationService;
@@ -59,6 +65,10 @@ public class CheckoutService {
     private final UserRepository userRepository;
     private final PurchaseConfirmationService purchaseConfirmationService;
     private final PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository;
+    private final TicketIssuanceService ticketIssuanceService;
+    private final TicketRepository ticketRepository;
+    private final TicketQrCodeGenerator ticketQrCodeGenerator;
+    private final TicketUrlBuilder ticketUrlBuilder;
 
     public CheckoutService(
             CheckoutEventRepository eventRepository,
@@ -69,7 +79,11 @@ public class CheckoutService {
             PaymentService paymentService,
             UserRepository userRepository,
             PurchaseConfirmationService purchaseConfirmationService,
-            PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository
+            PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository,
+            TicketIssuanceService ticketIssuanceService,
+            TicketRepository ticketRepository,
+            TicketQrCodeGenerator ticketQrCodeGenerator,
+            TicketUrlBuilder ticketUrlBuilder
     ) {
         this.eventRepository = eventRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -80,6 +94,10 @@ public class CheckoutService {
         this.userRepository = userRepository;
         this.purchaseConfirmationService = purchaseConfirmationService;
         this.confirmationDeliveryRepository = confirmationDeliveryRepository;
+        this.ticketIssuanceService = ticketIssuanceService;
+        this.ticketRepository = ticketRepository;
+        this.ticketQrCodeGenerator = ticketQrCodeGenerator;
+        this.ticketUrlBuilder = ticketUrlBuilder;
     }
 
     @Transactional(readOnly = true)
@@ -281,6 +299,8 @@ public class CheckoutService {
         order.setConfirmedAt(LocalDateTime.now());
         order.setPayment(payment);
         paymentRepository.save(payment);
+        ensureOrderAccessToken(order);
+        ticketIssuanceService.issueForOrder(order);
         purchaseConfirmationService.handle(new PurchaseConfirmationRequest(order.getOrderNumber()));
 
         return new PaymentResponse(order.getOrderNumber(), order.getStatus(), payment.getStatus());
@@ -303,12 +323,12 @@ public class CheckoutService {
         if (isAdmin(auth)) {
             return;
         }
+        if (orderToken != null && orderToken.equals(order.getOrderToken())) {
+            return;
+        }
         User owner = order.getUser();
         if (owner == null || owner.getRole() == UserRole.GUEST) {
-            if (orderToken == null || !orderToken.equals(order.getOrderToken())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid or missing order token");
-            }
-            return;
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid or missing order token");
         }
         String email = auth == null ? null : auth.getName();
         if (email == null || !email.equalsIgnoreCase(owner.getEmail())) {
@@ -494,8 +514,15 @@ public class CheckoutService {
                 toSummary(order),
                 payment == null ? null : payment.getMethodType(),
                 payment == null ? null : payment.getCardLast4(),
-                toConfirmationEmailResponse(order)
+                toConfirmationEmailResponse(order),
+                issuedTicketsForOrder(order)
         );
+    }
+
+    private List<IssuedTicketResponse> issuedTicketsForOrder(PurchaseOrder order) {
+        return ticketRepository.findByPurchaseOrderIdWithDetails(order.getId()).stream()
+                .map(ticket -> toIssuedTicketResponse(ticket, order))
+                .toList();
     }
 
     private ConfirmationEmailResponse toConfirmationEmailResponse(PurchaseOrder order) {
@@ -553,5 +580,24 @@ public class CheckoutService {
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private void ensureOrderAccessToken(PurchaseOrder order) {
+        if (!hasText(order.getOrderToken())) {
+            order.setOrderToken(UUID.randomUUID().toString());
+        }
+    }
+
+    private IssuedTicketResponse toIssuedTicketResponse(Ticket ticket, PurchaseOrder order) {
+        String verifyUrl = ticketUrlBuilder.verifyUrl(ticket.getTicketCode(), order.getOrderToken());
+        byte[] png = ticketQrCodeGenerator.generatePng(verifyUrl);
+        String qrImageBase64 = Base64.getEncoder().encodeToString(png);
+        return new IssuedTicketResponse(
+                ticket.getId(),
+                ticket.getTicketCode(),
+                ticket.getTicketType().getName(),
+                qrImageBase64,
+                ticket.getStatus()
+        );
     }
 }

@@ -88,24 +88,40 @@ function getEmailStatusCopy(confirmation) {
   };
 }
 
+function readTokenFromUrl() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return new URLSearchParams(window.location.search).get("token");
+}
+
 export default function ConfirmationPage({ orderNumber, navigate }) {
-  const { getOrderToken } = useCheckout();
-  const orderToken = getOrderToken(orderNumber);
+  const { getOrderToken, rememberOrderToken } = useCheckout();
+  const [orderToken, setOrderToken] = useState(() => getOrderToken(orderNumber) || readTokenFromUrl());
   const [confirmation, setConfirmation] = useState(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const tokenFromUrl = readTokenFromUrl();
+    if (tokenFromUrl) {
+      rememberOrderToken(orderNumber, tokenFromUrl);
+      setOrderToken(tokenFromUrl);
+    }
+  }, [orderNumber, rememberOrderToken]);
 
   useEffect(() => {
     let active = true;
     setError("");
 
-    getConfirmation(orderNumber, orderToken)
+    const token = orderToken || getOrderToken(orderNumber);
+    getConfirmation(orderNumber, token)
       .then((data) => active && setConfirmation(data))
       .catch((err) => active && setError(err.message));
 
     return () => {
       active = false;
     };
-  }, [orderNumber, orderToken]);
+  }, [orderNumber, orderToken, getOrderToken]);
 
   if (error) {
     return (
@@ -128,8 +144,8 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
     <Stack className="confirmation-shell" gap="md">
       <Paper className="confirmation-header" radius="md" p="xl" withBorder>
         <Stack align="center" gap="xs">
-          <ThemeIcon size={52} radius="xl" color="brand">
-            OK
+          <ThemeIcon size={52} radius="xl" color="brand" variant="transparent">
+            <ConfirmationCheckIcon size={40} />
           </ThemeIcon>
           <Title order={2} c="brand.9">
             Order Confirmed
@@ -167,6 +183,48 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
           </Text>
         </Stack>
       </Paper>
+
+      {confirmation.tickets?.length > 0 && (
+        <Paper className="detail-section" radius="md" p="lg" withBorder>
+          <Stack gap="md">
+            <Title order={3} size="h4" c="brand.9">
+              Your tickets
+            </Title>
+            <Text size="sm" c="dimmed">
+              Show these QR codes at the venue entrance.
+            </Text>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              {confirmation.tickets.map((ticket) => (
+                <Paper key={ticket.id} radius="md" p="md" withBorder>
+                  <Stack gap="xs" align="center">
+                    <Text size="sm" fw="bold" c="brand.9">
+                      {ticket.ticketTypeName}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {ticket.ticketCode}
+                    </Text>
+                    {ticket.qrImageBase64 ? (
+                      <Box
+                        component="img"
+                        src={`data:image/png;base64,${ticket.qrImageBase64}`}
+                        alt={`QR code for ${ticket.ticketCode}`}
+                        style={{
+                          width: 220,
+                          height: 220,
+                          border: "1px solid var(--mantine-color-brand-2)",
+                          borderRadius: 8,
+                          padding: 8,
+                          background: "#fff",
+                        }}
+                      />
+                    ) : null}
+                  </Stack>
+                </Paper>
+              ))}
+            </SimpleGrid>
+          </Stack>
+        </Paper>
+      )}
 
       <Paper className="detail-section" radius="md" p="lg" withBorder>
         <Stack gap="md">
@@ -277,9 +335,9 @@ function EmailDeliveryStatusCard({ confirmation }) {
   );
 }
 
-function ConfirmationCheckIcon() {
+function ConfirmationCheckIcon({ size = 20 }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path
         d="M10.0001 18.3337C14.6025 18.3337 18.3334 14.6027 18.3334 10.0003C18.3334 5.39795 14.6025 1.66699 10.0001 1.66699C5.39771 1.66699 1.66675 5.39795 1.66675 10.0003C1.66675 14.6027 5.39771 18.3337 10.0001 18.3337Z"
         stroke="currentColor"
