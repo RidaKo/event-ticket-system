@@ -11,8 +11,10 @@ import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.model.Venue;
 import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Payment;
+import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
+import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDeliveryRepository;
 import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationService;
 import com.paradise.event_ticket_system.order.OrderStatus;
 import com.paradise.event_ticket_system.order.PurchaseOrderRepository;
@@ -56,6 +58,7 @@ public class CheckoutService {
     private final PaymentService paymentService;
     private final UserRepository userRepository;
     private final PurchaseConfirmationService purchaseConfirmationService;
+    private final PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository;
 
     public CheckoutService(
             CheckoutEventRepository eventRepository,
@@ -65,7 +68,8 @@ public class CheckoutService {
             PaymentRepository paymentRepository,
             PaymentService paymentService,
             UserRepository userRepository,
-            PurchaseConfirmationService purchaseConfirmationService
+            PurchaseConfirmationService purchaseConfirmationService,
+            PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository
     ) {
         this.eventRepository = eventRepository;
         this.ticketTypeRepository = ticketTypeRepository;
@@ -75,6 +79,7 @@ public class CheckoutService {
         this.paymentService = paymentService;
         this.userRepository = userRepository;
         this.purchaseConfirmationService = purchaseConfirmationService;
+        this.confirmationDeliveryRepository = confirmationDeliveryRepository;
     }
 
     @Transactional(readOnly = true)
@@ -488,7 +493,23 @@ public class CheckoutService {
                 toEventSummary(order.getEvent()),
                 toSummary(order),
                 payment == null ? null : payment.getMethodType(),
-                payment == null ? null : payment.getCardLast4()
+                payment == null ? null : payment.getCardLast4(),
+                toConfirmationEmailResponse(order)
+        );
+    }
+
+    private ConfirmationEmailResponse toConfirmationEmailResponse(PurchaseOrder order) {
+        return confirmationDeliveryRepository.findByOrderId(order.getId())
+                .map(this::toConfirmationEmailResponse)
+                .orElse(null);
+    }
+
+    private ConfirmationEmailResponse toConfirmationEmailResponse(PurchaseConfirmationDelivery delivery) {
+        return new ConfirmationEmailResponse(
+                delivery.getStatus(),
+                delivery.getAttendeeEmail(),
+                delivery.getSentAt(),
+                delivery.getFailureReason()
         );
     }
 

@@ -17,6 +17,77 @@ import { getConfirmation } from "../api/checkoutApi.js";
 import { useCheckout } from "../state/CheckoutContext.jsx";
 import { formatDateTime, formatMoney } from "../utils.js";
 
+function formatEmailStatusTime(value) {
+  if (!value) {
+    return "";
+  }
+
+  const sentAt = new Date(value);
+  if (Number.isNaN(sentAt.getTime())) {
+    return "";
+  }
+
+  const secondsAgo = Math.floor((Date.now() - sentAt.getTime()) / 1000);
+  if (secondsAgo < 120) {
+    return "Just now";
+  }
+
+  return formatDateTime(value);
+}
+
+function getEmailStatusCopy(confirmation) {
+  const delivery = confirmation.confirmationEmail;
+  const recipient = delivery?.attendeeEmail || confirmation.guestEmail;
+
+  if (!delivery) {
+    return {
+      color: "yellow",
+      icon: "...",
+      title: "Confirmation Pending",
+      description: recipient
+        ? `Order confirmation is being prepared for ${recipient}`
+        : "Order confirmation is being prepared.",
+      timestamp: "",
+    };
+  }
+
+  if (delivery.status === "SENT") {
+    return {
+      color: "brand",
+      icon: <ConfirmationCheckIcon />,
+      title: "Confirmation Sent",
+      description: recipient
+        ? `Order confirmation automatically sent to ${recipient}`
+        : "Order confirmation automatically sent.",
+      timestamp: formatEmailStatusTime(delivery.sentAt),
+    };
+  }
+
+  if (delivery.status === "FAILED") {
+    return {
+      color: "red",
+      icon: "!",
+      title: "Confirmation Not Sent",
+      description: delivery.failureReason
+        ? `${recipient ? `Email to ${recipient}` : "Email"} failed: ${delivery.failureReason}`
+        : recipient
+          ? `Email to ${recipient} could not be sent.`
+          : "Email could not be sent.",
+      timestamp: "",
+    };
+  }
+
+  return {
+    color: "yellow",
+    icon: "...",
+    title: "Confirmation Pending",
+    description: recipient
+      ? `Order confirmation is being sent to ${recipient}`
+      : "Order confirmation is being sent.",
+    timestamp: "",
+  };
+}
+
 export default function ConfirmationPage({ orderNumber, navigate }) {
   const { getOrderToken } = useCheckout();
   const orderToken = getOrderToken(orderNumber);
@@ -74,6 +145,8 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
         <DetailBlock label="Order Date" value={formatDateTime(confirmation.confirmedAt)} />
         <DetailBlock label="Status" value={confirmation.status} />
       </SimpleGrid>
+
+      <EmailDeliveryStatusCard confirmation={confirmation} />
 
       <Paper className="detail-section" radius="md" p="lg" withBorder>
         <Stack gap="xs">
@@ -174,6 +247,54 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
         </Button>
       </Group>
     </Stack>
+  );
+}
+
+function EmailDeliveryStatusCard({ confirmation }) {
+  const status = getEmailStatusCopy(confirmation);
+
+  return (
+    <Paper className="detail-section" radius="md" p="md" withBorder>
+      <Group justify="space-between" align="flex-start" gap="md" wrap="nowrap">
+        <Group gap="md" align="flex-start" wrap="nowrap">
+          <ThemeIcon size={32} radius="xl" color={status.color} variant="transparent">
+            {status.icon}
+          </ThemeIcon>
+          <Stack gap={2}>
+            <Text fw="bold" c="brand.9">
+              {status.title}
+            </Text>
+            <Text c="dimmed">{status.description}</Text>
+          </Stack>
+        </Group>
+        {status.timestamp && (
+          <Text c="dimmed" ta="right" style={{ whiteSpace: "nowrap" }}>
+            {status.timestamp}
+          </Text>
+        )}
+      </Group>
+    </Paper>
+  );
+}
+
+function ConfirmationCheckIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10.0001 18.3337C14.6025 18.3337 18.3334 14.6027 18.3334 10.0003C18.3334 5.39795 14.6025 1.66699 10.0001 1.66699C5.39771 1.66699 1.66675 5.39795 1.66675 10.0003C1.66675 14.6027 5.39771 18.3337 10.0001 18.3337Z"
+        stroke="currentColor"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.5 9.99967L9.16667 11.6663L12.5 8.33301"
+        stroke="currentColor"
+        strokeWidth="1.66667"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

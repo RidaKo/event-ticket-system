@@ -13,6 +13,7 @@ public record ConfirmationResponse(
         EventSummaryResponse event,
         OrderSummaryResponse summary,
         PaymentMethodType paymentMethod,
-        String cardLast4
+        String cardLast4,
+        ConfirmationEmailResponse confirmationEmail
 ) {
 }

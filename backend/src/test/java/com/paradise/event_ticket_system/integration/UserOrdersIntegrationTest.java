@@ -56,7 +56,9 @@ class UserOrdersIntegrationTest {
                 .andExpect(jsonPath("$.event.title").value("Summer Fest"))
                 .andExpect(jsonPath("$.summary.items[0].name").value("General Admission"))
                 .andExpect(jsonPath("$.paymentMethod").value("CARD"))
-                .andExpect(jsonPath("$.cardLast4").value("4242"));
+                .andExpect(jsonPath("$.cardLast4").value("4242"))
+                .andExpect(jsonPath("$.confirmationEmail.status").value("SENT"))
+                .andExpect(jsonPath("$.confirmationEmail.attendeeEmail").value("orders-user@example.com"));
     }
 
     @Test
