@@ -1,14 +1,16 @@
 import { Alert, Group, Loader, Paper, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
-import { quoteCheckout } from "../api/checkoutApi.js";
+import { createOrder, quoteCheckout } from "../api/checkoutApi.js";
 import { getEvent, getTicketTypes } from "../api/eventsApi.js";
 import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
 import DiscountCodeInput from "../components/DiscountCodeInput.jsx";
 import OrderSummary from "../components/OrderSummary.jsx";
 import TicketQuantitySelector from "../components/TicketQuantitySelector.jsx";
+import { useAuth } from "../state/AuthContext.jsx";
 import { useCheckout } from "../state/CheckoutContext.jsx";
 
 export default function TicketSelectionPage({ eventId, navigate }) {
+  const { user } = useAuth();
   const { setCheckoutDraft } = useCheckout();
   const [event, setEvent] = useState(null);
   const [tickets, setTickets] = useState([]);
@@ -18,6 +20,7 @@ export default function TicketSelectionPage({ eventId, navigate }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [discountError, setDiscountError] = useState("");
+  const [submittingOrder, setSubmittingOrder] = useState(false);
 
   const selectedItems = useMemo(
     () =>
@@ -115,20 +118,39 @@ export default function TicketSelectionPage({ eventId, navigate }) {
     }
   }
 
-  function continueToAccount() {
+  async function continueToAccount() {
     if (!summary || selectedItems.length === 0) {
       setError("Select at least one ticket");
       return;
     }
 
     setError("");
-    setCheckoutDraft({
+    const draft = {
       eventId,
       event,
       items: selectedItems,
       discountCode: appliedDiscountCode || null,
       summary,
-    });
+    };
+    setCheckoutDraft(draft);
+
+    if (user) {
+      setSubmittingOrder(true);
+      try {
+        const order = await createOrder({
+          eventId,
+          items: selectedItems,
+          discountCode: appliedDiscountCode || null,
+        });
+        navigate(`/checkout/${order.orderNumber}/payment`);
+      } catch (err) {
+        setError(err.message || "Unable to continue to payment");
+      } finally {
+        setSubmittingOrder(false);
+      }
+      return;
+    }
+
     navigate(`/events/${eventId}/checkout/account`);
   }
 
@@ -136,9 +158,9 @@ export default function TicketSelectionPage({ eventId, navigate }) {
     <Stack gap="md">
       <OrderSummary
         summary={summary}
-        actionLabel="Continue to Account"
+        actionLabel={user ? (submittingOrder ? "Preparing Payment..." : "Continue to Payment") : "Continue to Account"}
         onAction={continueToAccount}
-        actionDisabled={!summary || selectedItems.length === 0}
+        actionDisabled={!summary || selectedItems.length === 0 || submittingOrder}
         footer={
           <Stack gap="md">
             <DiscountCodeInput

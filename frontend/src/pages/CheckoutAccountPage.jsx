@@ -4,6 +4,7 @@ import {
   Button,
   Checkbox,
   Group,
+  Loader,
   Paper,
   SimpleGrid,
   Stack,
@@ -12,7 +13,7 @@ import {
   ThemeIcon,
   Title,
 } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createGuestOrder, createOrder } from "../api/checkoutApi.js";
 import { MailIcon, SignInFormSection, SignInIcon, UserPlusIcon } from "../components/AuthShared.jsx";
 import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
@@ -54,13 +55,15 @@ function AccountChoice({ description, icon, label, onClick, selected }) {
 export default function CheckoutAccountPage({ eventId, navigate }) {
   const { login, register, user } = useAuth();
   const { checkoutDraft, guest, rememberOrderToken, updateGuest } = useCheckout();
-  const [mode, setMode] = useState(user ? "signedIn" : "create");
+  const [mode, setMode] = useState("create");
   const [guestForm, setGuestForm] = useState({
     guestName: guest.guestName || "",
     email: guest.guestEmail || "",
     phone: guest.guestPhone || "",
     marketing: true,
   });
+  const orderCreationStartedRef = useRef(false);
+  const [accountError, setAccountError] = useState("");
   const [guestError, setGuestError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -73,12 +76,10 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
   const sidebar = <OrderSummary summary={hasCheckoutDraft ? checkoutDraft.summary : null} />;
 
   useEffect(() => {
-    if (user) {
-      setMode("signedIn");
-    } else {
-      setMode((current) => (current === "signedIn" ? "create" : current));
+    if (user && hasCheckoutDraft) {
+      createAuthenticatedPendingOrder(user).catch(() => {});
     }
-  }, [user]);
+  }, [user, hasCheckoutDraft]);
 
   if (!hasCheckoutDraft) {
     return (
@@ -108,7 +109,13 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
   }
 
   async function createAuthenticatedPendingOrder(currentUser = user) {
+    if (orderCreationStartedRef.current) {
+      return;
+    }
+
+    orderCreationStartedRef.current = true;
     setSubmitting(true);
+    setAccountError("");
     try {
       updateGuest({
         guestName: currentUser?.fullName || "",
@@ -120,6 +127,10 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
       const order = await createOrder(orderPayload());
 
       navigate(`/checkout/${order.orderNumber}/payment`);
+    } catch (err) {
+      orderCreationStartedRef.current = false;
+      setAccountError(err.message || "Unable to continue to payment");
+      throw err;
     } finally {
       setSubmitting(false);
     }
@@ -164,38 +175,45 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
   return (
     <CheckoutStepLayout title="Account" sidebar={sidebar}>
       <Stack gap="md">
-        <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
-          {user && (
+        {user && (
+          <>
+            <Group gap="sm">
+              <Loader size="sm" color="brand" />
+              <Text c="dimmed">Preparing payment...</Text>
+            </Group>
+            {accountError && (
+              <Alert color="red" variant="light">
+                {accountError}
+              </Alert>
+            )}
+          </>
+        )}
+
+        {!user && (
+          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
             <AccountChoice
-              label="Signed in"
-              description={user.email}
+              label="Sign in"
+              description="Use your existing account"
               icon={<SignInIcon />}
-              selected={mode === "signedIn"}
-              onClick={() => setMode("signedIn")}
+              selected={mode === "signin"}
+              onClick={() => setMode("signin")}
             />
-          )}
-          <AccountChoice
-            label="Sign in"
-            description="Use your existing account"
-            icon={<SignInIcon />}
-            selected={mode === "signin"}
-            onClick={() => setMode("signin")}
-          />
-          <AccountChoice
-            label="Create Account"
-            description="Save your info for faster checkout"
-            icon={<UserPlusIcon />}
-            selected={mode === "create"}
-            onClick={() => setMode("create")}
-          />
-          <AccountChoice
-            label="Continue as Guest"
-            description="Quick checkout without an account"
-            icon={<MailIcon />}
-            selected={mode === "guest"}
-            onClick={() => setMode("guest")}
-          />
-        </SimpleGrid>
+            <AccountChoice
+              label="Create Account"
+              description="Save your info for faster checkout"
+              icon={<UserPlusIcon />}
+              selected={mode === "create"}
+              onClick={() => setMode("create")}
+            />
+            <AccountChoice
+              label="Continue as Guest"
+              description="Quick checkout without an account"
+              icon={<MailIcon />}
+              selected={mode === "guest"}
+              onClick={() => setMode("guest")}
+            />
+          </SimpleGrid>
+        )}
 
         {checkoutDraft.event?.title && (
           <Paper className="event-strip" radius="md" p="md" withBorder>
@@ -210,25 +228,7 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
           </Paper>
         )}
 
-        {mode === "signedIn" && user && (
-          <Paper className="form-section account-form" radius="md" p="lg" withBorder>
-            <Stack gap="md">
-              <Stack gap={2}>
-                <Title order={3} size="h4" c="brand.9">
-                  Continue as {user.fullName || user.email}
-                </Title>
-                <Text size="sm" c="dimmed">
-                  This order will be saved to your account.
-                </Text>
-              </Stack>
-              <Button color="brand" fullWidth loading={submitting} onClick={() => createAuthenticatedPendingOrder(user)}>
-                Continue to Payment
-              </Button>
-            </Stack>
-          </Paper>
-        )}
-
-        {mode === "signin" && (
+        {!user && mode === "signin" && (
           <SignInFormSection
             title="Sign in to Continue"
             initialValues={{ email: guest.guestEmail || "" }}
@@ -244,7 +244,7 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
           />
         )}
 
-        {mode === "create" && (
+        {!user && mode === "create" && (
           <RegistrationForm
             initialValues={{ email: guest.guestEmail || "", phone: guest.guestPhone || "" }}
             submitLabel="Create Account and Continue"
@@ -261,7 +261,7 @@ export default function CheckoutAccountPage({ eventId, navigate }) {
           />
         )}
 
-        {mode === "guest" && (
+        {!user && mode === "guest" && (
           <form onSubmit={continueAsGuest}>
             <Stack gap="md">
               <Paper className="form-section account-form" radius="md" p="lg" withBorder>
