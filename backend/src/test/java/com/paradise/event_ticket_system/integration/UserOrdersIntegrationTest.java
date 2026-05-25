@@ -59,6 +59,46 @@ class UserOrdersIntegrationTest {
                 .andExpect(jsonPath("$.cardLast4").value("4242"));
     }
 
+    @Test
+    void authenticatedUserOrdersArePaginatedNewestFirst() throws Exception {
+        String token = register("paged-orders-user@example.com", "Paged Orders User");
+
+        String firstOrderNumber = createOrder(token);
+        payOrder(token, firstOrderNumber);
+        String secondOrderNumber = createOrder(token);
+        payOrder(token, secondOrderNumber);
+        String thirdOrderNumber = createOrder(token);
+        payOrder(token, thirdOrderNumber);
+
+        mvc.perform(get("/api/checkout/orders")
+                        .param("page", "0")
+                        .param("size", "2")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.items[0].orderNumber").value(thirdOrderNumber))
+                .andExpect(jsonPath("$.items[1].orderNumber").value(secondOrderNumber))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.hasNext").value(true))
+                .andExpect(jsonPath("$.hasPrevious").value(false));
+
+        mvc.perform(get("/api/checkout/orders")
+                        .param("page", "1")
+                        .param("size", "2")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].orderNumber").value(firstOrderNumber))
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.hasNext").value(false))
+                .andExpect(jsonPath("$.hasPrevious").value(true));
+    }
+
     private String register(String email, String fullName) throws Exception {
         String response = mvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

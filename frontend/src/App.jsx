@@ -12,6 +12,7 @@ import {
   Group,
   Image,
   Paper,
+  Pagination,
   Pill,
   SimpleGrid,
   Stack,
@@ -52,6 +53,7 @@ import CreateVenuePage from "./pages/Organizer/CreateVenuePage";
 
 const RECOMMENDED_LIMIT = 6;
 const TOTAL_FETCH_LIMIT = 20;
+const ORDERS_PAGE_SIZE = 6;
 
 function readRoute() {
   const path = window.location.pathname;
@@ -649,12 +651,23 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
 
 function OrdersPage({ navigate, currentUser }) {
   const [orders, setOrders] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState({
+    totalElements: 0,
+    totalPages: 0
+  });
   const [loading, setLoading] = useState(Boolean(currentUser));
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setPage(1);
+  }, [currentUser?.email]);
+
+  useEffect(() => {
     if (!currentUser) {
       setOrders([]);
+      setPage(1);
+      setPageInfo({ totalElements: 0, totalPages: 0 });
       setLoading(false);
       setError("");
       return undefined;
@@ -664,10 +677,14 @@ function OrdersPage({ navigate, currentUser }) {
     setLoading(true);
     setError("");
 
-    getUserOrders()
+    getUserOrders({ page: page - 1, size: ORDERS_PAGE_SIZE })
       .then((data) => {
         if (active) {
           setOrders(data.items ?? []);
+          setPageInfo({
+            totalElements: data.totalElements ?? data.items?.length ?? 0,
+            totalPages: data.totalPages ?? 0
+          });
         }
       })
       .catch((err) => active && setError(err.message))
@@ -676,7 +693,7 @@ function OrdersPage({ navigate, currentUser }) {
     return () => {
       active = false;
     };
-  }, [currentUser]);
+  }, [currentUser, page]);
 
   if (!currentUser) {
     return (
@@ -701,7 +718,9 @@ function OrdersPage({ navigate, currentUser }) {
           Your Orders
         </Title>
         <Text c="dimmed" size="sm">
-          {loading ? "Loading orders..." : `${orders.length} completed order${orders.length === 1 ? "" : "s"}`}
+          {loading
+            ? "Loading orders..."
+            : `${pageInfo.totalElements} completed order${pageInfo.totalElements === 1 ? "" : "s"}`}
         </Text>
       </Group>
 
@@ -733,11 +752,25 @@ function OrdersPage({ navigate, currentUser }) {
       )}
 
       {!error && !loading && orders.length > 0 && (
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-          {orders.map((order) => (
-            <OrderHistoryCard key={order.orderNumber} order={order} navigate={navigate} />
-          ))}
-        </SimpleGrid>
+        <Stack gap="md">
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            {orders.map((order) => (
+              <OrderHistoryCard key={order.orderNumber} order={order} navigate={navigate} />
+            ))}
+          </SimpleGrid>
+
+          {pageInfo.totalPages > 1 && (
+            <Group justify="center">
+              <Pagination
+                value={page}
+                onChange={setPage}
+                total={pageInfo.totalPages}
+                color="brand"
+                radius="sm"
+              />
+            </Group>
+          )}
+        </Stack>
       )}
     </Stack>
   );

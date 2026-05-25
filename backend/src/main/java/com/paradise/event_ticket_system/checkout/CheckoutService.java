@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class CheckoutService {
 
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+    public static final int MAX_ORDER_PAGE_SIZE = 50;
 
     private final CheckoutEventRepository eventRepository;
     private final TicketTypeRepository ticketTypeRepository;
@@ -171,17 +174,39 @@ public class CheckoutService {
     }
 
     @Transactional(readOnly = true)
-    public UserOrdersResponse getConfirmedOrdersForUser(String userEmail) {
-        List<UserOrderListItemResponse> items = orderRepository
-                .findByUser_EmailIgnoreCaseAndStatusOrderByConfirmedAtDescCreatedAtDesc(
-                        userEmail,
-                        OrderStatus.CONFIRMED
-                )
-                .stream()
-                .map(this::toUserOrderListItemResponse)
-                .toList();
+    public UserOrdersResponse getConfirmedOrdersForUser(String userEmail, int page, int size) {
+        int effectivePage = Math.max(0, page);
+        int effectiveSize = Math.min(Math.max(1, size), MAX_ORDER_PAGE_SIZE);
+        Page<Long> orderIdPage = orderRepository.findOrderListPageIdsByUserEmailIgnoreCaseAndStatus(
+                userEmail,
+                OrderStatus.CONFIRMED,
+                PageRequest.of(effectivePage, effectiveSize)
+        );
 
-        return new UserOrdersResponse(items);
+        List<UserOrderListItemResponse> items;
+        if (orderIdPage.isEmpty()) {
+            items = List.of();
+        } else {
+            Map<Long, PurchaseOrder> ordersById = orderRepository.findOrderListItemsByIdIn(orderIdPage.getContent())
+                    .stream()
+                    .collect(Collectors.toMap(PurchaseOrder::getId, Function.identity()));
+
+            items = orderIdPage.getContent()
+                    .stream()
+                    .map(ordersById::get)
+                    .map(this::toUserOrderListItemResponse)
+                    .toList();
+        }
+
+        return new UserOrdersResponse(
+                items,
+                orderIdPage.getNumber(),
+                orderIdPage.getSize(),
+                orderIdPage.getTotalElements(),
+                orderIdPage.getTotalPages(),
+                orderIdPage.hasNext(),
+                orderIdPage.hasPrevious()
+        );
     }
 
     @Transactional
