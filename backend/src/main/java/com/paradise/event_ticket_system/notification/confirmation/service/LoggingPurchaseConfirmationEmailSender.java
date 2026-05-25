@@ -19,9 +19,10 @@ public class LoggingPurchaseConfirmationEmailSender implements PurchaseConfirmat
 	@Override
 	public void send(PurchaseConfirmationEmailMessage message) {
 		log.info(
-			"Sending purchase confirmation email in log mode to {} with subject '{}'.\n{}",
+			"Sending purchase confirmation email in log mode to {} with subject '{}' ({} inline QR image(s)).\n{}",
 			message.to(),
 			message.subject(),
+			message.inlineImages().size(),
 			message.textBody()
 		);
 	}

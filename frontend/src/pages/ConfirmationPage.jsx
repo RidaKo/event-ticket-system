@@ -17,24 +17,40 @@ import { getConfirmation } from "../api/checkoutApi.js";
 import { useCheckout } from "../state/CheckoutContext.jsx";
 import { formatDateTime, formatMoney } from "../utils.js";
 
+function readTokenFromUrl() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return new URLSearchParams(window.location.search).get("token");
+}
+
 export default function ConfirmationPage({ orderNumber, navigate }) {
-  const { getOrderToken } = useCheckout();
-  const orderToken = getOrderToken(orderNumber);
+  const { getOrderToken, rememberOrderToken } = useCheckout();
+  const [orderToken, setOrderToken] = useState(() => getOrderToken(orderNumber) || readTokenFromUrl());
   const [confirmation, setConfirmation] = useState(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const tokenFromUrl = readTokenFromUrl();
+    if (tokenFromUrl) {
+      rememberOrderToken(orderNumber, tokenFromUrl);
+      setOrderToken(tokenFromUrl);
+    }
+  }, [orderNumber, rememberOrderToken]);
 
   useEffect(() => {
     let active = true;
     setError("");
 
-    getConfirmation(orderNumber, orderToken)
+    const token = orderToken || getOrderToken(orderNumber);
+    getConfirmation(orderNumber, token)
       .then((data) => active && setConfirmation(data))
       .catch((err) => active && setError(err.message));
 
     return () => {
       active = false;
     };
-  }, [orderNumber, orderToken]);
+  }, [orderNumber, orderToken, getOrderToken]);
 
   if (error) {
     return (
@@ -94,6 +110,48 @@ export default function ConfirmationPage({ orderNumber, navigate }) {
           </Text>
         </Stack>
       </Paper>
+
+      {confirmation.tickets?.length > 0 && (
+        <Paper className="detail-section" radius="md" p="lg" withBorder>
+          <Stack gap="md">
+            <Title order={3} size="h4" c="brand.9">
+              Your tickets
+            </Title>
+            <Text size="sm" c="dimmed">
+              Show these QR codes at the venue entrance.
+            </Text>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              {confirmation.tickets.map((ticket) => (
+                <Paper key={ticket.id} radius="md" p="md" withBorder>
+                  <Stack gap="xs" align="center">
+                    <Text size="sm" fw="bold" c="brand.9">
+                      {ticket.ticketTypeName}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {ticket.ticketCode}
+                    </Text>
+                    {ticket.qrImageBase64 ? (
+                      <Box
+                        component="img"
+                        src={`data:image/png;base64,${ticket.qrImageBase64}`}
+                        alt={`QR code for ${ticket.ticketCode}`}
+                        style={{
+                          width: 220,
+                          height: 220,
+                          border: "1px solid var(--mantine-color-brand-2)",
+                          borderRadius: 8,
+                          padding: 8,
+                          background: "#fff",
+                        }}
+                      />
+                    ) : null}
+                  </Stack>
+                </Paper>
+              ))}
+            </SimpleGrid>
+          </Stack>
+        </Paper>
+      )}
 
       <Paper className="detail-section" radius="md" p="lg" withBorder>
         <Stack gap="md">

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.paradise.event_ticket_system.admission.TicketUrlBuilder;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
@@ -17,6 +18,12 @@ import org.springframework.util.StringUtils;
 
 @Component
 public class PurchaseConfirmationDeliveryFactory {
+
+	private final TicketUrlBuilder ticketUrlBuilder;
+
+	public PurchaseConfirmationDeliveryFactory(TicketUrlBuilder ticketUrlBuilder) {
+		this.ticketUrlBuilder = ticketUrlBuilder;
+	}
 
 	public PurchaseConfirmationDelivery createPending(PurchaseOrder order) {
 		if (order.getId() == null) {
@@ -29,6 +36,8 @@ public class PurchaseConfirmationDeliveryFactory {
 		Event event = order.getEvent();
 		List<PurchaseConfirmationTicketLine> ticketLines = summarizeTicketLines(order.getItems());
 
+		String orderAccessUrl = ticketUrlBuilder.orderConfirmationUrl(order);
+
 		return PurchaseConfirmationDelivery.pending(
 			order.getId(),
 			order.getOrderNumber(),
@@ -38,7 +47,7 @@ public class PurchaseConfirmationDeliveryFactory {
 			resolveEventLocation(event),
 			totalQuantity(order.getItems()),
 			ticketLines,
-			null,
+			orderAccessUrl,
 			null
 		);
 	}

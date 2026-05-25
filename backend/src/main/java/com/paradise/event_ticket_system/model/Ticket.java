@@ -26,9 +26,13 @@ public class Ticket extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "order_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
     private Order order;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_order_id")
+    private PurchaseOrder purchaseOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "event_id", nullable = false)
@@ -48,8 +52,8 @@ public class Ticket extends AuditableEntity {
     @Column(name = "owner_name", nullable = false)
     private String ownerName;
 
-    @Column(name = "price_paid", nullable = false, precision = 12, scale = 2)
-    private BigDecimal pricePaid;
+    @Column(name = "face_price", nullable = false, precision = 12, scale = 2)
+    private BigDecimal facePrice;
 
     @Column(name = "ticket_code", nullable = false, unique = true)
     private String ticketCode;
