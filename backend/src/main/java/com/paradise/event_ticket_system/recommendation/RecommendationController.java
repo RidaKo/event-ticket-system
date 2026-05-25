@@ -39,6 +39,8 @@ public class RecommendationController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
             Authentication authentication
     ) {
         Set<String> categorySlugs = parseToLowerSlugs(categories);
@@ -53,7 +55,12 @@ public class RecommendationController {
         );
 
         Integer userId = resolveUserId(authentication);
-        return recommendationService.recommend(userId, filters, limit);
+        return recommendationService.recommend(
+                userId,
+                filters,
+                page,
+                size == null ? limit : size
+        );
     }
 
     /** Logged-in user only; anonymous callers get null (no demo-user fallback). */

@@ -52,7 +52,7 @@ import CreateVenuePage from "./pages/Organizer/CreateVenuePage";
 
 
 const RECOMMENDED_LIMIT = 6;
-const TOTAL_FETCH_LIMIT = 20;
+const EVENTS_PAGE_SIZE = 12;
 const ORDERS_PAGE_SIZE = 6;
 
 function readRoute() {
@@ -443,12 +443,17 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState(false);
   const [eventItems, setEventItems] = useState([]);
+  const [eventPage, setEventPage] = useState(1);
+  const [eventPageInfo, setEventPageInfo] = useState({
+    totalElements: 0,
+    totalPages: 0
+  });
   const [recommendationsLoading, setRecommendationsLoading] = useState(true);
   const [recommendationsError, setRecommendationsError] = useState(false);
   const [fallbackUsed, setFallbackUsed] = useState(false);
   const [personalized, setPersonalized] = useState(false);
 
-  const showRecommendations = personalized;
+  const showRecommendations = personalized && eventPage === 1;
   const recommendedItems = showRecommendations ? eventItems.slice(0, RECOMMENDED_LIMIT) : [];
   const browseItems = showRecommendations ? eventItems.slice(RECOMMENDED_LIMIT) : eventItems;
   const showBrowseAllAboveHint =
@@ -497,10 +502,15 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
       try {
         const response = await getRecommendedEvents({
           ...appliedFilters,
-          limit: TOTAL_FETCH_LIMIT,
+          page: eventPage - 1,
+          size: EVENTS_PAGE_SIZE,
         });
         if (!cancelled) {
           setEventItems((response.items ?? []).map(mapRecommendedEvent));
+          setEventPageInfo({
+            totalElements: response.totalElements ?? response.items?.length ?? 0,
+            totalPages: response.totalPages ?? 0
+          });
           setFallbackUsed(Boolean(response.fallbackUsed));
           setPersonalized(Boolean(response.personalized));
         }
@@ -508,6 +518,7 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
         if (!cancelled) {
           setRecommendationsError(true);
           setEventItems([]);
+          setEventPageInfo({ totalElements: 0, totalPages: 0 });
         }
       } finally {
         if (!cancelled) {
@@ -520,17 +531,19 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
     return () => {
       cancelled = true;
     };
-  }, [appliedFilters, preferencesVersion]);
+  }, [appliedFilters, preferencesVersion, eventPage]);
 
   function handleApplyFilters() {
     const normalized = normalizeFilters(draftFilters);
     setDraftFilters(normalized);
+    setEventPage(1);
     setAppliedFilters(normalized);
   }
 
   function handleResetFilters() {
     const empty = createEmptyFilters();
     setDraftFilters(empty);
+    setEventPage(1);
     setAppliedFilters(empty);
   }
 
@@ -640,6 +653,18 @@ function BrowsePage({ navigate, preferencesVersion, isAuthenticated, onSetPrefer
                   browseItems.map((item) => (
                     <BrowseCard key={item.id} event={item} navigate={navigate} />
                   ))}
+
+                {!recommendationsLoading && !recommendationsError && eventPageInfo.totalPages > 1 && (
+                  <Group justify="center" pt="sm">
+                    <Pagination
+                      value={eventPage}
+                      onChange={setEventPage}
+                      total={eventPageInfo.totalPages}
+                      color="brand"
+                      radius="sm"
+                    />
+                  </Group>
+                )}
               </Stack>
             )}
           </section>

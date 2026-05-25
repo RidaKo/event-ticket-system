@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 public class RecommendationService {
 
     private static final ZoneId DEFAULT_ZONE = ZoneId.systemDefault();
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final EventRepository eventRepository;
     private final UserPreferencesRepository preferencesRepository;
@@ -48,9 +49,17 @@ public class RecommendationService {
     public RecommendationResponse recommend(Integer userId,
                                             RecommendationFilters filters,
                                             Integer limit) {
-        int effectiveLimit = (limit == null || limit <= 0)
+        return recommend(userId, filters, 0, limit);
+    }
+
+    public RecommendationResponse recommend(Integer userId,
+                                            RecommendationFilters filters,
+                                            Integer page,
+                                            Integer size) {
+        int effectivePage = page == null ? 0 : Math.max(0, page);
+        int effectiveSize = size == null || size <= 0
                 ? scoringProperties.getDefaultLimit()
-                : limit;
+                : Math.min(size, MAX_PAGE_SIZE);
         Instant now = Instant.now();
         boolean hasActiveFilters = filters != null && !filters.isEmpty();
 
@@ -72,28 +81,43 @@ public class RecommendationService {
                         .thenComparing(se -> se.event().getStartDatetime()))
                 .toList();
 
-        List<Event> picks = new ArrayList<>(scored.stream()
-                .limit(effectiveLimit)
+        List<Event> orderedEvents = new ArrayList<>(scored.stream()
                 .map(ScoredEvent::event)
                 .toList());
 
         boolean fallbackUsed = false;
 
-        if (personalized && !hasActiveFilters && picks.size() < effectiveLimit) {
+        if (personalized && !hasActiveFilters && orderedEvents.size() < effectiveSize) {
             fallbackUsed = true;
-            Set<Integer> pickedIds = picks.stream().map(Event::getId).collect(Collectors.toSet());
+            Set<Integer> pickedIds = orderedEvents.stream().map(Event::getId).collect(Collectors.toSet());
             upcoming.stream()
                     .filter(e -> !pickedIds.contains(e.getId()))
                     .sorted(Comparator.comparing(Event::getStartDatetime))
-                    .limit((long) effectiveLimit - picks.size())
-                    .forEach(picks::add);
+                    .limit((long) effectiveSize - orderedEvents.size())
+                    .forEach(orderedEvents::add);
         }
 
-        List<RecommendedEventDto> items = picks.stream()
+        int totalElements = orderedEvents.size();
+        long offset = (long) effectivePage * effectiveSize;
+        int fromIndex = offset >= totalElements ? totalElements : (int) offset;
+        int toIndex = Math.min(fromIndex + effectiveSize, totalElements);
+        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / effectiveSize);
+
+        List<RecommendedEventDto> items = orderedEvents.subList(fromIndex, toIndex).stream()
                 .map(RecommendedEventDto::from)
                 .toList();
 
-        return new RecommendationResponse(items, fallbackUsed, personalized);
+        return new RecommendationResponse(
+                items,
+                fallbackUsed,
+                personalized,
+                effectivePage,
+                effectiveSize,
+                totalElements,
+                totalPages,
+                effectivePage + 1 < totalPages,
+                effectivePage > 0
+        );
     }
 
     private static boolean hasSavedPreferences(UserPreferences prefs) {

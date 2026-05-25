@@ -21,6 +21,12 @@ export async function getRecommendedEvents(filters = {}) {
   if (filters.limit) {
     params.set("limit", String(filters.limit));
   }
+  if (filters.page != null) {
+    params.set("page", String(filters.page));
+  }
+  if (filters.size) {
+    params.set("size", String(filters.size));
+  }
 
   const query = params.toString();
   return apiFetch(`/events/recommended${query ? `?${query}` : ""}`);
