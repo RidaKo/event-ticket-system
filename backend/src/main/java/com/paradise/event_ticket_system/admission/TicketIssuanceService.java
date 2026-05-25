@@ -44,7 +44,7 @@ public class TicketIssuanceService {
         List<Ticket> issued = new ArrayList<>();
         for (OrderItem item : order.getItems()) {
             TicketType ticketType = item.getTicketType();
-            BigDecimal unitPrice = item.getUnitPrice() == null
+            BigDecimal facePrice = item.getUnitPrice() == null
                 ? BigDecimal.ZERO
                 : item.getUnitPrice().setScale(2, RoundingMode.HALF_UP);
             for (int i = 0; i < item.getQuantity(); i++) {
@@ -55,7 +55,7 @@ public class TicketIssuanceService {
                 ticket.setOwnerUser(resolveOwnerUser(order));
                 ticket.setOwnerEmail(resolveOwnerEmail(order));
                 ticket.setOwnerName(resolveOwnerName(order));
-                ticket.setPricePaid(unitPrice);
+                ticket.setFacePrice(facePrice);
                 String ticketCode = generateTicketCode();
                 ticket.setTicketCode(ticketCode);
                 ticket.setQrCodeUrl(null);

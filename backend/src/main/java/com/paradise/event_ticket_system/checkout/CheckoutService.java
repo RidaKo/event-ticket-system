@@ -306,12 +306,12 @@ public class CheckoutService {
         if (isAdmin(auth)) {
             return;
         }
+        if (orderToken != null && orderToken.equals(order.getOrderToken())) {
+            return;
+        }
         User owner = order.getUser();
         if (owner == null || owner.getRole() == UserRole.GUEST) {
-            if (orderToken == null || !orderToken.equals(order.getOrderToken())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid or missing order token");
-            }
-            return;
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid or missing order token");
         }
         String email = auth == null ? null : auth.getName();
         if (email == null || !email.equalsIgnoreCase(owner.getEmail())) {

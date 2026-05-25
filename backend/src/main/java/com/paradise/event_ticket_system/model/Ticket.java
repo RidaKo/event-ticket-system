@@ -52,8 +52,8 @@ public class Ticket extends AuditableEntity {
     @Column(name = "owner_name", nullable = false)
     private String ownerName;
 
-    @Column(name = "price_paid", nullable = false, precision = 12, scale = 2)
-    private BigDecimal pricePaid;
+    @Column(name = "face_price", nullable = false, precision = 12, scale = 2)
+    private BigDecimal facePrice;
 
     @Column(name = "ticket_code", nullable = false, unique = true)
     private String ticketCode;
