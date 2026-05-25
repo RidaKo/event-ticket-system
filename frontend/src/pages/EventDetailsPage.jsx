@@ -15,7 +15,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { getEvent } from "../api/eventsApi.js";
+import { getEvent, getTicketTypes } from "../api/eventsApi.js";
 
 function formatDate(value, timeZone) {
   if (!value) {
@@ -76,7 +76,7 @@ function compactAddress(event) {
     .join(", ");
 }
 
-function getUnavailableReason(event) {
+function getUnavailableReason(event, ticketTypes) {
   if (event.salesEnabled === false) {
     return "Ticket sales are not available for this event.";
   }
@@ -91,11 +91,16 @@ function getUnavailableReason(event) {
     return "Ticket sales are not available for this event.";
   }
 
+  if (Array.isArray(ticketTypes) && ticketTypes.length === 0) {
+    return "No tickets are available for this event yet.";
+  }
+
   return "";
 }
 
 export default function EventDetailsPage({ eventId, navigate }) {
   const [event, setEvent] = useState(null);
+  const [ticketTypes, setTicketTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -104,18 +109,20 @@ export default function EventDetailsPage({ eventId, navigate }) {
     setLoading(true);
     setError("");
 
-    getEvent(eventId)
-      .then((data) => {
+    Promise.all([getEvent(eventId), getTicketTypes(eventId)])
+      .then(([eventData, ticketData]) => {
         if (!active) {
           return;
         }
-        setEvent(data);
+        setEvent(eventData);
+        setTicketTypes(ticketData ?? []);
       })
       .catch((err) => {
         if (!active) {
           return;
         }
         setEvent(null);
+        setTicketTypes([]);
         setError(err.message || "Unable to load event.");
       })
       .finally(() => active && setLoading(false));
@@ -147,7 +154,8 @@ export default function EventDetailsPage({ eventId, navigate }) {
   const eventTimeZone = event.timezone || event.timeZone || event.venue?.timezone;
   const eventDate = formatDate(event.startDatetime, eventTimeZone);
   const eventTime = formatTime(event.startDatetime, eventTimeZone);
-  const unavailableReason = getUnavailableReason(event);
+  const unavailableReason = getUnavailableReason(event, ticketTypes);
+  const hasNoTicketTypes = ticketTypes.length === 0;
 
   return (
     <Stack gap="lg" className="event-details-shell">
@@ -200,7 +208,7 @@ export default function EventDetailsPage({ eventId, navigate }) {
                   disabled={Boolean(unavailableReason)}
                   onClick={() => navigate(`/events/${ticketEventId}/checkout/tickets`)}
                 >
-                  {unavailableReason ? "Tickets unavailable" : "Buy tickets"}
+                  {hasNoTicketTypes ? "No tickets available" : unavailableReason ? "Tickets unavailable" : "Buy tickets"}
                 </Button>
               </Group>
               {unavailableReason && (

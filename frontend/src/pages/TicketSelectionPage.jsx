@@ -26,6 +26,7 @@ export default function TicketSelectionPage({ eventId, navigate }) {
         .map(([ticketTypeId, quantity]) => ({ ticketTypeId: Number(ticketTypeId), quantity })),
     [quantities]
   );
+  const noTicketsAvailable = !loading && !error && tickets.length === 0;
 
   useEffect(() => {
     let active = true;
@@ -181,6 +182,12 @@ export default function TicketSelectionPage({ eventId, navigate }) {
       )}
 
       <Stack gap="sm">
+        {noTicketsAvailable && (
+          <Alert color="yellow" variant="light">
+            No tickets are available for this event yet.
+          </Alert>
+        )}
+
         {tickets.map((ticket) => (
           <TicketQuantitySelector
             key={ticket.id}
