@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.notification.confirmation.service;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.model.EmailDeliveryStatus;
 import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDeliveryRepository;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AuditedBusinessAction
 public class PurchaseConfirmationDispatchService {
 
 	private static final Logger log = LoggerFactory.getLogger(PurchaseConfirmationDispatchService.class);

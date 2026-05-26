@@ -44,6 +44,7 @@ pnpm-debug.log*
 # Local logs created while running
 # =========================
 *.log
+logs/
 backend-bootrun.log
 backend-bootrun.err.log
 frontend-vite.log

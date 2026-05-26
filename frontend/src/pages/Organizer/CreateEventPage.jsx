@@ -49,6 +49,8 @@ export default function CreateEventPage({
     });
 
     useEffect(() => {
+        let active = true;
+
         async function loadData() {
             try {
                 const [venuesData, categoriesData] =
@@ -57,18 +59,26 @@ export default function CreateEventPage({
                         getCategories(),
                     ]);
 
+                if (!active) {
+                    return;
+                }
                 setVenues(venuesData);
                 setCategories(categoriesData);
 
             } catch (err) {
-                console.error(
-                    "Failed to load venues/categories",
-                    err
-                );
+                if (active) {
+                    console.error(
+                        "Failed to load venues/categories",
+                        err
+                    );
+                }
             }
         }
 
         loadData();
+        return () => {
+            active = false;
+        };
     }, []);
 
     function handleChange(field, value) {

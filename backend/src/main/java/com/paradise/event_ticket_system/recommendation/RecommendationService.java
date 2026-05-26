@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.recommendation;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.event.CheckoutCatalogRules;
 import com.paradise.event_ticket_system.event.Tag;
 import com.paradise.event_ticket_system.model.Category;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  * until event lifecycle is unified in a follow-up change.
  */
 @Service
+@AuditedBusinessAction
 public class RecommendationService {
 
     private static final ZoneId DEFAULT_ZONE = ZoneId.systemDefault();

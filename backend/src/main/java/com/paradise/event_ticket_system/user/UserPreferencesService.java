@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.user;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.category.CategoryRepository;
 import com.paradise.event_ticket_system.event.Tag;
 import com.paradise.event_ticket_system.event.TagRepository;
@@ -19,6 +20,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Service
+@AuditedBusinessAction
 public class UserPreferencesService {
 
     private final UserRepository userRepository;

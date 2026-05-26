@@ -1,10 +1,12 @@
 package com.paradise.event_ticket_system.payment;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 @Service
+@AuditedBusinessAction
 public class MockPaymentService implements PaymentService {
 
     @Override

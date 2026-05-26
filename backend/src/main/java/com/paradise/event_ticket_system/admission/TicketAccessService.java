@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.admission;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.auth.UserRole;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.model.Ticket;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@AuditedBusinessAction
 public class TicketAccessService {
 
     public void verifyAccess(Ticket ticket, Authentication auth, String orderToken) {

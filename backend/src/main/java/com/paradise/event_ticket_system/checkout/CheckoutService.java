@@ -52,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@AuditedBusinessAction
 public class CheckoutService {
 
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
@@ -107,7 +108,6 @@ public class CheckoutService {
         return buildSummary(event, mergeItems(request.items()), request.discountCode());
     }
 
-    @AuditedBusinessAction
     @Transactional
     public OrderResponse createOrderForUser(CreateOrderRequest request, String userEmail) {
         User user = userRepository.findByEmailIgnoreCase(userEmail)
@@ -124,7 +124,6 @@ public class CheckoutService {
         return toOrderResponse(orderRepository.save(order));
     }
 
-    @AuditedBusinessAction
     @Transactional
     public GuestOrderCreatedResponse createGuestOrder(GuestCreateOrderRequest request) {
         Event event = loadEventForCheckout(request.eventId());
@@ -235,7 +234,6 @@ public class CheckoutService {
         );
     }
 
-    @AuditedBusinessAction
     @Transactional
     public OrderResponse applyDiscount(String orderNumber, String discountCode) {
         PurchaseOrder order = loadOrderForUpdate(orderNumber);
@@ -252,7 +250,6 @@ public class CheckoutService {
         return toOrderResponse(order);
     }
 
-    @AuditedBusinessAction
     @Transactional
     public PaymentResponse submitPayment(String orderNumber, PaymentRequest request) {
         PurchaseOrder order = loadOrderForUpdate(orderNumber);

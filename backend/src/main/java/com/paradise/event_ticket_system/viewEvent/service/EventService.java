@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.viewEvent.service;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.category.CategoryRepository;
 import com.paradise.event_ticket_system.event.EventStatus;
 import com.paradise.event_ticket_system.model.*;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @Service
+@AuditedBusinessAction
 @RequiredArgsConstructor
 public class EventService {
 

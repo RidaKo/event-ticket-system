@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AuditedBusinessAction
 public class PurchaseConfirmationService {
 
 	private static final Logger log = LoggerFactory.getLogger(PurchaseConfirmationService.class);
@@ -41,7 +42,6 @@ public class PurchaseConfirmationService {
 		this.ticketIssuanceService = ticketIssuanceService;
 	}
 
-	@AuditedBusinessAction
 	@Transactional
 	public PurchaseConfirmationDispatchResult handle(PurchaseConfirmationRequest request) {
 		PurchaseOrder order = orderRepository.findByOrderNumber(request.orderNumber())
