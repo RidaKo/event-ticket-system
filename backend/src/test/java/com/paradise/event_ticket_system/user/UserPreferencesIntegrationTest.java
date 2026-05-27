@@ -81,6 +81,40 @@ class UserPreferencesIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void staleSaveReturnsConflict() throws Exception {
+        String token = registerAndGetToken("conflict-user@example.com");
+
+        // First save — no version — creates preferences, response includes version=0
+        mvc.perform(put("/api/users/me/preferences")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "categorySlugs": ["music"], "tagSlugs": [], "homeCity": "Vilnius" }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.version").value(0));
+
+        // Second save with correct version=0 — succeeds, version becomes 1
+        mvc.perform(put("/api/users/me/preferences")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "categorySlugs": ["music"], "tagSlugs": [], "homeCity": "Kaunas", "version": 0 }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.version").value(1));
+
+        // Third save with stale version=0 — returns 409
+        mvc.perform(put("/api/users/me/preferences")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "categorySlugs": ["technology"], "tagSlugs": [], "homeCity": "Kaunas", "version": 0 }
+                                """))
+                .andExpect(status().isConflict());
+    }
+
     private String registerAndGetToken(String email) throws Exception {
         String body = """
                 { "fullName": "Prefs User", "email": "%s", "password": "password1" }

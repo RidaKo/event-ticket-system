@@ -32,13 +32,14 @@ export function getEventsByOrganizerId(
 export function updateEventStatus(
     organizerId,
     eventId,
-    status
+    status,
+    version
 ) {
   return apiFetch(
       `/organizers/${organizerId}/events/${eventId}/status`,
       {
         method: "PATCH",
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, version }),
       }
   );
 }

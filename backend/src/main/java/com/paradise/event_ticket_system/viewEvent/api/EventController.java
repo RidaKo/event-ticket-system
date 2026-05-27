@@ -2,7 +2,6 @@ package com.paradise.event_ticket_system.viewEvent.api;
 
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventRequest;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventResponse;
-import com.paradise.event_ticket_system.viewEvent.api.DTO.UpdateEventStatusRequest;
 import com.paradise.event_ticket_system.viewEvent.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,6 +37,7 @@ public class EventController {
     public ResponseEntity<EventResponse> getEventById(@PathVariable Integer id) {
         return ResponseEntity.ok(eventService.getEventById(id));
     }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
     @Operation(summary = "Create an event")
@@ -45,21 +45,5 @@ public class EventController {
     @ApiResponse(responseCode = "404", description = "Venue, organizer or category not found")
     public ResponseEntity<EventResponse> createEvent(@RequestBody @Valid EventRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(request));
-    }
-
-    @PatchMapping("/{organizerId}/events/{eventId}/status")
-    public ResponseEntity<Void> updateStatus(
-            @PathVariable Integer organizerId,
-            @PathVariable Integer eventId,
-            @RequestBody UpdateEventStatusRequest request
-    ) {
-
-        eventService.updateStatus(
-                organizerId,
-                eventId,
-                request.status()
-        );
-
-        return ResponseEntity.ok().build();
     }
 }

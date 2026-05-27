@@ -1,0 +1,2 @@
+ALTER TABLE events
+    ADD COLUMN row_version BIGINT NOT NULL DEFAULT 0;
