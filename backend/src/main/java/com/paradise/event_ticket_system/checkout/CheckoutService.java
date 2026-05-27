@@ -17,6 +17,7 @@ import com.paradise.event_ticket_system.admission.TicketIssuanceService;
 import com.paradise.event_ticket_system.admission.TicketQrCodeGenerator;
 import com.paradise.event_ticket_system.admission.TicketRepository;
 import com.paradise.event_ticket_system.admission.TicketUrlBuilder;
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import java.util.Base64;
 import com.paradise.event_ticket_system.model.Ticket;
 import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
@@ -51,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@AuditedBusinessAction
 public class CheckoutService {
 
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");

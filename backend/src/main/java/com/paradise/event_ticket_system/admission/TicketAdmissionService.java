@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.admission;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.model.Ticket;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@AuditedBusinessAction
 public class TicketAdmissionService {
 
     private final TicketRepository ticketRepository;

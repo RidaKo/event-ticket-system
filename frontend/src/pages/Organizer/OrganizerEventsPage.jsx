@@ -7,16 +7,26 @@ export default function OrganizerEventsPage({ organizerId }) {
 
     // fetch only on load / reload
     useEffect(() => {
+        let active = true;
+
         async function loadEvents() {
             try {
                 const data = await getEventsByOrganizerId(organizerId);
+                if (!active) {
+                    return;
+                }
                 setEvents(data);
             } catch (err) {
-                console.error(err);
+                if (active) {
+                    console.error(err);
+                }
             }
         }
 
         if (organizerId) loadEvents();
+        return () => {
+            active = false;
+        };
     }, [organizerId]);
 
 

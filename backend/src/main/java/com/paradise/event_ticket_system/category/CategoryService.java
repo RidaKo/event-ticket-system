@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.category;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.model.Category;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@AuditedBusinessAction
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;

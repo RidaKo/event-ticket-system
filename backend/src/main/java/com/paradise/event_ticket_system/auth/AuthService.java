@@ -4,6 +4,7 @@ import com.paradise.event_ticket_system.auth.dto.AuthResponse;
 import com.paradise.event_ticket_system.auth.dto.CurrentUserResponse;
 import com.paradise.event_ticket_system.auth.dto.LoginRequest;
 import com.paradise.event_ticket_system.auth.dto.RegisterRequest;
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@AuditedBusinessAction
 public class AuthService {
 
     private final UserRepository userRepository;

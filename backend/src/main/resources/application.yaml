@@ -31,6 +31,8 @@ spring:
     locations: classpath:db/migration
 
 event-ticket:
+  audit:
+    enabled: ${BUSINESS_AUDIT_ENABLED:true}
   email:
     sender: ${EMAIL_SENDER:log}
     from-address: ${MAIL_FROM:no-reply@event-ticket.local}

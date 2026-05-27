@@ -1,6 +1,7 @@
 package com.paradise.event_ticket_system.notification.confirmation.service;
 
 import org.springframework.stereotype.Component;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -13,6 +14,7 @@ public class PurchaseConfirmationQueuedListener {
 		this.dispatchService = dispatchService;
 	}
 
+	@Async("purchaseConfirmationTaskExecutor")
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void onPurchaseConfirmationQueued(PurchaseConfirmationQueuedEvent event) {
 		dispatchService.dispatch(event.deliveryId());

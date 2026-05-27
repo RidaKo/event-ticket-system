@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.viewEvent.service;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.event.CheckoutCatalogRules;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.TicketType;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@AuditedBusinessAction
 @RequiredArgsConstructor
 public class TicketTypeService {
 

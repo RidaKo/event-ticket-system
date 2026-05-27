@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.viewEvent.service;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.model.Organizer;
 import com.paradise.event_ticket_system.model.Review;
 import com.paradise.event_ticket_system.model.Venue;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@AuditedBusinessAction
 @RequiredArgsConstructor
 public class VenueService {
 

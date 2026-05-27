@@ -1,5 +1,6 @@
 package com.paradise.event_ticket_system.admission;
 
+import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
 import com.paradise.event_ticket_system.model.Ticket;
@@ -18,6 +19,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@AuditedBusinessAction
 public class TicketIssuanceService {
 
     private final TicketRepository ticketRepository;

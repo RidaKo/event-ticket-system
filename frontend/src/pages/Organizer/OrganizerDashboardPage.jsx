@@ -8,6 +8,8 @@ export default function OrganizerDashboardPage({ organizerId }) {
     const [venues, setVenues] = useState([]);
 
     useEffect(() => {
+        let active = true;
+
         async function load() {
             try {
                 const [eventsData, venuesData] = await Promise.all([
@@ -15,17 +17,25 @@ export default function OrganizerDashboardPage({ organizerId }) {
                     getVenuesByOrganizerId(organizerId),
                 ]);
 
+                if (!active) {
+                    return;
+                }
                 setEvents(eventsData);
                 setVenues(venuesData);
 
                 console.log("EVENTS:", eventsData);
                 console.log("VENUES:", venuesData);
             } catch (err) {
-                console.error("Dashboard load error:", err);
+                if (active) {
+                    console.error("Dashboard load error:", err);
+                }
             }
         }
 
         if (organizerId) load();
+        return () => {
+            active = false;
+        };
     }, [organizerId]);
 
     return (
