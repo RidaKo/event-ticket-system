@@ -1,12 +1,12 @@
 package com.paradise.event_ticket_system.viewEvent.api.DTO;
 
 import com.paradise.event_ticket_system.event.EventStatus;
-
 import java.time.Instant;
 import java.util.List;
 
 public record EventResponse(
         Integer id,
+        Long version,
         String title,
         String slug,
         String description,

@@ -26,6 +26,7 @@ public class EventMapper {
 
         return new EventResponse(
                 event.getId(),
+                event.getVersion(),
                 event.getTitle(),
                 event.getSlug(),
                 event.getDescription(),

@@ -10,10 +10,11 @@ import java.util.Locale;
 public record UserPreferencesResponse(
         List<String> categorySlugs,
         List<String> tagSlugs,
-        String homeCity
+        String homeCity,
+        Long version
 ) {
     public static UserPreferencesResponse empty() {
-        return new UserPreferencesResponse(List.of(), List.of(), null);
+        return new UserPreferencesResponse(List.of(), List.of(), null, null);
     }
 
     public static UserPreferencesResponse from(UserPreferences preferences) {
@@ -38,6 +39,6 @@ public record UserPreferencesResponse(
         if (homeCity != null && homeCity.isBlank()) {
             homeCity = null;
         }
-        return new UserPreferencesResponse(categories, tags, homeCity);
+        return new UserPreferencesResponse(categories, tags, homeCity, preferences.getVersion());
     }
 }

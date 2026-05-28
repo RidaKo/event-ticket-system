@@ -8,7 +8,6 @@ import com.paradise.event_ticket_system.viewEvent.api.DTO.EventRequest;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventResponse;
 import com.paradise.event_ticket_system.viewEvent.api.EventMapper;
 import com.paradise.event_ticket_system.viewEvent.domain.*;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -88,18 +87,24 @@ public class EventService {
     public void updateStatus(
             Integer organizerId,
             Integer eventId,
-            EventStatus status
+            EventStatus status,
+            Long version
     ) {
-
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Event not found")
-                );
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
 
         if (!event.getOrganizer().getId().equals(organizerId)) {
-            throw new IllegalArgumentException(
-                    "Organizer does not own this event"
-            );
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found");
+        }
+
+        if (version == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Version is required for event updates.");
+        }
+
+        if (!version.equals(event.getVersion())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "This event was modified by someone else. Refresh and try again.");
         }
 
         event.setStatus(status);

@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -49,14 +50,27 @@ public class UserPreferencesService {
     @Transactional
     public UserPreferencesResponse saveForEmail(String email, UpdateUserPreferencesRequest request) {
         User user = requireUser(email);
-        UserPreferences preferences = preferencesRepository.findByUserId(user.getId())
-                .orElseGet(() -> createPreferences(user));
+        Optional<UserPreferences> existing = preferencesRepository.findByUserId(user.getId());
+        UserPreferences preferences = existing.orElseGet(() -> createPreferences(user));
+
+        if (existing.isPresent()) {
+            if (request.version() == null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Your preferences have changed. Refresh and try again.");
+            }
+            if (!request.version().equals(preferences.getVersion())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Your preferences were modified elsewhere. Refresh and try again.");
+            }
+        }
 
         preferences.setPreferredCategories(resolveCategories(request.categorySlugs()));
         preferences.setPreferredTags(resolveTags(request.tagSlugs()));
         preferences.setHomeCity(normalizeHomeCity(request.homeCity()));
 
-        return UserPreferencesResponse.from(preferencesRepository.save(preferences));
+        // saveAndFlush forces the SQL UPDATE immediately so the returned entity
+        // carries the Hibernate-incremented @Version value in the response.
+        return UserPreferencesResponse.from(preferencesRepository.saveAndFlush(preferences));
     }
 
     private User requireUser(String email) {

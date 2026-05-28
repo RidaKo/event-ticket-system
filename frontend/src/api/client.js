@@ -65,7 +65,9 @@ export async function apiFetch(path, options = {}) {
     } catch {
       message = response.statusText || message;
     }
-    throw new Error(message);
+    const err = new Error(message);
+    err.status = response.status;
+    throw err;
   }
 
   if (response.status === 204) {

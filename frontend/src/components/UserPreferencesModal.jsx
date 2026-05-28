@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { getCatalog } from "../api/catalog.js";
 import { getMyPreferences, saveMyPreferences } from "../api/preferencesApi.js";
+import ConflictDialog from "./ConflictDialog.jsx";
 
 function normalizeSlug(value) {
   return String(value ?? "").trim().toLowerCase();
@@ -26,9 +27,11 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
   const [categorySlugs, setCategorySlugs] = useState([]);
   const [tagSlugs, setTagSlugs] = useState([]);
   const [homeCity, setHomeCity] = useState("");
+  const [version, setVersion] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [conflictOpened, setConflictOpened] = useState(false);
 
   useEffect(() => {
     if (!opened) {
@@ -41,7 +44,10 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
       setLoading(true);
       setError("");
       try {
-        const [catalogData, preferences] = await Promise.all([getCatalog(), getMyPreferences()]);
+        const [catalogData, preferences] = await Promise.all([
+          getCatalog(),
+          getMyPreferences(),
+        ]);
         if (cancelled) {
           return;
         }
@@ -49,6 +55,7 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
         setCategorySlugs(preferences.categorySlugs ?? []);
         setTagSlugs(preferences.tagSlugs ?? []);
         setHomeCity(preferences.homeCity ?? "");
+        setVersion(preferences.version ?? null);
       } catch (err) {
         if (!cancelled) {
           setError(err.message || "Could not load preferences");
@@ -68,13 +75,17 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
 
   function toggleCategory(slug) {
     setCategorySlugs((current) =>
-      current.includes(slug) ? current.filter((value) => value !== slug) : [...current, slug]
+      current.includes(slug)
+        ? current.filter((value) => value !== slug)
+        : [...current, slug]
     );
   }
 
   function toggleTag(slug) {
     setTagSlugs((current) =>
-      current.includes(slug) ? current.filter((value) => value !== slug) : [...current, slug]
+      current.includes(slug)
+        ? current.filter((value) => value !== slug)
+        : [...current, slug]
     );
   }
 
@@ -82,10 +93,46 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
     setSaving(true);
     setError("");
     try {
+      await saveMyPreferences({ categorySlugs, tagSlugs, homeCity, version });
+      onSaved?.();
+      onClose();
+    } catch (err) {
+      if (err.status === 409) {
+        setConflictOpened(true);
+      } else {
+        setError(err.message || "Could not save preferences");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleConflictRefresh() {
+    setLoading(true);
+    setError("");
+    try {
+      const preferences = await getMyPreferences();
+      setCategorySlugs(preferences.categorySlugs ?? []);
+      setTagSlugs(preferences.tagSlugs ?? []);
+      setHomeCity(preferences.homeCity ?? "");
+      setVersion(preferences.version ?? null);
+    } catch (err) {
+      setError(err.message || "Could not reload preferences");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleConflictOverwrite() {
+    setSaving(true);
+    setError("");
+    try {
+      const freshPrefs = await getMyPreferences();
       await saveMyPreferences({
         categorySlugs,
         tagSlugs,
         homeCity,
+        version: freshPrefs.version,
       });
       onSaved?.();
       onClose();
@@ -97,88 +144,111 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
   }
 
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title="Your recommendation preferences"
-      size="lg"
-      centered
-      classNames={{ content: "preferences-modal" }}
-    >
-      <Stack gap="md">
-        <Text size="sm" c="dimmed">
-          These choices personalize the &quot;Recommended for you&quot; section. Browse filters on the left are
-          separate and apply to the full list.
-        </Text>
+    <>
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title="Your recommendation preferences"
+        size="lg"
+        centered
+        classNames={{ content: "preferences-modal" }}
+      >
+        <Stack gap="md">
+          <Text size="sm" c="dimmed">
+            These choices personalize the &quot;Recommended for you&quot; section. Browse filters on
+            the left are separate and apply to the full list.
+          </Text>
 
-        <Stack gap="xs">
-          <Title order={4} size="h5" c="brand.9">
-            Favorite categories
-          </Title>
-          <Group gap="xs">
-            {(catalog.categories ?? []).map((category) => {
-              const slug = categorySlugFromOption(category);
-              return (
-                <Pill
-                  key={slug}
-                  size="sm"
-                  style={{ cursor: loading ? "default" : "pointer" }}
-                  onClick={() => !loading && toggleCategory(slug)}
-                  bg={categorySlugs.includes(slug) ? "var(--mantine-color-brand-1)" : undefined}
-                >
-                  {category.label}
-                </Pill>
-              );
-            })}
+          <Stack gap="xs">
+            <Title order={4} size="h5" c="brand.9">
+              Favorite categories
+            </Title>
+            <Group gap="xs">
+              {(catalog.categories ?? []).map((category) => {
+                const slug = categorySlugFromOption(category);
+                return (
+                  <Pill
+                    key={slug}
+                    size="sm"
+                    style={{ cursor: loading ? "default" : "pointer" }}
+                    onClick={() => !loading && toggleCategory(slug)}
+                    bg={
+                      categorySlugs.includes(slug)
+                        ? "var(--mantine-color-brand-1)"
+                        : undefined
+                    }
+                  >
+                    {category.label}
+                  </Pill>
+                );
+              })}
+            </Group>
+          </Stack>
+
+          <Stack gap="xs">
+            <Title order={4} size="h5" c="brand.9">
+              Interest tags
+            </Title>
+            <Group gap="xs">
+              {(catalog.tags ?? []).map((tag) => {
+                const slug = normalizeSlug(tag.slug);
+                return (
+                  <Pill
+                    key={slug}
+                    size="sm"
+                    style={{ cursor: loading ? "default" : "pointer" }}
+                    onClick={() => !loading && toggleTag(slug)}
+                    bg={
+                      tagSlugs.includes(slug)
+                        ? "var(--mantine-color-brand-1)"
+                        : undefined
+                    }
+                  >
+                    {tag.label}
+                  </Pill>
+                );
+              })}
+            </Group>
+          </Stack>
+
+          <TextInput
+            label="Home city"
+            description="Events in this city score higher in recommendations"
+            placeholder="e.g. Vilnius"
+            value={homeCity}
+            onChange={(event) => setHomeCity(event.currentTarget.value)}
+            disabled={loading}
+          />
+
+          {error && (
+            <Alert color="red" variant="light">
+              {error}
+            </Alert>
+          )}
+
+          <Group justify="flex-end" gap="sm">
+            <Button variant="default" color="gray" onClick={onClose} disabled={saving}>
+              Cancel
+            </Button>
+            <Button
+              color="brand"
+              onClick={handleSave}
+              loading={saving}
+              disabled={loading}
+            >
+              Save preferences
+            </Button>
           </Group>
         </Stack>
+      </Modal>
 
-        <Stack gap="xs">
-          <Title order={4} size="h5" c="brand.9">
-            Interest tags
-          </Title>
-          <Group gap="xs">
-            {(catalog.tags ?? []).map((tag) => {
-              const slug = normalizeSlug(tag.slug);
-              return (
-                <Pill
-                  key={slug}
-                  size="sm"
-                  style={{ cursor: loading ? "default" : "pointer" }}
-                  onClick={() => !loading && toggleTag(slug)}
-                  bg={tagSlugs.includes(slug) ? "var(--mantine-color-brand-1)" : undefined}
-                >
-                  {tag.label}
-                </Pill>
-              );
-            })}
-          </Group>
-        </Stack>
-
-        <TextInput
-          label="Home city"
-          description="Events in this city score higher in recommendations"
-          placeholder="e.g. Vilnius"
-          value={homeCity}
-          onChange={(event) => setHomeCity(event.currentTarget.value)}
-          disabled={loading}
-        />
-
-        {error && (
-          <Alert color="red" variant="light">
-            {error}
-          </Alert>
-        )}
-
-        <Group justify="flex-end" gap="sm">
-          <Button variant="default" color="gray" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button color="brand" onClick={handleSave} loading={saving} disabled={loading}>
-            Save preferences
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
+      {/* Rendered after the preferences Modal so Mantine's portal stacking places it on top */}
+      <ConflictDialog
+        opened={conflictOpened}
+        onClose={() => setConflictOpened(false)}
+        onRefresh={handleConflictRefresh}
+        onOverwrite={handleConflictOverwrite}
+      />
+    </>
   );
 }
