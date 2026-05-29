@@ -2,13 +2,16 @@ package com.paradise.event_ticket_system.viewEvent.service;
 
 import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.category.CategoryRepository;
+import com.paradise.event_ticket_system.config.EditConflictException;
 import com.paradise.event_ticket_system.event.EventStatus;
 import com.paradise.event_ticket_system.model.*;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventRequest;
 import com.paradise.event_ticket_system.viewEvent.api.DTO.EventResponse;
+import com.paradise.event_ticket_system.viewEvent.api.DTO.EventStatusConflictResponse;
 import com.paradise.event_ticket_system.viewEvent.api.EventMapper;
 import com.paradise.event_ticket_system.viewEvent.domain.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,8 @@ import java.util.List;
 @AuditedBusinessAction
 @RequiredArgsConstructor
 public class EventService {
+
+    private static final int MAX_EVENT_PAGE_SIZE = 50;
 
     private final EventRepository eventRepository;
     private final ReviewRepository reviewRepository;
@@ -40,7 +45,14 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public List<EventResponse> getAllEvents() {
-        return eventRepository.findAllWithDetails().stream()
+        return getAllEvents(0, MAX_EVENT_PAGE_SIZE);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventResponse> getAllEvents(int page, int size) {
+        int effectivePage = Math.max(0, page);
+        int effectiveSize = Math.min(Math.max(1, size), MAX_EVENT_PAGE_SIZE);
+        return eventRepository.findAllWithDetails(PageRequest.of(effectivePage, effectiveSize)).stream()
                 .map(event -> {
                     List<Review> reviews = reviewRepository.findByEventIdWithUser(event.getId());
                     return eventMapper.toEventResponse(event, reviews);
@@ -90,6 +102,17 @@ public class EventService {
             EventStatus status,
             Long version
     ) {
+        updateStatus(organizerId, eventId, status, version, false);
+    }
+
+    @Transactional
+    public void updateStatus(
+            Integer organizerId,
+            Integer eventId,
+            EventStatus status,
+            Long version,
+            boolean force
+    ) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
 
@@ -97,16 +120,16 @@ public class EventService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found");
         }
 
-        if (version == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Version is required for event updates.");
-        }
-
-        if (!version.equals(event.getVersion())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "This event was modified by someone else. Refresh and try again.");
+        if (!force && (version == null || !version.equals(event.getVersion()))) {
+            throw new EditConflictException(
+                    "This event was modified by someone else. Refresh, compare, then retry or overwrite.",
+                    eventStatusConflict(event));
         }
 
         event.setStatus(status);
+    }
+
+    private EventStatusConflictResponse eventStatusConflict(Event event) {
+        return new EventStatusConflictResponse(event.getId(), event.getVersion(), event.getStatus());
     }
 }

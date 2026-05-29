@@ -171,8 +171,9 @@ class PurchaseConfirmationServiceIntegrationTest {
 			new PaymentRequest(PaymentMethodType.CARD, "4242 4242 4242 4242")
 		);
 
-		assertThat(payment.orderStatus()).isEqualTo(OrderStatus.CONFIRMED);
-		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
+		assertThat(payment.orderStatus()).isEqualTo(OrderStatus.PAYMENT_PROCESSING);
+		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.PENDING);
+		payment = awaitPaymentStatus(order.orderNumber(), OrderStatus.CONFIRMED, PaymentStatus.SUCCEEDED);
 		assertThat(deliveryRepository.findAll()).hasSize(1);
 		awaitEmailMessages(1);
 		assertThat(emailSender.messages()).hasSize(1);
@@ -194,8 +195,9 @@ class PurchaseConfirmationServiceIntegrationTest {
 			new PaymentRequest(PaymentMethodType.CARD, "4242 4242 4242 4242")
 		);
 
-		assertThat(payment.orderStatus()).isEqualTo(OrderStatus.CONFIRMED);
-		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
+		assertThat(payment.orderStatus()).isEqualTo(OrderStatus.PAYMENT_PROCESSING);
+		assertThat(payment.paymentStatus()).isEqualTo(PaymentStatus.PENDING);
+		payment = awaitPaymentStatus(order.orderNumber(), OrderStatus.CONFIRMED, PaymentStatus.SUCCEEDED);
 		assertThat(deliveryRepository.findAll()).hasSize(1);
 		awaitEmailMessages(1);
 		assertThat(emailSender.messages()).hasSize(1);
@@ -225,6 +227,21 @@ class PurchaseConfirmationServiceIntegrationTest {
 			sleepBriefly();
 		}
 		assertThat(emailSender.messages()).hasSize(expectedCount);
+	}
+
+	private PaymentResponse awaitPaymentStatus(String orderNumber, OrderStatus orderStatus, PaymentStatus paymentStatus) {
+		PaymentResponse payment = null;
+		for (int attempt = 0; attempt < 30; attempt++) {
+			payment = checkoutService.getPaymentStatus(orderNumber);
+			if (payment.orderStatus() == orderStatus && payment.paymentStatus() == paymentStatus) {
+				return payment;
+			}
+			sleepBriefly();
+		}
+		assertThat(payment).as("payment response").isNotNull();
+		assertThat(payment.orderStatus()).isEqualTo(orderStatus);
+		assertThat(payment.paymentStatus()).isEqualTo(paymentStatus);
+		return payment;
 	}
 
 	private void sleepBriefly() {

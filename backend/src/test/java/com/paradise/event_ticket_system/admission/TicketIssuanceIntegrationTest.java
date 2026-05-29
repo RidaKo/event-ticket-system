@@ -101,8 +101,28 @@ class TicketIssuanceIntegrationTest {
                 .content("""
                     {"methodType": "CARD", "cardNumber": "4242 4242 4242 4242"}
                     """))
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.orderStatus").value("PAYMENT_PROCESSING"));
+
+        awaitPaymentConfirmation(orderNumber);
 
         return orderNumber;
+    }
+
+    private void awaitPaymentConfirmation(String orderNumber) throws Exception {
+        for (int attempt = 0; attempt < 30; attempt++) {
+            String response = mvc.perform(get("/api/checkout/orders/" + orderNumber + "/payment")
+                    .header("X-Order-Token", guestOrderToken))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+            if ("CONFIRMED".equals(json.readTree(response).path("orderStatus").asText())) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        throw new AssertionError("Payment was not confirmed for order " + orderNumber);
     }
 }

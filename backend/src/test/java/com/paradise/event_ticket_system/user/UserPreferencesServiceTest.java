@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.paradise.event_ticket_system.category.CategoryRepository;
+import com.paradise.event_ticket_system.config.EditConflictException;
 import com.paradise.event_ticket_system.event.TagRepository;
 import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.user.dto.UpdateUserPreferencesRequest;
@@ -12,8 +13,6 @@ import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +63,7 @@ class UserPreferencesServiceTest {
 
         UserPreferencesResponse result = service.saveForEmail(
                 "alice@example.com",
-                new UpdateUserPreferencesRequest(List.of(), List.of(), "Vilnius", 3L)
+                new UpdateUserPreferencesRequest(List.of(), List.of(), "Vilnius", 3L, false)
         );
 
         assertThat(result).isNotNull();
@@ -80,11 +79,9 @@ class UserPreferencesServiceTest {
 
         assertThatThrownBy(() -> service.saveForEmail(
                 "alice@example.com",
-                new UpdateUserPreferencesRequest(List.of(), List.of(), null, 3L)
+                new UpdateUserPreferencesRequest(List.of(), List.of(), null, 3L, false)
         ))
-                .isInstanceOf(ResponseStatusException.class)
-                .extracting(e -> ((ResponseStatusException) e).getStatusCode())
-                .isEqualTo(HttpStatus.CONFLICT);
+                .isInstanceOf(EditConflictException.class);
     }
 
     @Test
@@ -97,7 +94,7 @@ class UserPreferencesServiceTest {
 
         UserPreferencesResponse result = service.saveForEmail(
                 "alice@example.com",
-                new UpdateUserPreferencesRequest(List.of(), List.of(), null, 99L)
+                new UpdateUserPreferencesRequest(List.of(), List.of(), null, 99L, false)
         );
 
         assertThat(result).isNotNull();
@@ -112,10 +109,8 @@ class UserPreferencesServiceTest {
 
         assertThatThrownBy(() -> service.saveForEmail(
                 "alice@example.com",
-                new UpdateUserPreferencesRequest(List.of(), List.of(), null, null)
+                new UpdateUserPreferencesRequest(List.of(), List.of(), null, null, false)
         ))
-                .isInstanceOf(ResponseStatusException.class)
-                .extracting(e -> ((ResponseStatusException) e).getStatusCode())
-                .isEqualTo(HttpStatus.CONFLICT);
+                .isInstanceOf(EditConflictException.class);
     }
 }

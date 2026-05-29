@@ -2,6 +2,7 @@ package com.paradise.event_ticket_system.user;
 
 import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import com.paradise.event_ticket_system.category.CategoryRepository;
+import com.paradise.event_ticket_system.config.EditConflictException;
 import com.paradise.event_ticket_system.event.Tag;
 import com.paradise.event_ticket_system.event.TagRepository;
 import com.paradise.event_ticket_system.model.Category;
@@ -53,15 +54,12 @@ public class UserPreferencesService {
         Optional<UserPreferences> existing = preferencesRepository.findByUserId(user.getId());
         UserPreferences preferences = existing.orElseGet(() -> createPreferences(user));
 
-        if (existing.isPresent()) {
-            if (request.version() == null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "Your preferences have changed. Refresh and try again.");
-            }
-            if (!request.version().equals(preferences.getVersion())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
-                        "Your preferences were modified elsewhere. Refresh and try again.");
-            }
+        if (existing.isPresent()
+                && !Boolean.TRUE.equals(request.force())
+                && (request.version() == null || !request.version().equals(preferences.getVersion()))) {
+            throw new EditConflictException(
+                    "Your preferences were modified elsewhere. Refresh, compare, then retry or overwrite.",
+                    UserPreferencesResponse.from(preferences));
         }
 
         preferences.setPreferredCategories(resolveCategories(request.categorySlugs()));

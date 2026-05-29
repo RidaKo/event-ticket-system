@@ -43,7 +43,12 @@ public class OrganizerController {
             @PathVariable Integer eventId,
             @Valid @RequestBody UpdateEventStatusRequest request
     ) {
-        eventService.updateStatus(organizerId, eventId, request.status(), request.version());
+        eventService.updateStatus(
+                organizerId,
+                eventId,
+                request.status(),
+                request.version(),
+                Boolean.TRUE.equals(request.force()));
         return ResponseEntity.ok().build();
     }
 }

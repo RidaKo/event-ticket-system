@@ -7,5 +7,6 @@ public record UpdateUserPreferencesRequest(
         List<@Size(max = 64) String> categorySlugs,
         List<@Size(max = 64) String> tagSlugs,
         @Size(max = 255) String homeCity,
-        Long version
+        Long version,
+        Boolean force
 ) {}

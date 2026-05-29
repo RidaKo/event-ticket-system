@@ -48,7 +48,7 @@ export default function OrganizerEventsPage({ organizerId }) {
       loadEvents();
     } catch (err) {
       if (err.status === 409) {
-        setConflictInfo({ eventId, intendedStatus: status });
+        setConflictInfo({ eventId, intendedStatus: status, current: err.current });
       } else {
         console.error("Backend update failed:", err);
       }
@@ -60,15 +60,40 @@ export default function OrganizerEventsPage({ organizerId }) {
     await loadEvents();
   }
 
-  async function handleConflictOverwrite() {
+  async function handleConflictKeepEditing() {
     if (!conflictInfo) return;
     try {
-      const freshEvent = await getEvent(conflictInfo.eventId);
+      const current = conflictInfo.current ?? await getEvent(conflictInfo.eventId);
       await updateEventStatus(
         organizerId,
         conflictInfo.eventId,
         conflictInfo.intendedStatus,
-        freshEvent.version
+        current.version,
+        false
+      );
+      await loadEvents();
+    } catch (err) {
+      if (err.status === 409) {
+        setConflictInfo({
+          ...conflictInfo,
+          current: err.current,
+        });
+      } else {
+        console.error("Retry after conflict failed:", err);
+        await loadEvents();
+      }
+    }
+  }
+
+  async function handleConflictOverwrite() {
+    if (!conflictInfo) return;
+    try {
+      await updateEventStatus(
+        organizerId,
+        conflictInfo.eventId,
+        conflictInfo.intendedStatus,
+        null,
+        true
       );
       await loadEvents();
     } catch (err) {
@@ -85,7 +110,15 @@ export default function OrganizerEventsPage({ organizerId }) {
         opened={conflictInfo !== null}
         onClose={() => setConflictInfo(null)}
         onRefresh={handleConflictRefresh}
+        onKeepEditing={handleConflictKeepEditing}
         onOverwrite={handleConflictOverwrite}
+        rows={[
+          {
+            label: "Status",
+            current: conflictInfo?.current?.status,
+            attempted: conflictInfo?.intendedStatus,
+          },
+        ]}
       />
 
       <Stack>

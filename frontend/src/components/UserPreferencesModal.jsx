@@ -31,7 +31,7 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [conflictOpened, setConflictOpened] = useState(false);
+  const [conflictState, setConflictState] = useState(null);
 
   useEffect(() => {
     if (!opened) {
@@ -98,7 +98,10 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
       onClose();
     } catch (err) {
       if (err.status === 409) {
-        setConflictOpened(true);
+        setConflictState({
+          current: err.current,
+          attempted: { categorySlugs, tagSlugs, homeCity, version },
+        });
       } else {
         setError(err.message || "Could not save preferences");
       }
@@ -123,16 +126,20 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
     }
   }
 
+  function handleConflictKeepEditing() {
+    if (conflictState?.current) {
+      setVersion(conflictState.current.version ?? null);
+    }
+  }
+
   async function handleConflictOverwrite() {
     setSaving(true);
     setError("");
     try {
-      const freshPrefs = await getMyPreferences();
+      const attempted = conflictState?.attempted ?? { categorySlugs, tagSlugs, homeCity, version };
       await saveMyPreferences({
-        categorySlugs,
-        tagSlugs,
-        homeCity,
-        version: freshPrefs.version,
+        ...attempted,
+        force: true,
       });
       onSaved?.();
       onClose();
@@ -141,6 +148,31 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
     } finally {
       setSaving(false);
     }
+  }
+
+  function preferenceConflictRows() {
+    if (!conflictState?.current) {
+      return [];
+    }
+    const current = conflictState.current;
+    const attempted = conflictState.attempted;
+    return [
+      {
+        label: "Categories",
+        current: current.categorySlugs ?? [],
+        attempted: attempted.categorySlugs ?? [],
+      },
+      {
+        label: "Tags",
+        current: current.tagSlugs ?? [],
+        attempted: attempted.tagSlugs ?? [],
+      },
+      {
+        label: "Home city",
+        current: current.homeCity,
+        attempted: attempted.homeCity,
+      },
+    ];
   }
 
   return (
@@ -244,10 +276,12 @@ export default function UserPreferencesModal({ opened, onClose, onSaved }) {
 
       {/* Rendered after the preferences Modal so Mantine's portal stacking places it on top */}
       <ConflictDialog
-        opened={conflictOpened}
-        onClose={() => setConflictOpened(false)}
+        opened={conflictState !== null}
+        onClose={() => setConflictState(null)}
         onRefresh={handleConflictRefresh}
+        onKeepEditing={handleConflictKeepEditing}
         onOverwrite={handleConflictOverwrite}
+        rows={preferenceConflictRows()}
       />
     </>
   );

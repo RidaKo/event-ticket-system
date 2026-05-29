@@ -5,5 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 public record UpdateEventStatusRequest(
         @NotNull EventStatus status,
-        @NotNull Long version
+        Long version,
+        Boolean force
 ) {}

@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -25,6 +26,10 @@ public class DiscountCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Event event;

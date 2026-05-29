@@ -13,21 +13,16 @@ import com.paradise.event_ticket_system.model.OrderItem;
 import com.paradise.event_ticket_system.model.Payment;
 import com.paradise.event_ticket_system.model.PurchaseConfirmationDelivery;
 import com.paradise.event_ticket_system.model.PurchaseOrder;
-import com.paradise.event_ticket_system.admission.TicketIssuanceService;
 import com.paradise.event_ticket_system.admission.TicketQrCodeGenerator;
 import com.paradise.event_ticket_system.admission.TicketRepository;
 import com.paradise.event_ticket_system.admission.TicketUrlBuilder;
 import com.paradise.event_ticket_system.audit.AuditedBusinessAction;
 import java.util.Base64;
 import com.paradise.event_ticket_system.model.Ticket;
-import com.paradise.event_ticket_system.notification.confirmation.api.PurchaseConfirmationRequest;
 import com.paradise.event_ticket_system.notification.confirmation.domain.PurchaseConfirmationDeliveryRepository;
-import com.paradise.event_ticket_system.notification.confirmation.service.PurchaseConfirmationService;
 import com.paradise.event_ticket_system.order.OrderStatus;
 import com.paradise.event_ticket_system.order.PurchaseOrderRepository;
 import com.paradise.event_ticket_system.payment.PaymentRepository;
-import com.paradise.event_ticket_system.payment.PaymentResult;
-import com.paradise.event_ticket_system.payment.PaymentService;
 import com.paradise.event_ticket_system.payment.PaymentStatus;
 import com.paradise.event_ticket_system.ticket.TicketTypeRepository;
 import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
@@ -43,6 +38,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -63,14 +59,12 @@ public class CheckoutService {
     private final DiscountRepository discountRepository;
     private final PurchaseOrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
-    private final PaymentService paymentService;
     private final UserRepository userRepository;
-    private final PurchaseConfirmationService purchaseConfirmationService;
     private final PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository;
-    private final TicketIssuanceService ticketIssuanceService;
     private final TicketRepository ticketRepository;
     private final TicketQrCodeGenerator ticketQrCodeGenerator;
     private final TicketUrlBuilder ticketUrlBuilder;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CheckoutService(
             CheckoutEventRepository eventRepository,
@@ -78,28 +72,24 @@ public class CheckoutService {
             DiscountRepository discountRepository,
             PurchaseOrderRepository orderRepository,
             PaymentRepository paymentRepository,
-            PaymentService paymentService,
             UserRepository userRepository,
-            PurchaseConfirmationService purchaseConfirmationService,
             PurchaseConfirmationDeliveryRepository confirmationDeliveryRepository,
-            TicketIssuanceService ticketIssuanceService,
             TicketRepository ticketRepository,
             TicketQrCodeGenerator ticketQrCodeGenerator,
-            TicketUrlBuilder ticketUrlBuilder
+            TicketUrlBuilder ticketUrlBuilder,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.eventRepository = eventRepository;
         this.ticketTypeRepository = ticketTypeRepository;
         this.discountRepository = discountRepository;
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
-        this.paymentService = paymentService;
         this.userRepository = userRepository;
-        this.purchaseConfirmationService = purchaseConfirmationService;
         this.confirmationDeliveryRepository = confirmationDeliveryRepository;
-        this.ticketIssuanceService = ticketIssuanceService;
         this.ticketRepository = ticketRepository;
         this.ticketQrCodeGenerator = ticketQrCodeGenerator;
         this.ticketUrlBuilder = ticketUrlBuilder;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -253,59 +243,41 @@ public class CheckoutService {
     @Transactional
     public PaymentResponse submitPayment(String orderNumber, PaymentRequest request) {
         PurchaseOrder order = loadOrderForUpdate(orderNumber);
+        Payment payment = new Payment();
+
+        if (order.getStatus() == OrderStatus.PAYMENT_PROCESSING && order.getPayment() != null) {
+            return toPaymentResponse(order);
+        }
+
         requirePending(order);
 
-        if (order.getDiscountCode() != null) {
-            validateDiscount(order.getDiscountCode());
-        }
+        reserveTicketInventory(order);
+        reserveDiscountRedemption(order);
 
-        List<TicketType> lockedTicketTypes = ticketTypeRepository.findAllByIdForUpdate(order.getItems().stream()
-                .map(item -> item.getTicketType().getId())
-                .toList());
-        Map<Integer, TicketType> ticketTypeById = lockedTicketTypes.stream()
-                .collect(Collectors.toMap(TicketType::getId, Function.identity()));
-
-        for (OrderItem item : order.getItems()) {
-            TicketType ticketType = ticketTypeById.get(item.getTicketType().getId());
-            validateTicketCanBePurchased(order.getEvent(), ticketType, item.getQuantity());
-        }
-
-        PaymentResult result = paymentService.charge(order.getTotalAmount(), request.methodType(), request.cardNumber());
-        Payment payment = new Payment();
         payment.setOrder(order);
         payment.setAmount(order.getTotalAmount());
         payment.setMethodType(request.methodType());
-        payment.setProviderReference(result.providerReference());
-        payment.setCardLast4(result.cardLast4());
-
-        if (!result.successful()) {
-            payment.setStatus(PaymentStatus.FAILED);
-            order.setStatus(OrderStatus.PAYMENT_FAILED);
-            order.setPayment(payment);
-            paymentRepository.save(payment);
-            return new PaymentResponse(order.getOrderNumber(), order.getStatus(), payment.getStatus());
-        }
-
-        for (OrderItem item : order.getItems()) {
-            TicketType ticketType = ticketTypeById.get(item.getTicketType().getId());
-            int quantitySold = ticketType.getQuantitySold() == null ? 0 : ticketType.getQuantitySold();
-            ticketType.setQuantitySold(quantitySold + item.getQuantity());
-        }
-
-        if (order.getDiscountCode() != null) {
-            order.getDiscountCode().setUsedCount(order.getDiscountCode().getUsedCount() + 1);
-        }
-
-        payment.setStatus(PaymentStatus.SUCCEEDED);
-        order.setStatus(OrderStatus.CONFIRMED);
-        order.setConfirmedAt(LocalDateTime.now());
+        payment.setStatus(PaymentStatus.PENDING);
         order.setPayment(payment);
         paymentRepository.save(payment);
         ensureOrderAccessToken(order);
-        ticketIssuanceService.issueForOrder(order);
-        purchaseConfirmationService.handle(new PurchaseConfirmationRequest(order.getOrderNumber()));
+        order.setStatus(OrderStatus.PAYMENT_PROCESSING);
 
-        return new PaymentResponse(order.getOrderNumber(), order.getStatus(), payment.getStatus());
+        eventPublisher.publishEvent(new PaymentRequestedEvent(
+                order.getOrderNumber(),
+                order.getTotalAmount(),
+                request.methodType(),
+                request.cardNumber()
+        ));
+
+        return toPaymentResponse(order);
+    }
+
+    @Transactional(readOnly = true)
+    public PaymentResponse getPaymentStatus(String orderNumber) {
+        PurchaseOrder order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+        return toPaymentResponse(order);
     }
 
     @Transactional(readOnly = true)
@@ -419,6 +391,36 @@ public class CheckoutService {
         }
     }
 
+    private void reserveTicketInventory(PurchaseOrder order) {
+        List<TicketType> lockedTicketTypes = ticketTypeRepository.findAllByIdForUpdate(order.getItems().stream()
+                .map(item -> item.getTicketType().getId())
+                .toList());
+        Map<Integer, TicketType> ticketTypeById = lockedTicketTypes.stream()
+                .collect(Collectors.toMap(TicketType::getId, Function.identity()));
+
+        for (OrderItem item : order.getItems()) {
+            TicketType ticketType = ticketTypeById.get(item.getTicketType().getId());
+            validateTicketCanBePurchased(order.getEvent(), ticketType, item.getQuantity());
+        }
+
+        for (OrderItem item : order.getItems()) {
+            TicketType ticketType = ticketTypeById.get(item.getTicketType().getId());
+            int quantitySold = ticketType.getQuantitySold() == null ? 0 : ticketType.getQuantitySold();
+            ticketType.setQuantitySold(quantitySold + item.getQuantity());
+        }
+    }
+
+    private void reserveDiscountRedemption(PurchaseOrder order) {
+        if (order.getDiscountCode() == null) {
+            return;
+        }
+        DiscountCode discount = discountRepository.findByIdForUpdate(order.getDiscountCode().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Discount code is invalid"));
+        validateDiscount(discount);
+        discount.setUsedCount(discount.getUsedCount() + 1);
+        order.setDiscountCode(discount);
+    }
+
     private DiscountCode loadValidDiscount(Integer eventId, String discountCode) {
         DiscountCode discount = discountRepository.findByCodeIgnoreCaseAndEventId(discountCode.trim(), eventId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Discount code is invalid"));
@@ -466,6 +468,15 @@ public class CheckoutService {
         if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Order is not pending payment");
         }
+    }
+
+    private PaymentResponse toPaymentResponse(PurchaseOrder order) {
+        Payment payment = order.getPayment();
+        return new PaymentResponse(
+                order.getOrderNumber(),
+                order.getStatus(),
+                payment == null ? null : payment.getStatus()
+        );
     }
 
     private OrderResponse toOrderResponse(PurchaseOrder order) {

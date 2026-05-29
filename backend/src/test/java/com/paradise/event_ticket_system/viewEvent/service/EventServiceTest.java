@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.paradise.event_ticket_system.category.CategoryRepository;
+import com.paradise.event_ticket_system.config.EditConflictException;
 import com.paradise.event_ticket_system.event.EventStatus;
 import com.paradise.event_ticket_system.model.Event;
 import com.paradise.event_ticket_system.model.Organizer;
@@ -15,8 +16,6 @@ import com.paradise.event_ticket_system.viewEvent.domain.VenueRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -64,20 +63,16 @@ class EventServiceTest {
         Mockito.when(eventRepository.findById(1)).thenReturn(Optional.of(event));
 
         assertThatThrownBy(() -> service.updateStatus(1, 1, EventStatus.PUBLISHED, 5L))
-                .isInstanceOf(ResponseStatusException.class)
-                .extracting(e -> ((ResponseStatusException) e).getStatusCode())
-                .isEqualTo(HttpStatus.CONFLICT);
+                .isInstanceOf(EditConflictException.class);
     }
 
     @Test
-    void updateStatus_whenVersionIsNull_throws400() {
+    void updateStatus_whenVersionIsNull_throwsConflict() {
         Event event = eventWithVersion(1, 6L);
         Mockito.when(eventRepository.findById(1)).thenReturn(Optional.of(event));
 
         assertThatThrownBy(() -> service.updateStatus(1, 1, EventStatus.CANCELED, null))
-                .isInstanceOf(ResponseStatusException.class)
-                .extracting(e -> ((ResponseStatusException) e).getStatusCode())
-                .isEqualTo(HttpStatus.BAD_REQUEST);
+                .isInstanceOf(EditConflictException.class);
 
         assertThat(event.getStatus()).isNotEqualTo(EventStatus.CANCELED);
     }

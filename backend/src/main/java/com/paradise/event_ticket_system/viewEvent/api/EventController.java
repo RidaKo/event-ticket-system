@@ -26,8 +26,11 @@ public class EventController {
     @GetMapping
     @Operation(summary = "Get all events", description = "Returns a list of all events with venue, ratings and category")
     @ApiResponse(responseCode = "200", description = "Events retrieved successfully")
-    public ResponseEntity<List<EventResponse>> getAllEvents() {
-        return ResponseEntity.ok(eventService.getAllEvents());
+    public ResponseEntity<List<EventResponse>> getAllEvents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size
+    ) {
+        return ResponseEntity.ok(eventService.getAllEvents(page, size));
     }
 
     @GetMapping("/{id}")

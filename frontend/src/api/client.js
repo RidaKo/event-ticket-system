@@ -59,14 +59,18 @@ export async function apiFetch(path, options = {}) {
 
   if (!response.ok) {
     let message = 'Request failed';
+    let body = null;
     try {
-      const body = await response.json();
+      body = await response.json();
       message = body.detail || body.message || body.error || message;
     } catch {
       message = response.statusText || message;
     }
     const err = new Error(message);
     err.status = response.status;
+    err.body = body;
+    err.code = body?.code;
+    err.current = body?.current;
     throw err;
   }
 

@@ -1,8 +1,6 @@
 package com.paradise.event_ticket_system.recommendation;
 
-import com.paradise.event_ticket_system.model.User;
 import com.paradise.event_ticket_system.recommendation.dto.RecommendationResponse;
-import com.paradise.event_ticket_system.viewEvent.domain.UserRepository;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,12 +21,9 @@ import java.util.stream.Collectors;
 public class RecommendationController {
 
     private final RecommendationService recommendationService;
-    private final UserRepository userRepository;
 
-    public RecommendationController(RecommendationService recommendationService,
-                                    UserRepository userRepository) {
+    public RecommendationController(RecommendationService recommendationService) {
         this.recommendationService = recommendationService;
-        this.userRepository = userRepository;
     }
 
     @GetMapping("/recommended")
@@ -54,23 +49,17 @@ public class RecommendationController {
                 location
         );
 
-        Integer userId = resolveUserId(authentication);
-        return recommendationService.recommend(
-                userId,
+        String email = authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())
+                ? null
+                : authentication.getName();
+        return recommendationService.recommendForEmail(
+                email,
                 filters,
                 page,
                 size == null ? limit : size
         );
-    }
-
-    /** Logged-in user only; anonymous callers get null (no demo-user fallback). */
-    private Integer resolveUserId(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            return userRepository.findByEmailIgnoreCase(authentication.getName())
-                    .map(User::getId)
-                    .orElse(null);
-        }
-        return null;
     }
 
     private Set<String> parseToLowerSlugs(List<String> raw) {

@@ -12,6 +12,7 @@ export async function saveMyPreferences(preferences) {
       tagSlugs: preferences.tagSlugs ?? [],
       homeCity: preferences.homeCity?.trim() || null,
       version: preferences.version ?? null,
+      force: Boolean(preferences.force),
     }),
   });
 }

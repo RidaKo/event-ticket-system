@@ -82,6 +82,16 @@ public class CheckoutController {
         return checkoutService.submitPayment(orderNumber, request);
     }
 
+    @GetMapping("/orders/{orderNumber}/payment")
+    public PaymentResponse paymentStatus(
+            @PathVariable String orderNumber,
+            Authentication auth,
+            @RequestHeader(value = "X-Order-Token", required = false) String orderToken
+    ) {
+        checkoutService.verifyAccessTo(orderNumber, auth, orderToken);
+        return checkoutService.getPaymentStatus(orderNumber);
+    }
+
     @GetMapping("/orders/{orderNumber}/confirmation")
     public ConfirmationResponse confirmation(
             @PathVariable String orderNumber,

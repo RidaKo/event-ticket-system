@@ -1,6 +1,6 @@
 import { Alert, Grid, Group, Loader, Paper, Stack, Text, TextInput, Title } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { getOrder, submitPayment } from "../api/checkoutApi.js";
+import { getOrder, getPaymentStatus, submitPayment } from "../api/checkoutApi.js";
 import CheckoutStepLayout from "../components/CheckoutStepLayout.jsx";
 import OrderSummary from "../components/OrderSummary.jsx";
 import PaymentMethodSelector from "../components/PaymentMethodSelector.jsx";
@@ -17,6 +17,7 @@ export default function PaymentPage({ orderNumber, navigate }) {
   const [cvv, setCvv] = useState("123");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function PaymentPage({ orderNumber, navigate }) {
     }
 
     setSubmitting(true);
+    setProcessing(false);
     setError("");
     try {
       const result = await submitPayment(
@@ -58,23 +60,41 @@ export default function PaymentPage({ orderNumber, navigate }) {
         },
         orderToken
       );
-      if (result.orderStatus === "CONFIRMED") {
-        navigate(`/checkout/${orderNumber}/confirmation`);
-        return;
-      }
-      setError("Payment failed");
+      await waitForPaymentResult(result);
     } catch (err) {
       setError(err.message);
     } finally {
       setSubmitting(false);
+      setProcessing(false);
     }
+  }
+
+  async function waitForPaymentResult(initialResult) {
+    let current = initialResult;
+    setProcessing(current?.paymentStatus === "PENDING");
+
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      if (current?.orderStatus === "CONFIRMED") {
+        navigate(`/checkout/${orderNumber}/confirmation`);
+        return;
+      }
+      if (current?.orderStatus === "PAYMENT_FAILED" || current?.paymentStatus === "FAILED") {
+        setError("Payment failed");
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      current = await getPaymentStatus(orderNumber, orderToken);
+      setProcessing(current?.paymentStatus === "PENDING");
+    }
+
+    setError("Payment is still processing. Check the order again in a moment.");
   }
 
   const sidebar = (
     <Stack gap="md">
       <OrderSummary
         summary={order?.summary}
-        actionLabel="Pay Now"
+        actionLabel={processing ? "Processing..." : "Pay Now"}
         onAction={() => document.getElementById("paymentForm")?.requestSubmit()}
         actionDisabled={submitting || loading || !order}
       />

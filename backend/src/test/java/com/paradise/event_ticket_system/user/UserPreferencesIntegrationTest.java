@@ -111,8 +111,11 @@ class UserPreferencesIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 { "categorySlugs": ["technology"], "tagSlugs": [], "homeCity": "Kaunas", "version": 0 }
-                                """))
-                .andExpect(status().isConflict());
+                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("OPTIMISTIC_LOCK_CONFLICT"))
+                .andExpect(jsonPath("$.current.version").value(1))
+                .andExpect(jsonPath("$.current.homeCity").value("Kaunas"));
     }
 
     private String registerAndGetToken(String email) throws Exception {

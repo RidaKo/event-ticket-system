@@ -42,6 +42,10 @@ export function submitPayment(orderNumber, payload, orderToken) {
   });
 }
 
+export function getPaymentStatus(orderNumber, orderToken) {
+  return apiFetch(`/checkout/orders/${orderNumber}/payment`, { orderToken });
+}
+
 export function getConfirmation(orderNumber, orderToken) {
   return apiFetch(`/checkout/orders/${orderNumber}/confirmation`, { orderToken });
 }
